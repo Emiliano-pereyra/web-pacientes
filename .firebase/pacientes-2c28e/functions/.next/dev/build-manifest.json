@@ -1,0 +1,50 @@
+{
+  "pages": {
+    "/_app": [
+      "static/chunks/3515c_next_dist_compiled_dac1956f._.js",
+      "static/chunks/3515c_next_dist_shared_lib_e3e5fa80._.js",
+      "static/chunks/3515c_next_dist_client_0987f499._.js",
+      "static/chunks/3515c_next_dist_af905824._.js",
+      "static/chunks/3515c_next_app_c84a41f6.js",
+      "static/chunks/[next]_entry_page-loader_ts_7839493b._.js",
+      "static/chunks/3515c_react-dom_7e11ee94._.js",
+      "static/chunks/3515c_8c12fc9a._.js",
+      "static/chunks/[root-of-the-server]__c73564fb._.js",
+      "static/chunks/web-pacientes_pages__app_2da965e7._.js",
+      "static/chunks/turbopack-web-pacientes_pages__app_dfd3b4e2._.js"
+    ],
+    "/_error": [
+      "static/chunks/3515c_next_dist_compiled_dac1956f._.js",
+      "static/chunks/3515c_next_dist_shared_lib_e6375cb5._.js",
+      "static/chunks/3515c_next_dist_client_0987f499._.js",
+      "static/chunks/3515c_next_dist_ab4861f0._.js",
+      "static/chunks/3515c_next_error_1ce8bcab.js",
+      "static/chunks/[next]_entry_page-loader_ts_69c2e517._.js",
+      "static/chunks/3515c_react-dom_7e11ee94._.js",
+      "static/chunks/3515c_8c12fc9a._.js",
+      "static/chunks/[root-of-the-server]__3f3ccfa7._.js",
+      "static/chunks/web-pacientes_pages__error_2da965e7._.js",
+      "static/chunks/turbopack-web-pacientes_pages__error_ff803303._.js"
+    ]
+  },
+  "devFiles": [],
+  "polyfillFiles": [
+    "static/chunks/3515c_next_dist_build_polyfills_polyfill-nomodule.js"
+  ],
+  "lowPriorityFiles": [
+    "static/development/_ssgManifest.js",
+    "static/development/_buildManifest.js"
+  ],
+  "rootMainFiles": [
+    "static/chunks/[turbopack]_browser_dev_hmr-client_hmr-client_ts_ab4f17d7._.js",
+    "static/chunks/3515c_next_dist_compiled_react-dom_82ab95b9._.js",
+    "static/chunks/3515c_next_dist_compiled_react-server-dom-turbopack_62539ad9._.js",
+    "static/chunks/3515c_next_dist_compiled_next-devtools_index_c972914d.js",
+    "static/chunks/3515c_next_dist_compiled_ec4cb2aa._.js",
+    "static/chunks/3515c_next_dist_client_8ba0cad0._.js",
+    "static/chunks/3515c_next_dist_15ddbeb6._.js",
+    "static/chunks/3515c_@swc_helpers_cjs_0e182371._.js",
+    "static/chunks/web-pacientes_a0ff3932._.js",
+    "static/chunks/turbopack-web-pacientes_5873aa62._.js"
+  ]
+}

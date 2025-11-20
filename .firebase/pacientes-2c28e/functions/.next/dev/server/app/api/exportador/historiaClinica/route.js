@@ -1,0 +1,13 @@
+var R=require("../../../../chunks/[turbopack]_runtime.js")("server/app/api/exportador/historiaClinica/route.js")
+R.c("server/chunks/3515c_next_dist_69f68ef1._.js")
+R.c("server/chunks/3515c_crypto-js_e1c25884._.js")
+R.c("server/chunks/3515c_brotli_dec_dictionary-data_3d19a90d.js")
+R.c("server/chunks/3515c_brotli_dec_c33adb2b._.js")
+R.c("server/chunks/3515c_brotli_decompress_b5c38b3b.js")
+R.c("server/chunks/3515c_fontkit_dist_module_mjs_372cc769._.js")
+R.c("server/chunks/3515c_pdfkit_js_pdfkit_es_c0b2e71b.js")
+R.c("server/chunks/3515c_fa969df6._.js")
+R.c("server/chunks/[root-of-the-server]__7a4c73d1._.js")
+R.c("server/chunks/67234__next-internal_server_app_api_exportador_historiaClinica_route_actions_484e62c0.js")
+R.m("[project]/web-pacientes/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/web-pacientes/src/app/api/exportador/historiaClinica/route.js [app-route] (ecmascript)\" } [app-route] (ecmascript)")
+module.exports=R.m("[project]/web-pacientes/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/web-pacientes/src/app/api/exportador/historiaClinica/route.js [app-route] (ecmascript)\" } [app-route] (ecmascript)").exports

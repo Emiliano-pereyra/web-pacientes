@@ -1,10 +1,10 @@
 {
   "hosting": {
-    "public": "nextjs",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ]
+    "site": "pacientes-2c28e",
+    "source": ".",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "frameworksBackend": {
+      "region": "us-east1"
+    }
   }
 }
