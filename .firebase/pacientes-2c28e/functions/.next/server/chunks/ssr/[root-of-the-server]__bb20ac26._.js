@@ -1,3 +1,0 @@
-module.exports=[21517,(a,b,c)=>{b.exports=a.x("http",()=>require("http"))},25328,(a,b,c)=>{b.exports=a.x("http2",()=>require("http2"))},14747,(a,b,c)=>{b.exports=a.x("path",()=>require("path"))},24361,(a,b,c)=>{b.exports=a.x("util",()=>require("util"))},88947,(a,b,c)=>{b.exports=a.x("stream",()=>require("stream"))},92509,(a,b,c)=>{b.exports=a.x("url",()=>require("url"))},22734,(a,b,c)=>{b.exports=a.x("fs",()=>require("fs"))},54799,(a,b,c)=>{b.exports=a.x("crypto",()=>require("crypto"))},6461,(a,b,c)=>{b.exports=a.x("zlib",()=>require("zlib"))},27699,(a,b,c)=>{b.exports=a.x("events",()=>require("events"))},43497,(a,b,c)=>{"use strict";b.exports=a.r(96582).vendored["react-ssr"].ReactDOM}];
-
-//# sourceMappingURL=%5Broot-of-the-server%5D__bb20ac26._.js.map
