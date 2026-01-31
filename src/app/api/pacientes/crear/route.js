@@ -1,4 +1,5 @@
 import { db } from "@/lib/firebase";
+import { getStepIconUtilityClass } from "@mui/material";
 import { doc, setDoc } from "firebase/firestore";
 
 function convertirNombreAId(nombre) {
@@ -100,12 +101,80 @@ export async function POST(req) {
       fechaUltModifAntecedentesPatologicos: getStringOrDash(body.fechaUltModifAntecedentesPatologicos), //se almacena la fecha actual de la edicion
       fechaAnterioModifAntecedentesPatologicos: getStringOrDash(body.fechaAnterioModifAntecedentesPatologicos), //se almacena la fecha anterio de la edicion
       enfermedadActual: getStringOrDash(body.enfermedadActual),
+      enfermedadBase: getStringOrDash(body.enfermedadBase),
+      fechaEnfermedadBase: getStringOrDash(body.fechaEnfermedadBase),
       fechaUltModifEnfermedadActual: getStringOrDash(body.fechaUltModifEnfermedadActual),
       fechaAnterioModifEnfermedadActual: getStringOrDash(body.fechaAnterioModifEnfermedadActual),
       informeInterconsulta: getStringOrDash(body.informeInterconsulta),
 
       // Historia clinica
       tratamientoBase: getStringOrDash(body.tratamientoBase),
+      fechaTratamientoBase:getStringOrDash(body.fechaTratamientoBase),
+      tratamientoActual: getStringOrDash(body.tratamientoActual),
+      fechaTratamientoActual: getStringOrDash(body.fechaTratamientoActual),
+
+      // clinico
+      TA: getStringOrDash(body.TA),
+      Cardio: getStringOrDash(body.Cardio),
+      Digestivos: getStringOrDash(body.Digestivos),
+      Constipacion: getStringOrDash(body.Constipacion),
+      Metabolicas: getStringOrDash(body.Metabolicas),
+      Auditivas: getStringOrDash(body.Auditivas),
+      Olfativas: getStringOrDash(body.Olfativas),
+      Visuales: getStringOrDash(body.Visuales),
+      Gustativas: getStringOrDash(body.Gustativas),
+      Ginecologicas: getStringOrDash(body.Ginecologicas),
+      Edemas: getStringOrDash(body.Edemas),
+      Varices: getStringOrDash(body.Varices),
+      Ulceras: getStringOrDash(body.Ulceras),
+      Tiroides: getStringOrDash(body.Tiroides),
+      Paralisis: getStringOrDash(body.Paralisis),
+      Parestesias: getStringOrDash(body.Parestesias),
+      Temblores: getStringOrDash(body.Temblores),
+      Convulsiones: getStringOrDash(body.Convulsiones),
+      Afasias: getStringOrDash(body.Afasias),
+      Disartria: getStringOrDash(body.Disartria),
+      Urologicas:getStringOrDash(body.Urologicas),
+      Dermatologicas:getStringOrDash(body.Dermatologicas),
+      PsiquicaActiva:getStringOrDash(body.PsiquicaActiva),
+      PsiquicaPasiva: getStringOrDash(body.PsiquicaPasiva),
+
+      //Examen fisico
+      FacialOjos:getStringOrDash(body.FacialOjos),
+      FacialBoca: getStringOrDash(body.FacialBoca),
+      FacialDenticion: getStringOrDash(body.FacialDenticion),
+      CardioR1R2: getStringOrDash(body.CardioR1R2),
+      PPBL: getStringOrDash(body.PPBL),
+      GenitourinarioEsfinter: getStringOrDash(body.GenitourinarioEsfinter),
+      GenitourinarioOtros: getStringOrDash(body.GenitourinarioOtros),
+      TrAtencion: getStringOrDash(body.TrAtencion),
+      TrOrientacion: getStringOrDash(body.TrOrientacion),
+      TrMemoria: getStringOrDash(body.TrMemoria),
+      TrSignoDepre: getStringOrDash(body.TrSignoDepre),
+      TrSueno: getStringOrDash(body.TrSueno),
+      Adenopatias: getStringOrDash(body.Adenopatias),
+      Bocio: getStringOrDash(body.Bocio),
+      CardiacaTA: getStringOrDash(body.CardiacaTA),
+      CardiacaEdemas: getStringOrDash(body.CardiacaEdemas),
+      TEJCP: getStringOrDash(body.TEJCP),
+      Peso: getStringOrDash(body.Peso),
+      Percusion: getStepIconUtilityClass(body.Percusion),
+      Auscultacion: getStringOrDash(body.Auscultacion),
+      RespiratoriaOtros: getStringOrDash(body.RespiratoriaOtros),
+      Abdomen: getStringOrDash(body.Abdomen),
+      Palpacion: getStringOrDash(body.Palpacion),
+      Catarsis:getStringOrDash(body.Catarsis),
+      DigestivoEsfinter: getStringOrDash(body.DigestivoEsfinter),
+      DigestivoOtros: getStringOrDash(body.DigestivoOtros),
+      SNCAltMotoras: getStringOrDash(body.SNCAltMotoras),
+      SNCSensitivas:getStringOrDash(body.SNCSensitivas),
+      SNCTemblores: getStringOrDash(body.SNCTemblores),
+      SNCPostura:getStringOrDash(body.SNCPostura),
+      SNCEquilibrio:getStringOrDash(body.SNCEquilibrio),
+      SNCMarcha: getStringOrDash(body.SNCMarcha),
+
+      Evolucion: getStringOrDash(body.Evolucion),
+      UltFechaModifEvolucion: getStringOrDash(body.UltFechaModifEvolucion),
     };
 
     const pacienteDocRef = doc(
