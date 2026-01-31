@@ -70,7 +70,7 @@ const HistoriaClinicaTab = ({ paciente, datos }) => {
           Swal.fire(
             "Error",
             "No se pudo generar el PDF: " + err.message,
-            "error"
+            "error",
           );
         }
       }
@@ -84,12 +84,12 @@ const HistoriaClinicaTab = ({ paciente, datos }) => {
   const datosParaEditar = {
     Informacion: paciente
       ? {
-          nombreCompleto: paciente.nombre || "",
+          nombreCompleto: paciente.nombreCompleto || "",
           dni: paciente.dni || "",
           fechaNacimiento: paciente.fechaNacimiento || "",
           edad: paciente.edad || "",
-          os: paciente.os || "",
-          afNumero: paciente.afNumero || "",
+          obraSocial: paciente.obraSocial || "",
+          afialiadoNumero: paciente.afialiadoNumero || "",
           fechaIngreso: paciente.fechaIngreso || "",
         }
       : {},
@@ -150,9 +150,11 @@ const HistoriaClinicaTab = ({ paciente, datos }) => {
     );
   }
 
+const d = (v) => v ?? "-";
+
   return (
     <Box>
-      <Paper sx={{ p: 2, mb: 3, maxWidth: "500px" }}>
+      <Paper sx={{ p: 2, mb: 3, maxWidth: "600px" }}>
         <Box
           display="flex"
           justifyContent="space-between"
@@ -163,27 +165,40 @@ const HistoriaClinicaTab = ({ paciente, datos }) => {
         </Box>
         <Grid container spacing={2}>
           <Grid item xs={12} md={4}>
-            <Typography variant="body2">Fecha de ingreso: {paciente.Informacion?.fechaIngreso}</Typography>
-            <Typography variant="body2">Nombre completo: {paciente.Informacion?.nombreCompleto}</Typography>
-            <Typography variant="body2">Os:</Typography>
-            <Typography variant="body2">DNI:</Typography>
+            <Typography variant="body2">
+              Fecha de ingreso: {paciente.fechaIngreso || "-"}
+            </Typography>
+            <Typography variant="body2">
+              Nombre completo: {paciente.nombreCompleto || "-"}
+            </Typography>
+            <Typography variant="body2">
+              Obra Social: {paciente.obraSocial || "-"}
+            </Typography>
+            <Typography variant="body2">DNI: {paciente.dni || "-"}</Typography>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Typography variant="body2">Fecha de nacimiento:</Typography>
-            <Typography variant="body2">Edad: {paciente.edad}</Typography>
-            <Typography variant="body2">AF N°:</Typography>
+            <Typography variant="body2">
+              Fecha de nacimiento: {paciente.fechaNacimiento || "-"}
+            </Typography>
+            <Typography variant="body2">
+              Edad: {paciente.edad || "-"}
+            </Typography>
+            <Typography variant="body2">
+              AF N°: {paciente.afialiadoNumero || "-"}
+            </Typography>
           </Grid>
           <Grid
             item
             xs={12}
             md={4}
+            sx={{ ml: 5, mb: 2 }}
             display="flex"
             justifyContent="center"
             alignItems="center"
           >
             <Avatar
-              src={paciente.urlFoto}
-              alt={paciente.nombre}
+              src={paciente.urlFoto || ""}
+              alt={paciente.nombreCompleto || "Paciente"}
               sx={{ width: 60, height: 60 }}
             />
           </Grid>
@@ -201,14 +216,27 @@ const HistoriaClinicaTab = ({ paciente, datos }) => {
         </Box>
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
-            <Typography variant="body2">Camina:</Typography>
-            <Typography variant="body2">Levántate y anda:</Typography>
-            <Typography variant="body2">Articulaciones:</Typography>
+            <Typography variant="body2">
+              Camina: {datos.funcional?.camina || "-"}
+            </Typography>
+            <Typography variant="body2">
+              Levántate y anda: {datos.funcional?.levantateYAnda || "-"}
+            </Typography>
+            <Typography variant="body2">
+              Articulaciones: {datos.funcional?.articulaciones || "-"}
+            </Typography>
           </Grid>
           <Grid item xs={12} md={6}>
-            <Typography variant="body2">Pasa mucho tiempo sentado:</Typography>
-            <Typography variant="body2">Equilibrio:</Typography>
-            <Typography variant="body2">Caídas:</Typography>
+            <Typography variant="body2">
+              Pasa mucho tiempo sentado:{" "}
+              {datos.funcional?.pasaMuchoTiempoSentado || "-"}
+            </Typography>
+            <Typography variant="body2">
+              Equilibrio: {datos.funcional?.equilibrio || "-"}
+            </Typography>
+            <Typography variant="body2">
+              Caídas: {datos.funcional?.caidas || "-"}
+            </Typography>
           </Grid>
         </Grid>
       </Paper>
@@ -224,17 +252,31 @@ const HistoriaClinicaTab = ({ paciente, datos }) => {
         </Box>
         <Grid container spacing={2}>
           <Grid item xs={12} md={4}>
-            <Typography variant="body2">Con quién vive:</Typography>
-            <Typography variant="body2">Hijos:</Typography>
-            <Typography variant="body2">Concurre a la consulta:</Typography>
+            <Typography variant="body2">
+              Con quién vive: {datos.social?.conQuienVive || "-"}
+            </Typography>
+            <Typography variant="body2">
+              Hijos: {datos.social?.hijos || "-"}
+            </Typography>
+            <Typography variant="body2">
+              Concurre a la consulta: {datos.social?.concurreALaConsulta || "-"}
+            </Typography>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Typography variant="body2">Cónyuge:</Typography>
-            <Typography variant="body2">Hermanos:</Typography>
-            <Typography variant="body2">Acompañado:</Typography>
+            <Typography variant="body2">
+              Cónyuge: {datos.social?.conyuge || "-"}
+            </Typography>
+            <Typography variant="body2">
+              Hermanos: {datos.social?.hermanos || "-"}
+            </Typography>
+            <Typography variant="body2">
+              Acompañado: {datos.social?.acompanado || "-"}
+            </Typography>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Typography variant="body2">Otros:</Typography>
+            <Typography variant="body2">
+              Otros: {datos.social?.otros || "-"}
+            </Typography>
           </Grid>
         </Grid>
       </Paper>
@@ -256,8 +298,16 @@ const HistoriaClinicaTab = ({ paciente, datos }) => {
             >
               Orientación en T y E:
             </Typography>
-            <Typography variant="body2">Hijos:</Typography>
-            <Typography variant="body2">Concurre a la consulta:</Typography>
+            <Typography variant="body2">
+              Orientación: {datos.mental?.orientacionEnT || "-"}
+            </Typography>
+            <Typography variant="body2">
+              Hijos: {datos.mental?.hijosMental || "-"}
+            </Typography>
+            <Typography variant="body2">
+              Concurre a la consulta:{" "}
+              {datos.mental?.concurreALaConsultaMental || "-"}
+            </Typography>
           </Grid>
           <Grid item xs={12} md={2}>
             <Typography
@@ -266,9 +316,15 @@ const HistoriaClinicaTab = ({ paciente, datos }) => {
             >
               Fijación (repita 3 palabras)
             </Typography>
-            <Typography variant="body2">Palabra 1:</Typography>
-            <Typography variant="body2">Palabra 2:</Typography>
-            <Typography variant="body2">Palabra 3:</Typography>
+            <Typography variant="body2">
+              Palabra 1: {datos.mental?.palabra1 || "-"}
+            </Typography>
+            <Typography variant="body2">
+              Palabra 2: {datos.mental?.palabra2 || "-"}
+            </Typography>
+            <Typography variant="body2">
+              Palabra 3: {datos.mental?.palabra3 || "-"}
+            </Typography>
           </Grid>
           <Grid item xs={12} md={2}>
             <Typography
@@ -277,9 +333,15 @@ const HistoriaClinicaTab = ({ paciente, datos }) => {
             >
               Concentración y cálculo
             </Typography>
-            <Typography variant="body2">Cálculo 1:</Typography>
-            <Typography variant="body2">Cálculo 2:</Typography>
-            <Typography variant="body2">Cálculo 3:</Typography>
+            <Typography variant="body2">
+              Cálculo 1: {datos.mental?.calculo1 || "-"}
+            </Typography>
+            <Typography variant="body2">
+              Cálculo 2: {datos.mental?.calculo2 || "-"}
+            </Typography>
+            <Typography variant="body2">
+              Cálculo 3: {datos.mental?.calculo3 || "-"}
+            </Typography>
           </Grid>
           <Grid item xs={12} md={2}>
             <Typography
@@ -288,8 +350,12 @@ const HistoriaClinicaTab = ({ paciente, datos }) => {
             >
               ¿Qué es esto?
             </Typography>
-            <Typography variant="body2">Respuesta 1:</Typography>
-            <Typography variant="body2">Respuesta 2:</Typography>
+            <Typography variant="body2">
+              Respuesta 1: {datos.mental?.respuesta1 || "-"}
+            </Typography>
+            <Typography variant="body2">
+              Respuesta 2: {datos.mental?.respuesta2 || "-"}
+            </Typography>
           </Grid>
           <Grid item xs={12} md={2}>
             <Typography
@@ -298,9 +364,15 @@ const HistoriaClinicaTab = ({ paciente, datos }) => {
             >
               Memoria (3 palabras)
             </Typography>
-            <Typography variant="body2">Palabra 1:</Typography>
-            <Typography variant="body2">Palabra 2:</Typography>
-            <Typography variant="body2">Palabra 3:</Typography>
+            <Typography variant="body2">
+              Palabra 1: {datos.mental?.palabra1Memoria || "-"}
+            </Typography>
+            <Typography variant="body2">
+              Palabra 2: {datos.mental?.palabra2Memoria || "-"}
+            </Typography>
+            <Typography variant="body2">
+              Palabra 3: {datos.mental?.palabra3Memoria || "-"}
+            </Typography>
           </Grid>
           <Grid item xs={12} md={2}>
             <Typography
@@ -309,7 +381,9 @@ const HistoriaClinicaTab = ({ paciente, datos }) => {
             >
               Repita
             </Typography>
-            <Typography variant="body2">Respuesta:</Typography>
+            <Typography variant="body2">
+              Respuesta: {datos.mental?.respuestaRepita || "-"}
+            </Typography>
           </Grid>
           <Grid item xs={12} md={2}>
             <Typography
@@ -318,8 +392,12 @@ const HistoriaClinicaTab = ({ paciente, datos }) => {
             >
               Lea esto
             </Typography>
-            <Typography variant="body2">Texto leído:</Typography>
-            <Typography variant="body2">Cierre los ojos y hágalo:</Typography>
+            <Typography variant="body2">
+              Texto leído: {datos.mental?.textoLeido || "-"}
+            </Typography>
+            <Typography variant="body2">
+              Cierre los ojos y hágalo: {datos.mental?.cierreOjosYHagalo || "-"}
+            </Typography>
           </Grid>
           <Grid item xs={12} md={2}>
             <Typography
@@ -328,7 +406,9 @@ const HistoriaClinicaTab = ({ paciente, datos }) => {
             >
               Doble papel
             </Typography>
-            <Typography variant="body2">Logrado:</Typography>
+            <Typography variant="body2">
+              Logrado: {datos.mental?.logradoDoblePapel || "-"}
+            </Typography>
           </Grid>
           <Grid item xs={12} md={2}>
             <Typography
@@ -337,7 +417,9 @@ const HistoriaClinicaTab = ({ paciente, datos }) => {
             >
               Copie dibujo
             </Typography>
-            <Typography variant="body2">Logrado:</Typography>
+            <Typography variant="body2">
+              Logrado: {datos.mental?.logradoCopieDibujo || "-"}
+            </Typography>
           </Grid>
           <Grid item xs={12} md={2}>
             <Typography
@@ -346,7 +428,9 @@ const HistoriaClinicaTab = ({ paciente, datos }) => {
             >
               Escriba frase
             </Typography>
-            <Typography variant="body2">Frase escrita:</Typography>
+            <Typography variant="body2">
+              Frase escrita: {datos.mental?.fraseEscrita || "-"}
+            </Typography>
           </Grid>
         </Grid>
       </Paper>

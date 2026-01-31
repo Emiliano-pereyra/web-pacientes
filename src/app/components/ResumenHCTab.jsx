@@ -22,6 +22,18 @@ const ResumenHCTab = ({ paciente, datos }) => {
     setOpenModal(true);
   };
 
+  const safe = (value) => {
+    if (
+      value === undefined ||
+      value === null ||
+      value === "" ||
+      value === "-"
+    ) {
+      return "-";
+    }
+    return value;
+  };
+
   const handleImprimir = async () => {
     if (!paciente || !datos) {
       Swal.fire("Error", "Selecciona un paciente con datos clínicos", "error");
@@ -45,7 +57,7 @@ const ResumenHCTab = ({ paciente, datos }) => {
         });
 
         try {
-          const res = await fetch("/api/exportador", {
+          const res = await fetch("/api/exportador/resumenHc", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -115,137 +127,91 @@ const ResumenHCTab = ({ paciente, datos }) => {
     );
   }
 
+  const d = (v) => v ?? "-";
+
   return (
     <Box>
-      {/* Información del paciente */}
       <Paper sx={{ p: 2, mb: 3 }}>
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          mb={2}
-        >
-          <Typography variant="h6">Paciente</Typography>
-        </Box>
+        <Typography variant="h6">Paciente</Typography>
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
             <Typography variant="body2">
-              <strong>Fecha:</strong> {paciente.fecha || "-"}
+              <strong>Fecha:</strong> {d(paciente.fechaIngreso)}
             </Typography>
             <Typography variant="body2">
-              <strong>Nombre completo:</strong> {paciente.nombre || "-"}
+              <strong>Nombre completo:</strong> {d(paciente.nombreCompleto)}
             </Typography>
             <Typography variant="body2">
-              <strong>Os:</strong> {paciente.os || "-"}
+              <strong>Obra Social:</strong> {d(paciente.obraSocial)}
             </Typography>
           </Grid>
           <Grid item xs={12} md={6}>
             <Typography variant="body2">
-              <strong>Dni:</strong> {paciente.dni || "-"}
+              <strong>DNI:</strong> {d(paciente.dni)}
             </Typography>
             <Typography variant="body2">
-              <strong>Edad:</strong> {paciente.edad || "-"}
+              <strong>Edad:</strong> {d(paciente.edad)}
             </Typography>
             <Typography variant="body2">
-              <strong>AF N°:</strong> {paciente.afNumero || "-"}
+              <strong>AF N°:</strong> {d(paciente.afiliadoNumero)}
             </Typography>
           </Grid>
         </Grid>
       </Paper>
 
-      {/* Enfermedad de base */}
       <Paper sx={{ p: 2, mb: 3 }}>
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          mb={2}
-        >
-          <Box display="flex" alignItems="center">
-            <Typography variant="h6" component="span">
-              Enfermedad de base -
-            </Typography>
-            <Typography variant="subtitle2" component="span" ml={1}>
-              {datos?.enfermedadBase?.ultimaActualizacion || "sin fecha"}
-            </Typography>
-          </Box>
+        <Box display="flex" alignItems="center" mb={1}>
+          <Typography variant="h6">Enfermedad de base -</Typography>
+          <Typography variant="subtitle2" ml={1}>
+            {d(paciente.fechaUltModifAntecedentesPatologicos)}
+          </Typography>
         </Box>
         <Box
           sx={{
-            backgroundColor: "#ffffff",
-            boxShadow: "0 8px 16px rgba(0, 0, 0, 0.08)",
             p: 1,
+            bgcolor: "#fff",
             borderRadius: "4px",
+            boxShadow: "0 8px 16px rgba(0,0,0,0.08)",
           }}
         >
           <Typography variant="body2">
-            {datos?.enfermedadBase?.texto ||
-              "No hay información disponible sobre la enfermedad de base."}
+            {d(paciente.antecedentesPatologicosActual)}
           </Typography>
         </Box>
       </Paper>
 
-      {/* Enfermedad actual */}
       <Paper sx={{ p: 2, mb: 3 }}>
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          mb={2}
-        >
-          <Box display="flex" alignItems="center">
-            <Typography variant="h6" component="span">
-              Enfermedad actual -
-            </Typography>
-            <Typography variant="subtitle2" component="span" ml={1}>
-              {datos?.enfermedadActual?.ultimaActualizacion || "sin fecha"}
-            </Typography>
-          </Box>
+        <Box display="flex" alignItems="center" mb={1}>
+          <Typography variant="h6">Enfermedad actual -</Typography>
+          <Typography variant="subtitle2" ml={1}>
+            {d(paciente.fechaUltModifEnfermedadActual)}
+          </Typography>
         </Box>
         <Box
           sx={{
-            backgroundColor: "#ffffff",
-            boxShadow: "0 8px 16px rgba(0, 0, 0, 0.08)",
             p: 1,
+            bgcolor: "#fff",
             borderRadius: "4px",
+            boxShadow: "0 8px 16px rgba(0,0,0,0.08)",
           }}
         >
           <Typography variant="body2">
-            {datos?.enfermedadActual?.texto ||
-              "No hay información disponible sobre la enfermedad actual."}
+            {d(paciente.enfermedadActual)}
           </Typography>
         </Box>
       </Paper>
 
-      {/* Tratamiento de base */}
       <Paper sx={{ p: 2, mb: 3 }}>
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          mb={2}
-        >
-          <Box display="flex" alignItems="center">
-            <Typography variant="h6" component="span">
-              Tratamiento de base -
-            </Typography>
-            <Typography variant="subtitle2" component="span" ml={1}>
-              {datos?.tratamientoBase?.ultimaActualizacion || "sin fecha"}
-            </Typography>
-          </Box>
-        </Box>
+        <Typography variant="h6">Tratamiento de base</Typography>
         <Box
           sx={{
-            backgroundColor: "#ffffff",
-            boxShadow: "0 8px 16px rgba(0, 0, 0, 0.08)",
             p: 1,
+            bgcolor: "#fff",
             borderRadius: "4px",
+            boxShadow: "0 8px 16px rgba(0,0,0,0.08)",
           }}
         >
-          <Typography variant="body2">
-            {datos?.tratamientoBase?.texto ||
-              "No hay información disponible sobre el tratamiento de base."}
-          </Typography>
+          <Typography variant="body2">{d(paciente.tratamientoBase)}</Typography>
         </Box>
       </Paper>
 

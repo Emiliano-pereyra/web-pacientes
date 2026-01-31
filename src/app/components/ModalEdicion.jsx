@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React, { useState } from "react";
 import {
   Dialog,
@@ -49,13 +49,26 @@ const CampoEditable = ({ config, value, onChange, allValues }) => {
             label={label}
             value={value}
             onChange={handleChange}
-            renderInput={(params) => <TextField {...params} fullWidth margin="normal" required={required} {...otherProps} />}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                fullWidth
+                margin="normal"
+                required={required}
+                {...otherProps}
+              />
+            )}
           />
         </LocalizationProvider>
       );
     case "select":
       return (
-        <FormControl fullWidth margin="normal" required={required} {...otherProps}>
+        <FormControl
+          fullWidth
+          margin="normal"
+          required={required}
+          {...otherProps}
+        >
           <InputLabel>{label}</InputLabel>
           <Select
             value={value || ""}
@@ -74,7 +87,9 @@ const CampoEditable = ({ config, value, onChange, allValues }) => {
       return (
         <Autocomplete
           options={options}
-          getOptionLabel={(option) => typeof option === 'string' ? option : option.label}
+          getOptionLabel={(option) =>
+            typeof option === "string" ? option : option.label
+          }
           value={value}
           onChange={(event, newValue) => handleChange(newValue)}
           renderInput={(params) => (
@@ -122,7 +137,13 @@ const CampoEditable = ({ config, value, onChange, allValues }) => {
   }
 };
 
-const ModalEdicion = ({ open, onClose, datos, pacienteId, camposConfig = {} }) => {
+const ModalEdicion = ({
+  open,
+  onClose,
+  datos,
+  pacienteId,
+  camposConfig = {},
+}) => {
   const [tabIndex, setTabIndex] = useState(0);
   const [formValues, setFormValues] = useState(datos || {});
   const [loading, setLoading] = useState(false);
@@ -144,33 +165,68 @@ const ModalEdicion = ({ open, onClose, datos, pacienteId, camposConfig = {} }) =
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      console.log("Datos a guardar:", formValues);
+      const flattened = {};
+
+      for (const section in formValues) {
+        const sectionData = formValues[section];
+        if (!sectionData || typeof sectionData !== "object") continue;
+
+        if (
+          section === "antecedentesPatologicos" ||
+          section === "enfermedadBase"
+        ) {
+
+          if (typeof sectionData === "string") {
+            flattened.antecedentesPatologicos = sectionData;
+          } else if (sectionData.texto !== undefined) {
+            flattened.antecedentesPatologicos = sectionData.texto;
+          }
+        } else if (section === "enfermedadActual") {
+          if (typeof sectionData === "string") {
+            flattened.enfermedadActual = sectionData;
+          } else if (sectionData.texto !== undefined) {
+            flattened.enfermedadActual = sectionData.texto;
+          }
+        } else if (section === "informeInterconsulta") {
+          if (typeof sectionData === "string") {
+            flattened.informeInterconsulta = sectionData;
+          } else if (sectionData.texto !== undefined) {
+            flattened.informeInterconsulta = sectionData.texto;
+          }
+        } else if (section === "tratamientoBase") {
+          if (typeof sectionData === "string") {
+            flattened.tratamientoBase = sectionData;
+          } else if (sectionData.texto !== undefined) {
+            flattened.tratamientoBase = sectionData.texto;
+          }
+        } else {
+          for (const field in sectionData) {
+            flattened[field] = sectionData[field];
+          }
+        }
+      }
+
+      console.log("Datos normalizados para API:", flattened);
 
       const res = await fetch(`/api/pacientes/editar?id=${pacienteId}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formValues),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(flattened),
       });
 
       const result = await res.json();
-
-      if (!res.ok) {
-        throw new Error(result.error || "Error al guardar los datos");
-      }
+      if (!res.ok) throw new Error(result.error || "Error al guardar");
 
       alert("Datos guardados correctamente");
       onClose();
     } catch (error) {
       console.error("Error al guardar:", error);
-      alert("Error al guardar los datos: " + error.message);
+      alert("Error: " + error.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // Usar las claves de la configuración o de los datos si no hay configuración
   const sections = Object.keys(camposConfig || datos || {});
 
   const currentSection = sections[tabIndex];
@@ -196,7 +252,7 @@ const ModalEdicion = ({ open, onClose, datos, pacienteId, camposConfig = {} }) =
         </Alert>
       );
     }
-    
+
     const columns = [];
     for (let i = 0; i < totalFields; i += 8) {
       columns.push(entries.slice(i, i + 8));
@@ -210,8 +266,12 @@ const ModalEdicion = ({ open, onClose, datos, pacienteId, camposConfig = {} }) =
               <CampoEditable
                 key={key}
                 config={config}
-                value={formValues[currentSection]?.[key] ?? currentData[key] ?? ""}
-                onChange={(newValue) => handleChange(currentSection, key, newValue)}
+                value={
+                  formValues[currentSection]?.[key] ?? currentData[key] ?? ""
+                }
+                onChange={(newValue) =>
+                  handleChange(currentSection, key, newValue)
+                }
                 allValues={formValues[currentSection]}
               />
             ))}

@@ -22,6 +22,18 @@ const InterconsultaTab = ({ paciente, datos }) => {
     setOpenModal(true);
   };
 
+  const safe = (value) => {
+    if (
+      value === undefined ||
+      value === null ||
+      value === "" ||
+      value === "-"
+    ) {
+      return "-";
+    }
+    return value;
+  };
+
   const handleImprimir = async () => {
     if (!paciente || !datos) {
       Swal.fire("Error", "Selecciona un paciente con datos clínicos", "error");
@@ -45,7 +57,7 @@ const InterconsultaTab = ({ paciente, datos }) => {
         });
 
         try {
-          const res = await fetch("/api/exportador", {
+          const res = await fetch("/api/exportador/interconsulta", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -114,130 +126,87 @@ const InterconsultaTab = ({ paciente, datos }) => {
     );
   }
 
+const d = (v) => v ?? "-";
+
   return (
     <Box>
-      {/* Información del paciente */}
       <Paper sx={{ p: 2, mb: 3 }}>
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          mb={2}
-        >
-          <Typography variant="h6">Paciente</Typography>
-        </Box>
+        <Typography variant="h6">Paciente</Typography>
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
-            <Typography variant="body2">Fecha:</Typography>
-            <Typography variant="body2">Nombre completo:</Typography>
-            <Typography variant="body2">Os:</Typography>
+            <Typography variant="body2">
+              Fecha: {d(paciente.fechaIngreso)}
+            </Typography>
+            <Typography variant="body2">
+              Nombre completo: {d(paciente.nombreCompleto)}
+            </Typography>
+            <Typography variant="body2">
+              Obra Social: {d(paciente.obraSocial)}
+            </Typography>
           </Grid>
           <Grid item xs={12} md={6}>
-            <Typography variant="body2">Dni:</Typography>
-            <Typography variant="body2">Especialidad:</Typography>
-            <Typography variant="body2">AF N°:</Typography>
+            <Typography variant="body2">DNI: {d(paciente.dni)}</Typography>
+            <Typography variant="body2">
+              AF N°: {d(paciente.afiliadoNumero)}
+            </Typography>
           </Grid>
         </Grid>
       </Paper>
 
-      {/* Antecedentes patólogicos */}
       <Paper sx={{ p: 2, mb: 3 }}>
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          mb={2}
-        >
-          <Box display="flex" alignItems="center">
-            <Typography variant="h6" component="span">
-              Antecedentes patólogicos -
-            </Typography>
-            <Typography variant="subtitle2" component="span" ml={1}>
-              última fecha de actualización
-            </Typography>
-          </Box>
+        <Box display="flex" alignItems="center" mb={1}>
+          <Typography variant="h6">Antecedentes patológicos -</Typography>
+          <Typography variant="subtitle2" ml={1}>
+            {d(paciente.fechaUltModifAntecedentesPatologicos)}
+          </Typography>
         </Box>
         <Box
           sx={{
-            backgroundColor: "#ffffff",
-            boxShadow: "0 8px 16px rgba(0, 0, 0, 0.08)",
             p: 1,
+            bgcolor: "#fff",
             borderRadius: "4px",
+            boxShadow: "0 8px 16px rgba(0,0,0,0.08)",
           }}
         >
           <Typography variant="body2">
-            Lorem ipsum dolor sit, amet consectetur adipisicing elit. Velit, quo
-            dolorem dignissimos veniam quos adipisci ab dolor maiores delectus
-            voluptates! Maiores, placeat ullam perspiciatis asperiores amet
-            atque adipisci labore minima!
+            {d(paciente.antecedentesPatologicosActual)}
           </Typography>
         </Box>
       </Paper>
 
-      {/* Enfermedad actual */}
       <Paper sx={{ p: 2, mb: 3 }}>
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          mb={2}
-        >
-          <Box display="flex" alignItems="center">
-            <Typography variant="h6" component="span">
-              Enfermedad actual -
-            </Typography>
-            <Typography variant="subtitle2" component="span" ml={1}>
-              última fecha de actualización
-            </Typography>
-          </Box>
+        <Box display="flex" alignItems="center" mb={1}>
+          <Typography variant="h6">Enfermedad actual -</Typography>
+          <Typography variant="subtitle2" ml={1}>
+            {d(paciente.fechaUltModifEnfermedadActual)}
+          </Typography>
         </Box>
         <Box
           sx={{
-            backgroundColor: "#ffffff",
-            boxShadow: "0 8px 16px rgba(0, 0, 0, 0.08)",
             p: 1,
+            bgcolor: "#fff",
             borderRadius: "4px",
+            boxShadow: "0 8px 16px rgba(0,0,0,0.08)",
           }}
         >
           <Typography variant="body2">
-            Lorem ipsum dolor sit, amet consectetur adipisicing elit. Velit, quo
-            dolorem dignissimos veniam quos adipisci ab dolor maiores delectus
-            voluptates! Maiores, placeat ullam perspiciatis asperiores amet
-            atque adipisci labore minima!
+            {d(paciente.enfermedadActual)}
           </Typography>
         </Box>
       </Paper>
 
-      {/* Informe de Interconsulta */}
       <Paper sx={{ p: 2, mb: 3 }}>
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          mb={2}
-        >
-          <Box display="flex" alignItems="center">
-            <Typography variant="h6" component="span">
-              Informe de Interconsulta -
-            </Typography>
-            <Typography variant="subtitle2" component="span" ml={1}>
-              última fecha de actualización
-            </Typography>
-          </Box>
-        </Box>
+        <Typography variant="h6">Informe de Interconsulta</Typography>
         <Box
           sx={{
-            backgroundColor: "#ffffff",
-            boxShadow: "0 8px 16px rgba(0, 0, 0, 0.08)",
             p: 1,
+            bgcolor: "#fff",
             borderRadius: "4px",
+            boxShadow: "0 8px 16px rgba(0,0,0,0.08)",
           }}
         >
           <Typography variant="body2">
-            Lorem ipsum dolor sit, amet consectetur adipisicing elit. Velit, quo
-            dolorem dignissimos veniam quos adipisci ab dolor maiores delectus
-            voluptates! Maiores, placeat ullam perspiciatis asperiores amet
-            atque adipisci labore minima!
+            {d(paciente.informeInterconsulta)}
           </Typography>
         </Box>
       </Paper>

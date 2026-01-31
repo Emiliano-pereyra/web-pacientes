@@ -22,6 +22,18 @@ const ClinicoTab = ({ paciente, datos }) => {
     setOpenModal(true);
   };
 
+  const safe = (value) => {
+    if (
+      value === undefined ||
+      value === null ||
+      value === "" ||
+      value === "-"
+    ) {
+      return "-";
+    }
+    return value;
+  };
+
   const handleImprimir = async () => {
     if (!paciente || !datos) {
       Swal.fire("Error", "Selecciona un paciente con datos clínicos", "error");
@@ -45,7 +57,7 @@ const ClinicoTab = ({ paciente, datos }) => {
         });
 
         try {
-          const res = await fetch("/api/exportador", {
+          const res = await fetch("/api/exportador/clinico", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -178,7 +190,8 @@ const ClinicoTab = ({ paciente, datos }) => {
       tratamiento2: "",
     },
     evolucion: datos?.evolucion || {
-      texto: "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Velit, quo dolorem dignissimos veniam quos adipisci ab dolor maiores delectus voluptates! Maiores, placeat ullam perspiciatis asperiores amet atque adipisci labore minima!",
+      texto:
+        "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Velit, quo dolorem dignissimos veniam quos adipisci ab dolor maiores delectus voluptates! Maiores, placeat ullam perspiciatis asperiores amet atque adipisci labore minima!",
       ultimaActualizacion: "",
     },
   };
@@ -199,6 +212,8 @@ const ClinicoTab = ({ paciente, datos }) => {
     );
   }
 
+  const d = (v) => v ?? "-";
+
   return (
     <Box>
       <Paper sx={{ p: 2, mb: 3 }}>
@@ -212,27 +227,39 @@ const ClinicoTab = ({ paciente, datos }) => {
         </Box>
         <Grid container spacing={2}>
           <Grid item xs={12} md={2}>
-            <Typography variant="subtitle2" sx={{ textDecoration: "underline" }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline" }}
+            >
               Vasculares
             </Typography>
             <Typography variant="body2">TA:</Typography>
             <Typography variant="body2">Cardio:</Typography>
           </Grid>
           <Grid item xs={12} md={2}>
-            <Typography variant="subtitle2" sx={{ textDecoration: "underline" }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline" }}
+            >
               Digestivos
             </Typography>
             <Typography variant="body2">Párrafo para digestivos</Typography>
             <Typography variant="body2">Constipación:</Typography>
           </Grid>
           <Grid item xs={12} md={2}>
-            <Typography variant="subtitle2" sx={{ textDecoration: "underline" }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline" }}
+            >
               Metabólicas
             </Typography>
             <Typography variant="body2">Párrafo para metabolicos</Typography>
           </Grid>
           <Grid item xs={12} md={2}>
-            <Typography variant="subtitle2" sx={{ textDecoration: "underline" }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline" }}
+            >
               Sensoriales
             </Typography>
             <Typography variant="body2">Auditivas:</Typography>
@@ -241,13 +268,19 @@ const ClinicoTab = ({ paciente, datos }) => {
             <Typography variant="body2">Gustativas:</Typography>
           </Grid>
           <Grid item xs={12} md={2}>
-            <Typography variant="subtitle2" sx={{ textDecoration: "underline" }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline" }}
+            >
               Ginecológicas
             </Typography>
             <Typography variant="body2">Párrafo de ginecológicas</Typography>
           </Grid>
           <Grid item xs={12} md={2}>
-            <Typography variant="subtitle2" sx={{ textDecoration: "underline" }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline" }}
+            >
               V PERIF
             </Typography>
             <Typography variant="body2">Edemas:</Typography>
@@ -255,13 +288,19 @@ const ClinicoTab = ({ paciente, datos }) => {
             <Typography variant="body2">Úlceras:</Typography>
           </Grid>
           <Grid item xs={12} md={2}>
-            <Typography variant="subtitle2" sx={{ textDecoration: "underline" }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline" }}
+            >
               DBT
             </Typography>
             <Typography variant="body2">Tiroides:</Typography>
           </Grid>
           <Grid item xs={12} md={2}>
-            <Typography variant="subtitle2" sx={{ textDecoration: "underline" }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline" }}
+            >
               SNC
             </Typography>
             <Typography variant="body2">Parálisis:</Typography>
@@ -272,19 +311,28 @@ const ClinicoTab = ({ paciente, datos }) => {
             <Typography variant="body2">Disartria:</Typography>
           </Grid>
           <Grid item xs={12} md={2}>
-            <Typography variant="subtitle2" sx={{ textDecoration: "underline" }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline" }}
+            >
               Urológicas
             </Typography>
             <Typography variant="body2">Párrafo de urologicas</Typography>
           </Grid>
           <Grid item xs={12} md={2}>
-            <Typography variant="subtitle2" sx={{ textDecoration: "underline" }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline" }}
+            >
               Dermatológicas
             </Typography>
             <Typography variant="body2">Párrafo de dermatologicas:</Typography>
           </Grid>
           <Grid item xs={12} md={2}>
-            <Typography variant="subtitle2" sx={{ textDecoration: "underline" }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline" }}
+            >
               Actitud psíquica
             </Typography>
             <Typography variant="body2">Activa:</Typography>
@@ -305,7 +353,10 @@ const ClinicoTab = ({ paciente, datos }) => {
         </Box>
         <Grid container spacing={2}>
           <Grid item xs={12} md={2}>
-            <Typography variant="subtitle2" sx={{ textDecoration: "underline" }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline" }}
+            >
               Fasciales
             </Typography>
             <Typography variant="body2">Ojos:</Typography>
@@ -313,13 +364,19 @@ const ClinicoTab = ({ paciente, datos }) => {
             <Typography variant="body2">Dentición:</Typography>
           </Grid>
           <Grid item xs={12} md={2}>
-            <Typography variant="subtitle2" sx={{ textDecoration: "underline" }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline" }}
+            >
               Ap cardiovascular
             </Typography>
             <Typography variant="body2">R1 y R2:</Typography>
           </Grid>
           <Grid item xs={12} md={2}>
-            <Typography variant="subtitle2" sx={{ textDecoration: "underline" }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline" }}
+            >
               Ap. genitourinario
             </Typography>
             <Typography variant="body2">PPBL:</Typography>
@@ -327,7 +384,10 @@ const ClinicoTab = ({ paciente, datos }) => {
             <Typography variant="body2">Otro:</Typography>
           </Grid>
           <Grid item xs={12} md={2}>
-            <Typography variant="subtitle2" sx={{ textDecoration: "underline" }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline" }}
+            >
               Tr. mentales
             </Typography>
             <Typography variant="body2">Atención:</Typography>
@@ -337,28 +397,40 @@ const ClinicoTab = ({ paciente, datos }) => {
             <Typography variant="body2">Tr. del sueño:</Typography>
           </Grid>
           <Grid item xs={12} md={2}>
-            <Typography variant="subtitle2" sx={{ textDecoration: "underline" }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline" }}
+            >
               Cuello
             </Typography>
             <Typography variant="body2">Adenopatías:</Typography>
             <Typography variant="body2">Bocio:</Typography>
           </Grid>
           <Grid item xs={12} md={2}>
-            <Typography variant="subtitle2" sx={{ textDecoration: "underline" }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline" }}
+            >
               Signos falla cardíaca
             </Typography>
             <Typography variant="body2">TA:</Typography>
             <Typography variant="body2">Edemas:</Typography>
           </Grid>
           <Grid item xs={12} md={2}>
-            <Typography variant="subtitle2" sx={{ textDecoration: "underline" }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline" }}
+            >
               Dermatológicos
             </Typography>
             <Typography variant="body2">TEJ CP:</Typography>
             <Typography variant="body2">Peso:</Typography>
           </Grid>
           <Grid item xs={12} md={2}>
-            <Typography variant="subtitle2" sx={{ textDecoration: "underline" }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline" }}
+            >
               Ap. respiratoria
             </Typography>
             <Typography variant="body2">Percusión:</Typography>
@@ -366,7 +438,10 @@ const ClinicoTab = ({ paciente, datos }) => {
             <Typography variant="body2">Otros:</Typography>
           </Grid>
           <Grid item xs={12} md={2}>
-            <Typography variant="subtitle2" sx={{ textDecoration: "underline" }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline" }}
+            >
               Ap. digestivo
             </Typography>
             <Typography variant="body2">Abdomen:</Typography>
@@ -376,7 +451,10 @@ const ClinicoTab = ({ paciente, datos }) => {
             <Typography variant="body2">Otro:</Typography>
           </Grid>
           <Grid item xs={12} md={2}>
-            <Typography variant="subtitle2" sx={{ textDecoration: "underline" }}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline" }}
+            >
               SNC
             </Typography>
             <Typography variant="body2">Alteraciones motoras:</Typography>
@@ -419,7 +497,10 @@ const ClinicoTab = ({ paciente, datos }) => {
           </Box>
         </Box>
         <Typography variant="body2">
-          Lorem ipsum dolor sit, amet consectetur adipisicing elit. Velit, quo dolorem dignissimos veniam quos adipisci ab dolor maiores delectus voluptates! Maiores, placeat ullam perspiciatis asperiores amet atque adipisci labore minima!
+          Lorem ipsum dolor sit, amet consectetur adipisicing elit. Velit, quo
+          dolorem dignissimos veniam quos adipisci ab dolor maiores delectus
+          voluptates! Maiores, placeat ullam perspiciatis asperiores amet atque
+          adipisci labore minima!
         </Typography>
       </Paper>
 
@@ -437,7 +518,10 @@ const ClinicoTab = ({ paciente, datos }) => {
           color="warning"
           size="large"
           onClick={handleImprimir}
-          sx={{ backgroundColor: "#ed6c02", "&:hover": { backgroundColor: "#e65100" } }}
+          sx={{
+            backgroundColor: "#ed6c02",
+            "&:hover": { backgroundColor: "#e65100" },
+          }}
         >
           Imprimir planilla
         </Button>

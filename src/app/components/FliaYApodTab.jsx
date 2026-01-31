@@ -22,7 +22,24 @@ const FliaYApodTab = ({ paciente, datos }) => {
     setOpenModal(true);
   };
 
-  const handleImprimir = () => {
+  const safe = (value) => {
+    if (
+      value === undefined ||
+      value === null ||
+      value === "" ||
+      value === "-"
+    ) {
+      return "-";
+    }
+    return value;
+  };
+
+  const handleImprimir = async () => {
+    if (!paciente || !datos) {
+      Swal.fire("Error", "Selecciona un paciente con datos completos", "error");
+      return;
+    }
+
     Swal.fire({
       title: "Imprimir planilla",
       text: "¿Deseas imprimir la planilla de información familiar y apoderados?",
@@ -32,13 +49,51 @@ const FliaYApodTab = ({ paciente, datos }) => {
       cancelButtonColor: "#d33",
       confirmButtonText: "Sí, imprimir",
       cancelButtonText: "Cancelar",
-    }).then((result) => {
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        Swal.fire("Imprimiendo", "Generando PDF...", "info");
+        Swal.fire({
+          title: "Generando PDF...",
+          text: "Por favor espera",
+          allowOutsideClick: false,
+          didOpen: () => Swal.showLoading(),
+        });
+
+        try {
+          const payload = {
+            tipoTab: "flia-y-apod",
+            datos: {
+              paciente: paciente,
+              informacionAdicional: datos.informacionAdicional,
+            },
+          };
+
+          const res = await fetch("/api/exportador/fliaYApod", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+
+          if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(errorData.error || "Error al generar el PDF");
+          }
+
+          const blob = await res.blob();
+          const url = URL.createObjectURL(blob);
+          window.open(url, "_blank");
+          Swal.close();
+        } catch (err) {
+          console.error(err);
+          Swal.fire(
+            "Error",
+            "No se pudo generar el PDF: " + err.message,
+            "error",
+          );
+        }
       }
     });
   };
-
+  
   const handleCloseModal = () => {
     setOpenModal(false);
   };
@@ -77,36 +132,35 @@ const FliaYApodTab = ({ paciente, datos }) => {
     );
   }
 
+  const d = (v) => v ?? "-";
+
   return (
     <Box>
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
           <Paper sx={{ p: 2 }}>
-            <Box
-              display="flex"
-              justifyContent="space-between"
-              alignItems="center"
-              mb={2}
-            >
-              <Typography variant="h6">Información adicional</Typography>
-            </Box>
+            <Typography variant="h6">Información adicional</Typography>
             <Box
               sx={{
-                backgroundColor: "#ffffff",
-                boxShadow: "0 8px 16px rgba(0, 0, 0, 0.08)",
                 p: 1,
                 borderRadius: "4px",
+                bgcolor: "#fff",
+                boxShadow: "0 8px 16px rgba(0,0,0,0.08)",
               }}
             >
-              <Typography variant="body2">Yo:</Typography>
-              <Box display="flex" alignItems="center" gap={6} mt={1}>
+              <Typography variant="body2">
+                Yo: {d(paciente.nombreCompleto)}
+              </Typography>
+              <Box display="flex" gap={2} mt={1}>
                 <Typography variant="body2">
-                  Identificado/a con DNI N°:
+                  Identificado/a con DNI N°: {d(paciente.dni)}
                 </Typography>
-                <Typography variant="body2">y en calidad de:</Typography>
+                <Typography variant="body2">
+                  y en calidad de: {d(paciente.calidadDe)}
+                </Typography>
               </Box>
               <Typography variant="body2" mt={1}>
-                Del residente Sr/Sra:
+                Del residente Sr/Sra: {d(paciente.nombreCompleto)}
               </Typography>
             </Box>
           </Paper>

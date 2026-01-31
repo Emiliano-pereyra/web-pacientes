@@ -4,24 +4,20 @@ export const runtime = "nodejs";
 
 export async function POST(req) {
   try {
-    const { datos, tipoTab } = await req.json();
-
-    const pdfBuffer = await generarPDFHistoria(datos, tipoTab);
+    const { datos } = await req.json();
+    const pdfBuffer = await generarPDFHistoria(datos, "historia-clinica");
 
     return new Response(pdfBuffer, {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `inline; filename="historia_clinica_${Date.now()}.pdf"`,
+        "Content-Disposition": `inline; filename="historiaclinica_${Date.now()}.pdf"`,
       },
     });
   } catch (error) {
-    console.error("Error al generar el PDF:", error);
+    console.error("Error al generar PDF clínico:", error);
     return new Response(
       JSON.stringify({ error: error.message || "Error al generar el PDF" }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
 }

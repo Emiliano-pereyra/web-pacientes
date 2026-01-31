@@ -1,4 +1,3 @@
-// app/api/pacientes/crear/route.js
 import { db } from "@/lib/firebase";
 import { doc, setDoc } from "firebase/firestore";
 
@@ -8,41 +7,120 @@ function convertirNombreAId(nombre) {
     .trim()
     .split(/\s+/)
     .filter(Boolean)
-    .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-    .join('_');
+    .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
+    .join("_");
+}
+
+function getStringOrDash(value) {
+  if (value === undefined || value === null || value === "") {
+    return "-";
+  }
+  return String(value);
 }
 
 export async function POST(req) {
   try {
     const body = await req.json();
-    console.log("Datos recibidos para crear paciente:", body);
+    console.log("Datos recibidos:", body);
 
-    const { id: nombreOriginal, ...otrosDatos } = body;
+    const { nombreCompleto } = body;
 
-    if (!nombreOriginal) {
-      return new Response(
-        JSON.stringify({ error: "Falta el campo 'id' (nombre del paciente) en el cuerpo de la solicitud" }),
-        { status: 400 }
-      );
+    if (!nombreCompleto) {
+      return new Response(JSON.stringify({ error: "Falta nombreCompleto" }), {
+        status: 400,
+      });
     }
 
-    const id = convertirNombreAId(nombreOriginal);
-    console.log(`Nombre original: "${nombreOriginal}", ID generado: "${id}"`);
+    const id = convertirNombreAId(nombreCompleto);
 
     if (!id) {
-      return new Response(
-        JSON.stringify({ error: "El nombre del paciente no es válido o está vacío después de procesarlo" }),
-        { status: 400 }
-      );
+      return new Response(JSON.stringify({ error: "Nombre inválido" }), {
+        status: 400,
+      });
     }
 
-    const pacienteDocRef = doc(db, "pacientes", "lista", "nombresPacientes", id);
+    const paciente = {
+      //Info paciente
+      afiliadoNumero: getStringOrDash(body.afialiadoNumero),
+      dni: getStringOrDash(body.dni),
+      edad: getStringOrDash(body.edad),
+      fechaIngreso: getStringOrDash(body.fechaIngreso),
+      fechaNacimiento: getStringOrDash(body.fechaNacimiento),
+      genero: getStringOrDash(body.genero),
+      nombreCompleto: getStringOrDash(body.nombreCompleto),
+      obraSocial: getStringOrDash(body.obraSocial),
+      urlFoto: getStringOrDash(body.urlFoto),
 
-    await setDoc(pacienteDocRef, otrosDatos);
+      // Social
+      acompanado: getStringOrDash(body.acompanado), 
+      conQuienVive: getStringOrDash(body.conQuienVive), // solo - conyuge - familia
+      concurreALaConsulta: getStringOrDash(body.concurreALaConsulta), // solo - acompañado
+      conyuge: getStringOrDash(body.conyuge),
+      hermanos: getStringOrDash(body.hermanos),
+      hijos: getStringOrDash(body.hijos),
+      otros: getStringOrDash(body.otros),
+
+      // Mental
+      calculo1: getStringOrDash(body.calculo1),
+      calculo2: getStringOrDash(body.calculo2),
+      calculo3: getStringOrDash(body.calculo3),
+      cierreOjosYHagalo: getStringOrDash(body.cierreOjosYHagalo),
+      concurreALaConsultaMental: getStringOrDash(
+        body.concurreALaConsultaMental,
+      ),
+      fraseEscrita: getStringOrDash(body.fraseEscrita),
+      hijosMental: getStringOrDash(body.hijosMental),
+      logradoCopieDibujo: getStringOrDash(body.logradoCopieDibujo),
+      logradoDoblePapel: getStringOrDash(body.logradoDoblePapel),
+      orientacionEnT: getStringOrDash(body.orientacionEnT),
+      palabra1: getStringOrDash(body.palabra1),
+      palabra1Memoria: getStringOrDash(body.palabra1Memoria),
+      palabra2: getStringOrDash(body.palabra2),
+      palabra2Memoria: getStringOrDash(body.palabra2Memoria),
+      palabra3: getStringOrDash(body.palabra3),
+      palabra3Memoria: getStringOrDash(body.palabra3Memoria),
+      respuesta1: getStringOrDash(body.respuesta1),
+      respuesta2: getStringOrDash(body.respuesta2),
+      respuestaRepita: getStringOrDash(body.respuestaRepita),
+      textoLeido: getStringOrDash(body.textoLeido),
+
+      // Funcional
+      articulaciones: getStringOrDash(body.articulaciones),
+      caidas: getStringOrDash(body.caidas),
+      camina: getStringOrDash(body.camina), // opciones solo - con apoyo
+      equilibrio: getStringOrDash(body.equilibrio),
+      levantateYAnda: getStringOrDash(body.levantateYAnda),
+      pasaMuchoTiempoSentado: getStringOrDash(body.pasaMuchoTiempoSentado), // si - no
+
+      // flia y apoderados
+      calidadDe: getStringOrDash(body.calidadDe), // lo rellenaria por lo que va solo -
+
+      //Interconsulta
+      antecedentesPatologicosActual: getStringOrDash(body.antecedentesPatologicos),
+      fechaUltModifAntecedentesPatologicos: getStringOrDash(body.fechaUltModifAntecedentesPatologicos), //se almacena la fecha actual de la edicion
+      fechaAnterioModifAntecedentesPatologicos: getStringOrDash(body.fechaAnterioModifAntecedentesPatologicos), //se almacena la fecha anterio de la edicion
+      enfermedadActual: getStringOrDash(body.enfermedadActual),
+      fechaUltModifEnfermedadActual: getStringOrDash(body.fechaUltModifEnfermedadActual),
+      fechaAnterioModifEnfermedadActual: getStringOrDash(body.fechaAnterioModifEnfermedadActual),
+      informeInterconsulta: getStringOrDash(body.informeInterconsulta),
+
+      // Historia clinica
+      tratamientoBase: getStringOrDash(body.tratamientoBase),
+    };
+
+    const pacienteDocRef = doc(
+      db,
+      "pacientes",
+      "lista",
+      "nombresPacientes",
+      id,
+    );
+
+    await setDoc(pacienteDocRef, paciente);
 
     return new Response(
       JSON.stringify({ message: "Paciente creado correctamente", id }),
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.error("Error creando paciente:", error);
