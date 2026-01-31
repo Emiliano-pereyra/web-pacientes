@@ -9,8 +9,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import Swal from "sweetalert2";
-import ModalEdicion from "./ModalEdicion";
-
+import ModalEdicionFliaYApod from "./ModalEdicionFliaYApod";
 const FliaYApodTab = ({ paciente, datos }) => {
   const [openModal, setOpenModal] = useState(false);
 
@@ -106,8 +105,8 @@ const FliaYApodTab = ({ paciente, datos }) => {
         }
       : {},
     informacionAdicional: datos?.informacionAdicional || {
-      yo: "",
-      dniNumero: "",
+      yo: paciente.nombreCompleto,
+      dniNumero: paciente.dni,
       calidad: "",
       residenteNombre: "",
       textoConsentimiento:
@@ -220,7 +219,7 @@ const FliaYApodTab = ({ paciente, datos }) => {
       </Box>
 
       {openModal && (
-        <ModalEdicion
+        <ModalEdicionFliaYApod
           open={openModal}
           onClose={handleCloseModal}
           datos={datosParaEditar}

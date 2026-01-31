@@ -9,7 +9,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import Swal from "sweetalert2";
-import ModalEdicion from "./ModalEdicion";
+import ModalEdicionResumenHc from "./ModalEdicionResumenHC";
 
 const ResumenHCTab = ({ paciente, datos }) => {
   const [openModal, setOpenModal] = useState(false);
@@ -85,28 +85,28 @@ const ResumenHCTab = ({ paciente, datos }) => {
   const datosParaEditar = {
     paciente: paciente
       ? {
-          fecha: paciente.fecha || "",
-          nombreCompleto: paciente.nombre || "",
-          os: paciente.os || "",
+          fecha: paciente.fechaNacimiento || "",
+          nombreCompleto: paciente.nombreCompleto || "",
+          os: paciente.obraSocial || "",
           dni: paciente.dni || "",
           edad: paciente.edad || "",
-          afNumero: paciente.afNumero || "",
+          afNumero: paciente.afiliadoNumero || "",
         }
       : {},
     enfermedadBase: datos?.enfermedadBase || {
-      texto:
-        "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Velit, quo dolorem dignissimos veniam quos adipisci ab dolor maiores delectus voluptates! Maiores, placeat ullam perspiciatis asperiores amet atque adipisci labore minima!",
-      ultimaActualizacion: datos?.ultimaActualizacion || "",
+     enfermedadBase:
+        paciente.enfermedadBase,
+      fechaEnfermedadBase: paciente.fechaEnfermedadBase || "",
     },
     enfermedadActual: datos?.enfermedadActual || {
-      texto:
-        "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Velit, quo dolorem dignissimos veniam quos adipisci ab dolor maiores delectus voluptates! Maiores, placeat ullam perspiciatis asperiores amet atque adipisci labore minima!",
-      ultimaActualizacion: datos?.ultimaActualizacion || "",
+      enfermedadActual:
+        paciente.enfermedadActual,
+      fechaUltModifEnfermedadActual: paciente.fechaUltModifEnfermedadActual || "",
     },
     tratamientoBase: datos?.tratamientoBase || {
-      texto:
-        "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Velit, quo dolorem dignissimos veniam quos adipisci ab dolor maiores delectus voluptates! Maiores, placeat ullam perspiciatis asperiores amet atque adipisci labore minima!",
-      ultimaActualizacion: datos?.ultimaActualizacion || "",
+      tratamientoBase:
+        paciente.tratamientoBase,
+      fechaTratamientoBase: paciente.fechaTratamientoBase || "",
     },
   };
 
@@ -239,7 +239,7 @@ const ResumenHCTab = ({ paciente, datos }) => {
       </Box>
 
       {openModal && (
-        <ModalEdicion
+        <ModalEdicionResumenHc
           open={openModal}
           onClose={handleCloseModal}
           datos={datosParaEditar}

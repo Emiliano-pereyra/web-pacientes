@@ -10,8 +10,7 @@ import {
   Avatar,
 } from "@mui/material";
 import Swal from "sweetalert2";
-import ModalEdicion from "./ModalEdicion";
-
+import ModalEdicionHistoriaClinica from "./ModalEdicionHC";
 const HistoriaClinicaTab = ({ paciente, datos }) => {
   const [openModal, setOpenModal] = useState(false);
 
@@ -84,53 +83,53 @@ const HistoriaClinicaTab = ({ paciente, datos }) => {
   const datosParaEditar = {
     Informacion: paciente
       ? {
-          nombreCompleto: paciente.nombreCompleto || "",
-          dni: paciente.dni || "",
-          fechaNacimiento: paciente.fechaNacimiento || "",
-          edad: paciente.edad || "",
-          obraSocial: paciente.obraSocial || "",
-          afialiadoNumero: paciente.afialiadoNumero || "",
-          fechaIngreso: paciente.fechaIngreso || "",
-        }
+        nombreCompleto: paciente.nombreCompleto || "",
+        dni: paciente.dni || "",
+        fechaNacimiento: paciente.fechaNacimiento || "",
+        edad: paciente.edad || "",
+        obraSocial: paciente.obraSocial || "",
+        afialiadoNumero: paciente.afialiadoNumero || "",
+        fechaIngreso: paciente.fechaIngreso || "",
+      }
       : {},
     funcional: datos?.funcional || {
-      camina: "",
-      levantateYAnda: "",
-      articulaciones: "",
-      pasaMuchoTiempoSentado: "",
-      equilibrio: "",
-      caidas: "",
+      camina: paciente.camina,
+      levantateYAnda: paciente.levantateYAnda,
+      articulaciones: paciente.articulaciones,
+      pasaMuchoTiempoSentado: paciente.pasaMuchoTiempoSentado,
+      equilibrio: paciente.equilibrio,
+      caidas: paciente.caidas,
     },
     social: datos?.social || {
-      conQuienVive: "",
-      hijos: "",
-      concurreALaConsulta: "",
-      conyuge: "",
-      hermanos: "",
-      acompanado: "",
-      otros: "",
+      conQuienVive: paciente.conQuienVive,
+      hijos: paciente.hijos,
+      concurreALaConsulta: paciente.concurreALaConsulta,
+      conyuge: paciente.conyuge,
+      hermanos: paciente.hermanos,
+      acompanado: paciente.acompanado,
+      otros: paciente.otros,
     },
     mental: datos?.mental || {
-      orientacionEnT: "",
-      hijosMental: "",
-      concurreALaConsultaMental: "",
-      palabra1: "",
-      palabra2: "",
-      palabra3: "",
-      calculo1: "",
-      calculo2: "",
-      calculo3: "",
-      respuesta1: "",
-      respuesta2: "",
-      palabra1Memoria: "",
-      palabra2Memoria: "",
-      palabra3Memoria: "",
-      respuestaRepita: "",
-      textoLeido: "",
-      cierreOjosYHagalo: "",
-      logradoDoblePapel: "",
-      logradoCopieDibujo: "",
-      fraseEscrita: "",
+      orientacionEnT: paciente.orientacionEnT,
+      hijosMental: paciente.hijosMental,
+      concurreALaConsultaMental: paciente.concurreALaConsultaMental,
+      palabra1: paciente.palabra1,
+      palabra2: paciente.palabra2,
+      palabra3: paciente.palabra3,
+      calculo1: paciente.calculo1,
+      calculo2: paciente.calculo2,
+      calculo3: paciente.calculo3,
+      respuesta1: paciente.respuesta1,
+      respuesta2: paciente.respuesta2,
+      palabra1Memoria: paciente.palabra1Memoria,
+      palabra2Memoria: paciente.palabra2Memoria,
+      palabra3Memoria: paciente.palabra3Memoria,
+      respuestaRepita: paciente.respuestaRepita,
+      textoLeido: paciente.textoLeido,
+      cierreOjosYHagalo: paciente.cierreOjosYHagalo,
+      logradoDoblePapel: paciente.logradoDoblePapel,
+      logradoCopieDibujo: paciente.logradoCopieDibujo,
+      fraseEscrita: paciente.fraseEscrita,
     },
   };
 
@@ -150,7 +149,7 @@ const HistoriaClinicaTab = ({ paciente, datos }) => {
     );
   }
 
-const d = (v) => v ?? "-";
+  const d = (v) => v ?? "-";
 
   return (
     <Box>
@@ -184,7 +183,7 @@ const d = (v) => v ?? "-";
               Edad: {paciente.edad || "-"}
             </Typography>
             <Typography variant="body2">
-              AF N°: {paciente.afialiadoNumero || "-"}
+              AF N°: {paciente.afiliadoNumero || "-"}
             </Typography>
           </Grid>
           <Grid
@@ -217,25 +216,25 @@ const d = (v) => v ?? "-";
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
             <Typography variant="body2">
-              Camina: {datos.funcional?.camina || "-"}
+              Camina: {paciente.camina || "-"}
             </Typography>
             <Typography variant="body2">
-              Levántate y anda: {datos.funcional?.levantateYAnda || "-"}
+              Levántate y anda: {paciente.levantateYAnda || "-"}
             </Typography>
             <Typography variant="body2">
-              Articulaciones: {datos.funcional?.articulaciones || "-"}
+              Articulaciones: {paciente.articulaciones || "-"}
             </Typography>
           </Grid>
           <Grid item xs={12} md={6}>
             <Typography variant="body2">
               Pasa mucho tiempo sentado:{" "}
-              {datos.funcional?.pasaMuchoTiempoSentado || "-"}
+              {paciente.pasaMuchoTiempoSentado || "-"}
             </Typography>
             <Typography variant="body2">
-              Equilibrio: {datos.funcional?.equilibrio || "-"}
+              Equilibrio: {paciente.equilibrio || "-"}
             </Typography>
             <Typography variant="body2">
-              Caídas: {datos.funcional?.caidas || "-"}
+              Caídas: {paciente.caidas || "-"}
             </Typography>
           </Grid>
         </Grid>
@@ -253,29 +252,29 @@ const d = (v) => v ?? "-";
         <Grid container spacing={2}>
           <Grid item xs={12} md={4}>
             <Typography variant="body2">
-              Con quién vive: {datos.social?.conQuienVive || "-"}
+              Con quién vive: {paciente.conQuienVive || "-"}
             </Typography>
             <Typography variant="body2">
-              Hijos: {datos.social?.hijos || "-"}
+              Hijos: {paciente.hijos || "-"}
             </Typography>
             <Typography variant="body2">
-              Concurre a la consulta: {datos.social?.concurreALaConsulta || "-"}
-            </Typography>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Typography variant="body2">
-              Cónyuge: {datos.social?.conyuge || "-"}
-            </Typography>
-            <Typography variant="body2">
-              Hermanos: {datos.social?.hermanos || "-"}
-            </Typography>
-            <Typography variant="body2">
-              Acompañado: {datos.social?.acompanado || "-"}
+              Concurre a la consulta: {paciente.concurreALaConsulta || "-"}
             </Typography>
           </Grid>
           <Grid item xs={12} md={4}>
             <Typography variant="body2">
-              Otros: {datos.social?.otros || "-"}
+              Cónyuge: {paciente.conyuge || "-"}
+            </Typography>
+            <Typography variant="body2">
+              Hermanos: {paciente.hermanos || "-"}
+            </Typography>
+            <Typography variant="body2">
+              Acompañado: {paciente.acompanado || "-"}
+            </Typography>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Typography variant="body2">
+              Otros: {paciente.otros || "-"}
             </Typography>
           </Grid>
         </Grid>
@@ -299,14 +298,14 @@ const d = (v) => v ?? "-";
               Orientación en T y E:
             </Typography>
             <Typography variant="body2">
-              Orientación: {datos.mental?.orientacionEnT || "-"}
+              Orientación: {paciente.orientacionEnT || "-"}
             </Typography>
             <Typography variant="body2">
-              Hijos: {datos.mental?.hijosMental || "-"}
+              Hijos: {paciente.hijosMental || "-"}
             </Typography>
             <Typography variant="body2">
               Concurre a la consulta:{" "}
-              {datos.mental?.concurreALaConsultaMental || "-"}
+              {paciente.concurreALaConsultaMental || "-"}
             </Typography>
           </Grid>
           <Grid item xs={12} md={2}>
@@ -317,13 +316,13 @@ const d = (v) => v ?? "-";
               Fijación (repita 3 palabras)
             </Typography>
             <Typography variant="body2">
-              Palabra 1: {datos.mental?.palabra1 || "-"}
+              Palabra 1: {paciente.palabra1 || "-"}
             </Typography>
             <Typography variant="body2">
-              Palabra 2: {datos.mental?.palabra2 || "-"}
+              Palabra 2: {paciente.palabra2 || "-"}
             </Typography>
             <Typography variant="body2">
-              Palabra 3: {datos.mental?.palabra3 || "-"}
+              Palabra 3: {paciente.palabra3 || "-"}
             </Typography>
           </Grid>
           <Grid item xs={12} md={2}>
@@ -334,13 +333,13 @@ const d = (v) => v ?? "-";
               Concentración y cálculo
             </Typography>
             <Typography variant="body2">
-              Cálculo 1: {datos.mental?.calculo1 || "-"}
+              Cálculo 1: {paciente.calculo1 || "-"}
             </Typography>
             <Typography variant="body2">
-              Cálculo 2: {datos.mental?.calculo2 || "-"}
+              Cálculo 2: {paciente.calculo2 || "-"}
             </Typography>
             <Typography variant="body2">
-              Cálculo 3: {datos.mental?.calculo3 || "-"}
+              Cálculo 3: {paciente.calculo3 || "-"}
             </Typography>
           </Grid>
           <Grid item xs={12} md={2}>
@@ -351,10 +350,10 @@ const d = (v) => v ?? "-";
               ¿Qué es esto?
             </Typography>
             <Typography variant="body2">
-              Respuesta 1: {datos.mental?.respuesta1 || "-"}
+              Respuesta 1: {paciente.respuesta1 || "-"}
             </Typography>
             <Typography variant="body2">
-              Respuesta 2: {datos.mental?.respuesta2 || "-"}
+              Respuesta 2: {paciente.respuesta2 || "-"}
             </Typography>
           </Grid>
           <Grid item xs={12} md={2}>
@@ -365,13 +364,13 @@ const d = (v) => v ?? "-";
               Memoria (3 palabras)
             </Typography>
             <Typography variant="body2">
-              Palabra 1: {datos.mental?.palabra1Memoria || "-"}
+              Palabra 1: {paciente.palabra1Memoria || "-"}
             </Typography>
             <Typography variant="body2">
-              Palabra 2: {datos.mental?.palabra2Memoria || "-"}
+              Palabra 2: {paciente.palabra2Memoria || "-"}
             </Typography>
             <Typography variant="body2">
-              Palabra 3: {datos.mental?.palabra3Memoria || "-"}
+              Palabra 3: {paciente.palabra3Memoria || "-"}
             </Typography>
           </Grid>
           <Grid item xs={12} md={2}>
@@ -382,7 +381,7 @@ const d = (v) => v ?? "-";
               Repita
             </Typography>
             <Typography variant="body2">
-              Respuesta: {datos.mental?.respuestaRepita || "-"}
+              Respuesta: {paciente.respuestaRepita || "-"}
             </Typography>
           </Grid>
           <Grid item xs={12} md={2}>
@@ -393,10 +392,10 @@ const d = (v) => v ?? "-";
               Lea esto
             </Typography>
             <Typography variant="body2">
-              Texto leído: {datos.mental?.textoLeido || "-"}
+              Texto leído: {paciente.textoLeido || "-"}
             </Typography>
             <Typography variant="body2">
-              Cierre los ojos y hágalo: {datos.mental?.cierreOjosYHagalo || "-"}
+              Cierre los ojos y hágalo: {paciente.cierreOjosYHagalo || "-"}
             </Typography>
           </Grid>
           <Grid item xs={12} md={2}>
@@ -407,7 +406,7 @@ const d = (v) => v ?? "-";
               Doble papel
             </Typography>
             <Typography variant="body2">
-              Logrado: {datos.mental?.logradoDoblePapel || "-"}
+              Logrado: {paciente.logradoDoblePapel || "-"}
             </Typography>
           </Grid>
           <Grid item xs={12} md={2}>
@@ -418,7 +417,7 @@ const d = (v) => v ?? "-";
               Copie dibujo
             </Typography>
             <Typography variant="body2">
-              Logrado: {datos.mental?.logradoCopieDibujo || "-"}
+              Logrado: {paciente.logradoCopieDibujo || "-"}
             </Typography>
           </Grid>
           <Grid item xs={12} md={2}>
@@ -429,7 +428,7 @@ const d = (v) => v ?? "-";
               Escriba frase
             </Typography>
             <Typography variant="body2">
-              Frase escrita: {datos.mental?.fraseEscrita || "-"}
+              Frase escrita: {paciente.fraseEscrita || "-"}
             </Typography>
           </Grid>
         </Grid>
@@ -459,7 +458,7 @@ const d = (v) => v ?? "-";
       </Box>
 
       {openModal && (
-        <ModalEdicion
+        <ModalEdicionHistoriaClinica
           open={openModal}
           onClose={handleCloseModal}
           datos={datosParaEditar}

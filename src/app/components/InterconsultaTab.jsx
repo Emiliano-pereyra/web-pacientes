@@ -9,7 +9,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import Swal from "sweetalert2";
-import ModalEdicion from "./ModalEdicion";
+import ModalEdicionInterconsulta from "./ModalEdicionInterconsulta";
 
 const InterconsultaTab = ({ paciente, datos }) => {
   const [openModal, setOpenModal] = useState(false);
@@ -94,19 +94,17 @@ const InterconsultaTab = ({ paciente, datos }) => {
         }
       : {},
     antecedentesPatologicos: datos?.antecedentesPatologicos || {
-      texto:
-        "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Velit, quo dolorem dignissimos veniam quos adipisci ab dolor maiores delectus voluptates! Maiores, placeat ullam perspiciatis asperiores amet atque adipisci labore minima!",
-      ultimaActualizacion: datos?.ultimaActualizacion || "",
+      antecedentesPatologicosActual:paciente.antecedentesPatologicosActual,
+      fechaUltModifAntecedentesPatologicos: paciente.fechaUltModifAntecedentesPatologicos || "",
     },
     enfermedadActual: datos?.enfermedadActual || {
-      texto:
-        "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Velit, quo dolorem dignissimos veniam quos adipisci ab dolor maiores delectus voluptates! Maiores, placeat ullam perspiciatis asperiores amet atque adipisci labore minima!",
-      ultimaActualizacion: datos?.ultimaActualizacion || "",
+      enfermedadActual:
+        paciente.enfermedadActual,
+      fechaUltModifEnfermedadActual: datos?.ultimaActualizacion || "",
     },
     informeInterconsulta: datos?.informeInterconsulta || {
-      texto:
-        "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Velit, quo dolorem dignissimos veniam quos adipisci ab dolor maiores delectus voluptates! Maiores, placeat ullam perspiciatis asperiores amet atque adipisci labore minima!",
-      ultimaActualizacion: datos?.ultimaActualizacion || "",
+      informeInterconsulta:
+       paciente.informeInterconsulta,
     },
   };
 
@@ -235,7 +233,7 @@ const d = (v) => v ?? "-";
       </Box>
 
       {openModal && (
-        <ModalEdicion
+        <ModalEdicionInterconsulta
           open={openModal}
           onClose={handleCloseModal}
           datos={datosParaEditar}

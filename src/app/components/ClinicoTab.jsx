@@ -9,7 +9,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import Swal from "sweetalert2";
-import ModalEdicion from "./ModalEdicion";
+import ModalEdicionClinico from "./ModalEdicionClinico";
 
 const ClinicoTab = ({ paciente, datos }) => {
   const [openModal, setOpenModal] = useState(false);
@@ -85,109 +85,108 @@ const ClinicoTab = ({ paciente, datos }) => {
   const datosParaEditar = {
     antecedentes: datos?.antecedentes || {
       vasculares: {
-        ta: "",
-        cardio: "",
+        ta: paciente.TA,
+        cardio: paciente.Cardio,
       },
       digestivos: {
-        parrafoDigestivos: "",
-        constipacion: "",
+        parrafoDigestivos: paciente.Digestivos,
+        constipacion: paciente.Constipacion,
       },
       metabolicas: {
-        parrafoMetabolicos: "",
+        parrafoMetabolicos: paciente.Metabolicas,
       },
       sensoriales: {
-        auditivas: "",
-        olfativas: "",
-        visuales: "",
-        gustativas: "",
+        auditivas: paciente.Auditivas,
+        olfativas: paciente.Olfativas,
+        visuales: paciente.Visuales,
+        gustativas: paciente.Gustativas,
       },
       ginecologicas: {
-        parrafoGinecologicas: "",
+        parrafoGinecologicas: paciente.Ginecologicas,
       },
       vPerif: {
-        edemas: "",
-        varices: "",
-        ulceras: "",
+        edemas: paciente.Edemas,
+        varices: paciente.Varices,
+        ulceras: paciente.Ulceras,
       },
       dbt: {
-        tiroides: "",
+        tiroides: paciente.Tiroides,
       },
-      snC: {
-        paralisis: "",
-        parestesias: "",
-        temblores: "",
-        convulsiones: "",
-        afasias: "",
-        disartria: "",
+      SNC: {
+        paralisis: paciente.Paralisis,
+        parestesias: paciente.Parestesias,
+        temblores: paciente.Temblores,
+        convulsiones: paciente.Convulsiones,
+        afasias: paciente.Afasias,
+        disartria: paciente.Disartria,
       },
       urologicas: {
-        parrafoUrologicas: "",
+        parrafoUrologicas: paciente.Urologicas,
       },
       dermatologicas: {
-        parrafoDermatologicas: "",
+        parrafoDermatologicas: paciente.Dermatologicas,
       },
       actitudPsiquica: {
-        activa: "",
-        pasiva: "",
+        activa: paciente.PsiquicaActiva,
+        pasiva: paciente.PsiquicaPasiva,
       },
     },
     examenFisico: datos?.examenFisico || {
       fasciales: {
-        ojos: "",
-        boca: "",
-        denticion: "",
+        ojos: paciente.FacialOjos,
+        boca: paciente.FacialBoca,
+        denticion: paciente.FacialDenticion,
       },
       apCardiovascular: {
-        r1yr2: "",
+        r1yr2: paciente.CardioR1R2,
       },
       apGenitourinario: {
-        ppbl: "",
-        controlEsfinter: "",
-        otro: "",
+        ppbl: paciente.PPBL,
+        controlEsfinter: paciente.GenitourinarioEsfinter,
+        otro: paciente.GenitourinarioOtros,
       },
       trMentales: {
-        atencion: "",
-        orientacion: "",
-        memoria: "",
-        signosDepresivos: "",
-        trSueno: "",
+        atencion: paciente.TrAtencion,
+        orientacion: paciente.TrOrientacion,
+        memoria: paciente.TrMemoria,
+        signosDepresivos: paciente.SignoDepre,
+        trSueno: paciente.TrSueno,
       },
       cuello: {
-        adenopatias: "",
-        bocio: "",
+        adenopatias: paciente.Adenopatias,
+        bocio: paciente.Bocio,
       },
       signosFallaCardiaca: {
-        ta: "",
-        edemas: "",
+        ta: paciente.CardiacaTA,
+        edemas: paciente.CardiacaEdemas,
       },
       dermatologicos: {
-        tejCp: "",
-        peso: "",
+        tejCp: paciente.TEJCP,
+        peso: paciente.Peso,
       },
       apRespiratoria: {
-        percusion: "",
-        auscultacion: "",
-        otros: "",
+        percusion: paciente.Percusion,
+        auscultacion: paciente.Auscultacion,
+        otros: paciente.RespiratoriaOtros,
       },
       apDigestivo: {
-        abdomen: "",
-        palpacion: "",
-        catarsis: "",
-        controlEsfinter: "",
-        otro: "",
+        abdomen: paciente.Abdomen,
+        palpacion: paciente.Palpacion,
+        catarsis: paciente.Catarsis,
+        controlEsfinter: paciente.DigestivoEsfinter,
+        otro: paciente.DigestivoOtros,
       },
-      snC: {
-        alteracionesMotoras: "",
-        sensitivas: "",
-        temblores: "",
-        postura: "",
-        equilibrio: "",
-        marcha: "",
+      SNC: {
+        alteracionesMotoras: paciente.SNCAltMotoras,
+        sensitivas: paciente.SNCSensitivas,
+        temblores: paciente.SNCTemblores,
+        postura: paciente.SNCPostura,
+        equilibrio: paciente.SNCEquilibrio,
+        marcha: paciente.SNCMarcha,
       },
     },
     tratamientoActual: datos?.tratamientoActual || {
-      tratamiento1: "",
-      tratamiento2: "",
+      tratamientoActual: paciente.TratamientoActual,
     },
     evolucion: datos?.evolucion || {
       texto:
@@ -528,7 +527,7 @@ const ClinicoTab = ({ paciente, datos }) => {
       </Box>
 
       {openModal && (
-        <ModalEdicion
+        <ModalEdicionClinico
           open={openModal}
           onClose={handleCloseModal}
           datos={datosParaEditar}
