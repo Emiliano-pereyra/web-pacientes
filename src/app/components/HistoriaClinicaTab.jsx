@@ -13,6 +13,7 @@ import Swal from "sweetalert2";
 import ModalEdicionHistoriaClinica from "./ModalEdicionHC";
 const HistoriaClinicaTab = ({ paciente, datos }) => {
   const [openModal, setOpenModal] = useState(false);
+  const [fotoError, setFotoError] = useState(false);
 
   const handleEditar = () => {
     if (!paciente) {
@@ -80,17 +81,30 @@ const HistoriaClinicaTab = ({ paciente, datos }) => {
     setOpenModal(false);
   };
 
+  const handleFotoError = () => {
+    setFotoError(true);
+  };
+
+  const getInitials = (nombre) => {
+    if (!nombre) return "?";
+    const palabras = nombre.trim().split(/\s+/);
+    if (palabras.length >= 2) {
+      return (palabras[0][0] + palabras[palabras.length - 1][0]).toUpperCase();
+    }
+    return nombre.substring(0, 2).toUpperCase();
+  };
+
   const datosParaEditar = {
     Informacion: paciente
       ? {
-        nombreCompleto: paciente.nombreCompleto || "",
-        dni: paciente.dni || "",
-        fechaNacimiento: paciente.fechaNacimiento || "",
-        edad: paciente.edad || "",
-        obraSocial: paciente.obraSocial || "",
-        afialiadoNumero: paciente.afialiadoNumero || "",
-        fechaIngreso: paciente.fechaIngreso || "",
-      }
+          nombreCompleto: paciente.nombreCompleto || "",
+          dni: paciente.dni || "",
+          fechaNacimiento: paciente.fechaNacimiento || "",
+          edad: paciente.edad || "",
+          obraSocial: paciente.obraSocial || "",
+          afialiadoNumero: paciente.afialiadoNumero || "",
+          fechaIngreso: paciente.fechaIngreso || "",
+        }
       : {},
     funcional: datos?.funcional || {
       camina: paciente.camina,
@@ -196,10 +210,22 @@ const HistoriaClinicaTab = ({ paciente, datos }) => {
             alignItems="center"
           >
             <Avatar
-              src={paciente.urlFoto || ""}
+              src={paciente.urlFoto && !fotoError ? paciente.urlFoto : ""}
               alt={paciente.nombreCompleto || "Paciente"}
-              sx={{ width: 60, height: 60 }}
-            />
+              onError={handleFotoError}
+              sx={{
+                width: 80,
+                height: 80,
+                fontSize: 32,
+                bgcolor:
+                  fotoError || !paciente.urlFoto ? "primary.main" : undefined,
+                border: "2px solid",
+                borderColor: "divider",
+              }}
+            >
+              {(fotoError || !paciente.urlFoto) &&
+                getInitials(paciente.nombreCompleto)}
+            </Avatar>
           </Grid>
         </Grid>
       </Paper>

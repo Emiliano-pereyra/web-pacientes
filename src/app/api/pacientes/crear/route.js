@@ -50,7 +50,7 @@ export async function POST(req) {
       genero: getStringOrDash(body.genero),
       nombreCompleto: getStringOrDash(body.nombreCompleto),
       obraSocial: getStringOrDash(body.obraSocial),
-      urlFoto: urlFoto || "-",
+      urlFoto: getStringOrDash(body.urlFoto),
 
       // Social
       acompanado: getStringOrDash(body.acompanado),
