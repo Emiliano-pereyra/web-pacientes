@@ -14,13 +14,30 @@ import {
   Divider,
   Tabs,
   Tab,
+  styled,
 } from "@mui/material";
+import { CloudUpload, Delete, Photo } from "@mui/icons-material";
+import Image from "next/image";
+
+const VisuallyHiddenInput = styled("input")({
+  clip: "rect(0 0 0 0)",
+  clipPath: "inset(50%)",
+  height: 1,
+  overflow: "hidden",
+  position: "absolute",
+  bottom: 0,
+  left: 0,
+  whiteSpace: "nowrap",
+  width: 1,
+});
 
 const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
   const [tabIndex, setTabIndex] = useState(0);
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState(null);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -208,6 +225,74 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
     }
   };
 
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setError("Por favor seleccione una imagen válida (jpg, png, gif, etc.)");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError("La imagen es demasiado grande. Máximo 5MB.");
+      return;
+    }
+
+    setUploadingPhoto(true);
+    setError("");
+
+    try {
+      const preview = URL.createObjectURL(file);
+      setPreviewUrl(preview);
+
+      const tempId = formData.nombreCompleto
+        ? formData.nombreCompleto
+            .trim()
+            .split(/\s+/)
+            .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
+            .join("_")
+        : `paciente_${Date.now()}`;
+
+      const formDataUpload = new FormData();
+      formDataUpload.append("file", file);
+      formDataUpload.append("patientId", tempId);
+
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formDataUpload,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Error al subir la imagen");
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        urlFoto: result.url,
+      }));
+    } catch (err) {
+      console.error("Error subiendo foto:", err);
+      setError(err.message);
+      setPreviewUrl(null);
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    setFormData((prev) => ({
+      ...prev,
+      urlFoto: "",
+    }));
+    setPreviewUrl(null);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+  };
+
   return (
     <Dialog
       open={open}
@@ -311,13 +396,102 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
                 onChange={handleChange}
                 fullWidth
               />
-              <TextField
-                label="URL Foto"
-                name="urlFoto"
-                value={formData.urlFoto || ""}
-                onChange={handleChange}
-                fullWidth
-              />
+              <Box sx={{ gridColumn: "span 4" }}>
+                <Typography variant="subtitle1" gutterBottom>
+                  Foto del Paciente
+                </Typography>
+                <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+                  {/* Preview de la imagen */}
+                  <Box
+                    sx={{
+                      width: 120,
+                      height: 120,
+                      border: "2px dashed",
+                      borderColor:
+                        previewUrl || formData.urlFoto
+                          ? "success.main"
+                          : "grey.400",
+                      borderRadius: 2,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      overflow: "hidden",
+                      position: "relative",
+                    }}
+                  >
+                    {previewUrl || formData.urlFoto ? (
+                      <>
+                        <Box
+                          sx={{
+                            position: "relative",
+                            width: "100%",
+                            height: "100%",
+                          }}
+                        >
+                          <Image
+                            src={previewUrl || formData.urlFoto}
+                            alt="Foto del paciente"
+                            fill
+                            style={{
+                              objectFit: "cover",
+                            }}
+                            unoptimized // Para URLs de Google Drive que no son de un dominio configurado
+                          />
+                        </Box>
+                        <Button
+                          onClick={handleRemovePhoto}
+                          size="small"
+                          sx={{
+                            position: "absolute",
+                            top: 4,
+                            right: 4,
+                            minWidth: "auto",
+                            padding: "4px",
+                            backgroundColor: "rgba(255,255,255,0.7)",
+                            "&:hover": {
+                              backgroundColor: "rgba(255,255,255,0.9)",
+                            },
+                          }}
+                        >
+                          <Delete fontSize="small" color="error" />
+                        </Button>
+                      </>
+                    ) : (
+                      <Photo color="disabled" sx={{ fontSize: 48 }} />
+                    )}
+                  </Box>
+
+                  <Box sx={{ flex: 1 }}>
+                    <Button
+                      component="label"
+                      variant="contained"
+                      startIcon={<CloudUpload />}
+                      disabled={uploadingPhoto}
+                      sx={{ mb: 1 }}
+                    >
+                      {uploadingPhoto ? "Subiendo..." : "Seleccionar Foto"}
+                      <VisuallyHiddenInput
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePhotoUpload}
+                      />
+                    </Button>
+                    <Typography variant="caption" color="text.secondary">
+                      JPG, PNG o GIF. Máximo 5MB.
+                    </Typography>
+                    {formData.urlFoto && (
+                      <Typography
+                        variant="caption"
+                        color="success.main"
+                        display="block"
+                        sx={{ mt: 1 }}
+                      >
+                        Foto cargada exitosamente
+                      </Typography>
+                    )}
+                  </Box>
+                </Box>
+              </Box>
               <TextField
                 label="Fecha Nacimiento"
                 name="fechaNacimiento"

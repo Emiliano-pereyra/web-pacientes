@@ -50,12 +50,12 @@ export async function POST(req) {
       genero: getStringOrDash(body.genero),
       nombreCompleto: getStringOrDash(body.nombreCompleto),
       obraSocial: getStringOrDash(body.obraSocial),
-      urlFoto: getStringOrDash(body.urlFoto),
+      urlFoto: urlFoto || "-",
 
       // Social
-      acompanado: getStringOrDash(body.acompanado), 
-      conQuienVive: getStringOrDash(body.conQuienVive), // solo - conyuge - familia
-      concurreALaConsulta: getStringOrDash(body.concurreALaConsulta), // solo - acompañado
+      acompanado: getStringOrDash(body.acompanado),
+      conQuienVive: getStringOrDash(body.conQuienVive),
+      concurreALaConsulta: getStringOrDash(body.concurreALaConsulta),
       conyuge: getStringOrDash(body.conyuge),
       hermanos: getStringOrDash(body.hermanos),
       hijos: getStringOrDash(body.hijos),
@@ -97,19 +97,29 @@ export async function POST(req) {
       calidadDe: getStringOrDash(body.calidadDe), // lo rellenaria por lo que va solo -
 
       //Interconsulta
-      antecedentesPatologicosActual: getStringOrDash(body.antecedentesPatologicos),
-      fechaUltModifAntecedentesPatologicos: getStringOrDash(body.fechaUltModifAntecedentesPatologicos), //se almacena la fecha actual de la edicion
-      fechaAnterioModifAntecedentesPatologicos: getStringOrDash(body.fechaAnterioModifAntecedentesPatologicos), //se almacena la fecha anterio de la edicion
+      antecedentesPatologicosActual: getStringOrDash(
+        body.antecedentesPatologicos,
+      ),
+      fechaUltModifAntecedentesPatologicos: getStringOrDash(
+        body.fechaUltModifAntecedentesPatologicos,
+      ), //se almacena la fecha actual de la edicion
+      fechaAnterioModifAntecedentesPatologicos: getStringOrDash(
+        body.fechaAnterioModifAntecedentesPatologicos,
+      ), //se almacena la fecha anterio de la edicion
       enfermedadActual: getStringOrDash(body.enfermedadActual),
       enfermedadBase: getStringOrDash(body.enfermedadBase),
       fechaEnfermedadBase: getStringOrDash(body.fechaEnfermedadBase),
-      fechaUltModifEnfermedadActual: getStringOrDash(body.fechaUltModifEnfermedadActual),
-      fechaAnterioModifEnfermedadActual: getStringOrDash(body.fechaAnterioModifEnfermedadActual),
+      fechaUltModifEnfermedadActual: getStringOrDash(
+        body.fechaUltModifEnfermedadActual,
+      ),
+      fechaAnterioModifEnfermedadActual: getStringOrDash(
+        body.fechaAnterioModifEnfermedadActual,
+      ),
       informeInterconsulta: getStringOrDash(body.informeInterconsulta),
 
       // Historia clinica
       tratamientoBase: getStringOrDash(body.tratamientoBase),
-      fechaTratamientoBase:getStringOrDash(body.fechaTratamientoBase),
+      fechaTratamientoBase: getStringOrDash(body.fechaTratamientoBase),
       tratamientoActual: getStringOrDash(body.tratamientoActual),
       fechaTratamientoActual: getStringOrDash(body.fechaTratamientoActual),
 
@@ -134,13 +144,13 @@ export async function POST(req) {
       Convulsiones: getStringOrDash(body.Convulsiones),
       Afasias: getStringOrDash(body.Afasias),
       Disartria: getStringOrDash(body.Disartria),
-      Urologicas:getStringOrDash(body.Urologicas),
-      Dermatologicas:getStringOrDash(body.Dermatologicas),
-      PsiquicaActiva:getStringOrDash(body.PsiquicaActiva),
+      Urologicas: getStringOrDash(body.Urologicas),
+      Dermatologicas: getStringOrDash(body.Dermatologicas),
+      PsiquicaActiva: getStringOrDash(body.PsiquicaActiva),
       PsiquicaPasiva: getStringOrDash(body.PsiquicaPasiva),
 
       //Examen fisico
-      FacialOjos:getStringOrDash(body.FacialOjos),
+      FacialOjos: getStringOrDash(body.FacialOjos),
       FacialBoca: getStringOrDash(body.FacialBoca),
       FacialDenticion: getStringOrDash(body.FacialDenticion),
       CardioR1R2: getStringOrDash(body.CardioR1R2),
@@ -163,14 +173,14 @@ export async function POST(req) {
       RespiratoriaOtros: getStringOrDash(body.RespiratoriaOtros),
       Abdomen: getStringOrDash(body.Abdomen),
       Palpacion: getStringOrDash(body.Palpacion),
-      Catarsis:getStringOrDash(body.Catarsis),
+      Catarsis: getStringOrDash(body.Catarsis),
       DigestivoEsfinter: getStringOrDash(body.DigestivoEsfinter),
       DigestivoOtros: getStringOrDash(body.DigestivoOtros),
       SNCAltMotoras: getStringOrDash(body.SNCAltMotoras),
-      SNCSensitivas:getStringOrDash(body.SNCSensitivas),
+      SNCSensitivas: getStringOrDash(body.SNCSensitivas),
       SNCTemblores: getStringOrDash(body.SNCTemblores),
-      SNCPostura:getStringOrDash(body.SNCPostura),
-      SNCEquilibrio:getStringOrDash(body.SNCEquilibrio),
+      SNCPostura: getStringOrDash(body.SNCPostura),
+      SNCEquilibrio: getStringOrDash(body.SNCEquilibrio),
       SNCMarcha: getStringOrDash(body.SNCMarcha),
 
       Evolucion: getStringOrDash(body.Evolucion),
