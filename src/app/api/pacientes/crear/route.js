@@ -42,7 +42,7 @@ export async function POST(req) {
 
     const paciente = {
       //Info paciente
-      afiliadoNumero: getStringOrDash(body.afialiadoNumero),
+      afiliadoNumero: getStringOrDash(body.afiliadoNumero),
       dni: getStringOrDash(body.dni),
       edad: getStringOrDash(body.edad),
       fechaIngreso: getStringOrDash(body.fechaIngreso),
@@ -103,8 +103,8 @@ export async function POST(req) {
       fechaUltModifAntecedentesPatologicos: getStringOrDash(
         body.fechaUltModifAntecedentesPatologicos,
       ), //se almacena la fecha actual de la edicion
-      fechaAnterioModifAntecedentesPatologicos: getStringOrDash(
-        body.fechaAnterioModifAntecedentesPatologicos,
+      fechaAnteriorModifAntecedentesPatologicos: getStringOrDash(
+        body.fechaAnteriorModifAntecedentesPatologicos,
       ), //se almacena la fecha anterio de la edicion
       enfermedadActual: getStringOrDash(body.enfermedadActual),
       enfermedadBase: getStringOrDash(body.enfermedadBase),
@@ -112,8 +112,8 @@ export async function POST(req) {
       fechaUltModifEnfermedadActual: getStringOrDash(
         body.fechaUltModifEnfermedadActual,
       ),
-      fechaAnterioModifEnfermedadActual: getStringOrDash(
-        body.fechaAnterioModifEnfermedadActual,
+      fechaAnteriorModifEnfermedadActual: getStringOrDash(
+        body.fechaAnteriorModifEnfermedadActual,
       ),
       informeInterconsulta: getStringOrDash(body.informeInterconsulta),
 
@@ -168,7 +168,7 @@ export async function POST(req) {
       CardiacaEdemas: getStringOrDash(body.CardiacaEdemas),
       TEJCP: getStringOrDash(body.TEJCP),
       Peso: getStringOrDash(body.Peso),
-      Percusion: getStepIconUtilityClass(body.Percusion),
+      Percusion: getStringOrDash(body.Percusion),
       Auscultacion: getStringOrDash(body.Auscultacion),
       RespiratoriaOtros: getStringOrDash(body.RespiratoriaOtros),
       Abdomen: getStringOrDash(body.Abdomen),

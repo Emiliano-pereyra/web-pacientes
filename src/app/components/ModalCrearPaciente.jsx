@@ -74,7 +74,7 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
         edad: formData.edad || "",
         genero: formData.genero || "",
         obraSocial: formData.obraSocial || "",
-        afialiadoNumero: formData.afialiadoNumero || "",
+        afiliadoNumero: formData.afiliadoNumero || "",
         urlFoto: formData.urlFoto || "",
         fechaNacimiento: formData.fechaNacimiento || "",
         fechaIngreso: formData.fechaIngreso || today,
@@ -124,10 +124,10 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
         // Interconsulta - fechas automáticas al crear
         antecedentesPatologicos: formData.antecedentesPatologicos || "",
         fechaUltModifAntecedentesPatologicos: today,
-        fechaAnterioModifAntecedentesPatologicos: "",
+        fechaAnteriorModifAntecedentesPatologicos: "",
         enfermedadActual: formData.enfermedadActual || "",
         fechaUltModifEnfermedadActual: today,
-        fechaAnterioModifEnfermedadActual: "",
+        fechaAnteriorModifEnfermedadActual: "",
         informeInterconsulta: formData.informeInterconsulta || "",
         enfermedadBase: formData.enfermedadBase || "",
         fechaEnfermedadBase: formData.fechaEnfermedadBase || "",
@@ -392,7 +392,7 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
               <TextField
                 label="N° Afiliado"
                 name="afialiadoNumero"
-                value={formData.afialiadoNumero || ""}
+                value={formData.afiliadoNumero || ""}
                 onChange={handleChange}
                 fullWidth
               />
