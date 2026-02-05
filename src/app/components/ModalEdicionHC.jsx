@@ -199,9 +199,9 @@ const ModalEdicionHistoriaClinica = ({ open, onClose, datos, pacienteId }) => {
                 <TextField
                   sx={{ flex: 1, minWidth: 180 }}
                   label="Número de afiliado"
-                  value={getValue("afialiadoNumero")}
+                  value={getValue("afiliadoNumero")}
                   onChange={(e) =>
-                    handleChange("Informacion", "afialiadoNumero", e.target.value)
+                    handleChange("Informacion", "afiliadoNumero", e.target.value)
                   }
                   variant="outlined"
                   placeholder="Número de afiliado actual"

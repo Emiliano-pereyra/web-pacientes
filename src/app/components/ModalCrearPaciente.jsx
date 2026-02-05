@@ -391,7 +391,7 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
               />
               <TextField
                 label="N° Afiliado"
-                name="afialiadoNumero"
+                name="afiliadoNumero"
                 value={formData.afiliadoNumero || ""}
                 onChange={handleChange}
                 fullWidth

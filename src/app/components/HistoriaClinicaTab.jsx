@@ -102,7 +102,7 @@ const HistoriaClinicaTab = ({ paciente, datos }) => {
           fechaNacimiento: paciente.fechaNacimiento || "",
           edad: paciente.edad || "",
           obraSocial: paciente.obraSocial || "",
-          afialiadoNumero: paciente.afialiadoNumero || "",
+          afiliadoNumero: paciente.afiliadoNumero || "",
           fechaIngreso: paciente.fechaIngreso || "",
         }
       : {},

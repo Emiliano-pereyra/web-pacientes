@@ -41,7 +41,7 @@ export async function PUT(req) {
     const existingData = docSnap.data();
 
     const updateData = {
-      afiliadoNumero: getStringOrDash(body.afialiadoNumero),
+      afiliadoNumero: getStringOrDash(body.afiliadoNumero),
       dni: getStringOrDash(body.dni),
       edad: getStringOrDash(body.edad),
       fechaIngreso: getStringOrDash(body.fechaIngreso),
