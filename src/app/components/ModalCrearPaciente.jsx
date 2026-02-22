@@ -9,7 +9,6 @@ import {
   Box,
   Alert,
   CircularProgress,
-  MenuItem,
   Typography,
   Divider,
   Tabs,
@@ -59,14 +58,13 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
   const handleSubmit = async () => {
     setLoading(true);
     setError("");
-
     try {
+      // Solo el nombre completo es obligatorio para identificar al paciente
       if (!formData.nombreCompleto?.trim()) {
         throw new Error("El nombre completo es obligatorio.");
       }
 
-      const today = getCurrentDate();
-
+      const fechaActual = getCurrentDate();
       const payload = {
         // Info paciente
         nombreCompleto: formData.nombreCompleto || "",
@@ -77,8 +75,7 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
         afiliadoNumero: formData.afiliadoNumero || "",
         urlFoto: formData.urlFoto || "",
         fechaNacimiento: formData.fechaNacimiento || "",
-        fechaIngreso: formData.fechaIngreso || today,
-
+        fechaIngreso: formData.fechaIngreso || fechaActual,
         // Social
         acompanado: formData.acompanado || "",
         conQuienVive: formData.conQuienVive || "",
@@ -87,7 +84,6 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
         hermanos: formData.hermanos || "",
         hijos: formData.hijos || "",
         otros: formData.otros || "",
-
         // Mental
         calculo1: formData.calculo1 || "",
         calculo2: formData.calculo2 || "",
@@ -109,7 +105,6 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
         respuesta2: formData.respuesta2 || "",
         respuestaRepita: formData.respuestaRepita || "",
         textoLeido: formData.textoLeido || "",
-
         // Funcional
         articulaciones: formData.articulaciones || "",
         caidas: formData.caidas || "",
@@ -117,27 +112,23 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
         equilibrio: formData.equilibrio || "",
         levantateYAnda: formData.levantateYAnda || "",
         pasaMuchoTiempoSentado: formData.pasaMuchoTiempoSentado || "",
-
         // Flia y Apoderados
         calidadDe: formData.calidadDe || "",
-
         // Interconsulta - fechas automáticas al crear
         antecedentesPatologicos: formData.antecedentesPatologicos || "",
-        fechaUltModifAntecedentesPatologicos: today,
+        fechaUltModifAntecedentesPatologicos: fechaActual,
         fechaAnteriorModifAntecedentesPatologicos: "",
         enfermedadActual: formData.enfermedadActual || "",
-        fechaUltModifEnfermedadActual: today,
+        fechaUltModifEnfermedadActual: fechaActual,
         fechaAnteriorModifEnfermedadActual: "",
         informeInterconsulta: formData.informeInterconsulta || "",
         enfermedadBase: formData.enfermedadBase || "",
         fechaEnfermedadBase: formData.fechaEnfermedadBase || "",
-
         // Historia clínica
         tratamientoBase: formData.tratamientoBase || "",
         fechaTratamientoBase: formData.fechaTratamientoBase || "",
         tratamientoActual: formData.tratamientoActual || "",
         fechaTratamientoActual: formData.fechaTratamientoActual || "",
-
         // Clínico
         TA: formData.TA || "",
         Cardio: formData.Cardio || "",
@@ -163,7 +154,6 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
         Dermatologicas: formData.Dermatologicas || "",
         PsiquicaActiva: formData.PsiquicaActiva || "",
         PsiquicaPasiva: formData.PsiquicaPasiva || "",
-
         // Examen físico
         FacialOjos: formData.FacialOjos || "",
         FacialBoca: formData.FacialBoca || "",
@@ -197,24 +187,19 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
         SNCPostura: formData.SNCPostura || "",
         SNCEquilibrio: formData.SNCEquilibrio || "",
         SNCMarcha: formData.SNCMarcha || "",
-
         // Evolución
         Evolucion: formData.Evolucion || "",
         UltFechaModifEvolucion: formData.UltFechaModifEvolucion || "",
       };
-
       const res = await fetch("/api/pacientes/crear", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
       const result = await res.json();
-
       if (!res.ok) {
         throw new Error(result.error || "Error al crear paciente");
       }
-
       onCreateSuccess(result.id);
       onClose();
     } catch (err) {
@@ -228,24 +213,19 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
   const handlePhotoUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     if (!file.type.startsWith("image/")) {
       setError("Por favor seleccione una imagen válida (jpg, png, gif, etc.)");
       return;
     }
-
     if (file.size > 5 * 1024 * 1024) {
       setError("La imagen es demasiado grande. Máximo 5MB.");
       return;
     }
-
     setUploadingPhoto(true);
     setError("");
-
     try {
       const preview = URL.createObjectURL(file);
       setPreviewUrl(preview);
-
       const tempId = formData.nombreCompleto
         ? formData.nombreCompleto
             .trim()
@@ -253,22 +233,17 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
             .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
             .join("_")
         : `paciente_${Date.now()}`;
-
       const formDataUpload = new FormData();
       formDataUpload.append("file", file);
       formDataUpload.append("patientId", tempId);
-
       const response = await fetch("/api/upload", {
         method: "POST",
         body: formDataUpload,
       });
-
       const result = await response.json();
-
       if (!response.ok) {
         throw new Error(result.error || "Error al subir la imagen");
       }
-
       setFormData((prev) => ({
         ...prev,
         urlFoto: result.url,
@@ -308,14 +283,12 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
       }}
     >
       <DialogTitle>Crear Nuevo Paciente</DialogTitle>
-
       <DialogContent dividers sx={{ maxHeight: "65vh", overflowY: "auto" }}>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
           </Alert>
         )}
-
         <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>
           <Tabs
             value={tabIndex}
@@ -331,7 +304,6 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
             <Tab label="Historia Clínica" />
           </Tabs>
         </Box>
-
         {/* TAB 0: DATOS PERSONALES */}
         {tabIndex === 0 && (
           <Box>
@@ -369,19 +341,14 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
                 type="number"
                 fullWidth
               />
+              {/* CAMBIADO: De selector a texto libre */}
               <TextField
                 label="Género"
                 name="genero"
                 value={formData.genero || ""}
                 onChange={handleChange}
-                select
                 fullWidth
-              >
-                <MenuItem value="">-</MenuItem>
-                <MenuItem value="Masculino">Masculino</MenuItem>
-                <MenuItem value="Femenino">Femenino</MenuItem>
-                <MenuItem value="Otro">Otro</MenuItem>
-              </TextField>
+              />
               <TextField
                 label="Obra Social"
                 name="obraSocial"
@@ -435,7 +402,7 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
                             style={{
                               objectFit: "cover",
                             }}
-                            unoptimized // Para URLs de Google Drive que no son de un dominio configurado
+                            unoptimized
                           />
                         </Box>
                         <Button
@@ -460,7 +427,6 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
                       <Photo color="disabled" sx={{ fontSize: 48 }} />
                     )}
                   </Box>
-
                   <Box sx={{ flex: 1 }}>
                     <Button
                       component="label"
@@ -513,7 +479,6 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
             </Box>
           </Box>
         )}
-
         {/* TAB 1: SOCIAL */}
         {tabIndex === 1 && (
           <Box>
@@ -535,31 +500,22 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
                 onChange={handleChange}
                 fullWidth
               />
+              {/* CAMBIADO: De selector a texto libre */}
               <TextField
                 label="Con quién vive"
                 name="conQuienVive"
                 value={formData.conQuienVive || ""}
                 onChange={handleChange}
-                select
                 fullWidth
-              >
-                <MenuItem value="">-</MenuItem>
-                <MenuItem value="solo">Solo</MenuItem>
-                <MenuItem value="conyuge">Cónyuge</MenuItem>
-                <MenuItem value="familia">Familia</MenuItem>
-              </TextField>
+              />
+              {/* CAMBIADO: De selector a texto libre */}
               <TextField
                 label="Concurre a consulta"
                 name="concurreALaConsulta"
                 value={formData.concurreALaConsulta || ""}
                 onChange={handleChange}
-                select
                 fullWidth
-              >
-                <MenuItem value="">-</MenuItem>
-                <MenuItem value="solo">Solo</MenuItem>
-                <MenuItem value="acompañado">Acompañado</MenuItem>
-              </TextField>
+              />
               <TextField
                 label="Cónyuge"
                 name="conyuge"
@@ -591,7 +547,6 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
             </Box>
           </Box>
         )}
-
         {/* TAB 2: MENTAL */}
         {tabIndex === 2 && (
           <Box>
@@ -620,18 +575,14 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
                 onChange={handleChange}
                 fullWidth
               />
+              {/* CAMBIADO: De selector a texto libre */}
               <TextField
                 label="Concurre a consulta (mental)"
                 name="concurreALaConsultaMental"
                 value={formData.concurreALaConsultaMental || ""}
                 onChange={handleChange}
-                select
                 fullWidth
-              >
-                <MenuItem value="">-</MenuItem>
-                <MenuItem value="solo">Solo</MenuItem>
-                <MenuItem value="acompañado">Acompañado</MenuItem>
-              </TextField>
+              />
               <TextField
                 label="Palabra 1"
                 name="palabra1"
@@ -754,7 +705,6 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
             </Box>
           </Box>
         )}
-
         {/* TAB 3: FUNCIONAL */}
         {tabIndex === 3 && (
           <Box>
@@ -769,18 +719,14 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
                 mb: 3,
               }}
             >
+              {/* CAMBIADO: De selector a texto libre */}
               <TextField
                 label="Camina"
                 name="camina"
                 value={formData.camina || ""}
                 onChange={handleChange}
-                select
                 fullWidth
-              >
-                <MenuItem value="">-</MenuItem>
-                <MenuItem value="solo">Solo</MenuItem>
-                <MenuItem value="con apoyo">Con apoyo</MenuItem>
-              </TextField>
+              />
               <TextField
                 label="Levántese y ande"
                 name="levantateYAnda"
@@ -795,18 +741,14 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
                 onChange={handleChange}
                 fullWidth
               />
+              {/* CAMBIADO: De selector a texto libre */}
               <TextField
                 label="Pasa mucho tiempo sentado"
                 name="pasaMuchoTiempoSentado"
                 value={formData.pasaMuchoTiempoSentado || ""}
                 onChange={handleChange}
-                select
                 fullWidth
-              >
-                <MenuItem value="">-</MenuItem>
-                <MenuItem value="si">Sí</MenuItem>
-                <MenuItem value="no">No</MenuItem>
-              </TextField>
+              />
               <TextField
                 label="Equilibrio"
                 name="equilibrio"
@@ -824,14 +766,12 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
             </Box>
           </Box>
         )}
-
         {/* TAB 4: CLÍNICO */}
         {tabIndex === 4 && (
           <Box>
             <Typography variant="h6" gutterBottom>
               Antecedentes Clínicos
             </Typography>
-
             <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
               Vasculares
             </Typography>
@@ -851,7 +791,6 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
                 fullWidth
               />
             </Box>
-
             <Typography variant="subtitle1" gutterBottom>
               Digestivos
             </Typography>
@@ -873,7 +812,6 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
                 fullWidth
               />
             </Box>
-
             <Typography variant="subtitle1" gutterBottom>
               Metabólicas
             </Typography>
@@ -887,7 +825,6 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
               fullWidth
               sx={{ mb: 2 }}
             />
-
             <Typography variant="subtitle1" gutterBottom>
               Sensoriales
             </Typography>
@@ -928,7 +865,6 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
                 fullWidth
               />
             </Box>
-
             <Typography variant="subtitle1" gutterBottom>
               Ginecológicas
             </Typography>
@@ -942,7 +878,6 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
               fullWidth
               sx={{ mb: 2 }}
             />
-
             <Typography variant="subtitle1" gutterBottom>
               V PERIF
             </Typography>
@@ -976,7 +911,6 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
                 fullWidth
               />
             </Box>
-
             <Typography variant="subtitle1" gutterBottom>
               DBT
             </Typography>
@@ -988,7 +922,6 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
               fullWidth
               sx={{ mb: 2 }}
             />
-
             <Typography variant="subtitle1" gutterBottom>
               SNC
             </Typography>
@@ -1043,7 +976,6 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
                 fullWidth
               />
             </Box>
-
             <Typography variant="subtitle1" gutterBottom>
               Urológicas
             </Typography>
@@ -1057,7 +989,6 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
               fullWidth
               sx={{ mb: 2 }}
             />
-
             <Typography variant="subtitle1" gutterBottom>
               Dermatológicas
             </Typography>
@@ -1071,7 +1002,6 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
               fullWidth
               sx={{ mb: 2 }}
             />
-
             <Typography variant="subtitle1" gutterBottom>
               Actitud Psíquica
             </Typography>
@@ -1093,14 +1023,12 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
             </Box>
           </Box>
         )}
-
         {/* TAB 5: EXAMEN FÍSICO */}
         {tabIndex === 5 && (
           <Box>
             <Typography variant="h6" gutterBottom>
               Examen Físico
             </Typography>
-
             <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
               Fasciales
             </Typography>
@@ -1134,7 +1062,6 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
                 fullWidth
               />
             </Box>
-
             <Typography variant="subtitle1" gutterBottom>
               Ap. Cardiovascular
             </Typography>
@@ -1146,7 +1073,6 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
               fullWidth
               sx={{ mb: 2 }}
             />
-
             <Typography variant="subtitle1" gutterBottom>
               Ap. Genitourinario
             </Typography>
@@ -1180,7 +1106,6 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
                 fullWidth
               />
             </Box>
-
             <Typography variant="subtitle1" gutterBottom>
               Trastornos Mentales
             </Typography>
@@ -1228,7 +1153,6 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
                 fullWidth
               />
             </Box>
-
             <Typography variant="subtitle1" gutterBottom>
               Cuello
             </Typography>
@@ -1255,7 +1179,6 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
                 fullWidth
               />
             </Box>
-
             <Typography variant="subtitle1" gutterBottom>
               Signos Falla Cardíaca
             </Typography>
@@ -1282,7 +1205,6 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
                 fullWidth
               />
             </Box>
-
             <Typography variant="subtitle1" gutterBottom>
               Dermatológicos
             </Typography>
@@ -1309,7 +1231,6 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
                 fullWidth
               />
             </Box>
-
             <Typography variant="subtitle1" gutterBottom>
               Ap. Respiratoria
             </Typography>
@@ -1343,7 +1264,6 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
                 fullWidth
               />
             </Box>
-
             <Typography variant="subtitle1" gutterBottom>
               Ap. Digestivo
             </Typography>
@@ -1391,7 +1311,6 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
                 fullWidth
               />
             </Box>
-
             <Typography variant="subtitle1" gutterBottom>
               SNC
             </Typography>
@@ -1448,14 +1367,12 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
             </Box>
           </Box>
         )}
-
         {/* TAB 6: HISTORIA CLÍNICA */}
         {tabIndex === 6 && (
           <Box>
             <Typography variant="h6" gutterBottom>
               Historia Clínica
             </Typography>
-
             <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
               Enfermedad de Base
             </Typography>
@@ -1481,9 +1398,7 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
                 />
               </Box>
             </Box>
-
             <Divider sx={{ my: 2 }} />
-
             <Typography variant="subtitle1" gutterBottom>
               Enfermedad Actual
             </Typography>
@@ -1509,9 +1424,7 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
                 />
               </Box>
             </Box>
-
             <Divider sx={{ my: 2 }} />
-
             <Typography variant="subtitle1" gutterBottom>
               Tratamiento de Base
             </Typography>
@@ -1537,9 +1450,7 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
                 />
               </Box>
             </Box>
-
             <Divider sx={{ my: 2 }} />
-
             <Typography variant="subtitle1" gutterBottom>
               Tratamiento Actual
             </Typography>
@@ -1565,9 +1476,7 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
                 />
               </Box>
             </Box>
-
             <Divider sx={{ my: 2 }} />
-
             <Typography variant="subtitle1" gutterBottom>
               Antecedentes Patológicos
             </Typography>
@@ -1593,9 +1502,7 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
                 />
               </Box>
             </Box>
-
             <Divider sx={{ my: 2 }} />
-
             <Typography variant="subtitle1" gutterBottom>
               Informe de Interconsulta
             </Typography>
@@ -1609,9 +1516,7 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
               fullWidth
               sx={{ mb: 2 }}
             />
-
             <Divider sx={{ my: 2 }} />
-
             <Typography variant="subtitle1" gutterBottom>
               Evolución
             </Typography>
@@ -1640,7 +1545,6 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
           </Box>
         )}
       </DialogContent>
-
       <DialogActions sx={{ p: 2 }}>
         <Button onClick={onClose} color="secondary" disabled={loading}>
           Cancelar

@@ -1,7 +1,10 @@
 import { db } from "@/lib/firebase";
-import { getStepIconUtilityClass } from "@mui/material";
 import { doc, setDoc } from "firebase/firestore";
 
+/**
+  Convierte un nombre completo en un ID válido para Firestore
+  Ej: "María José López" → "María_José_López"
+ */
 function convertirNombreAId(nombre) {
   if (!nombre) return "";
   return nombre
@@ -26,22 +29,24 @@ export async function POST(req) {
 
     const { nombreCompleto } = body;
 
-    if (!nombreCompleto) {
-      return new Response(JSON.stringify({ error: "Falta nombreCompleto" }), {
+    if (!nombreCompleto?.trim()) {
+      return new Response(JSON.stringify({ error: "El nombre completo es obligatorio" }), {
         status: 400,
+        headers: { "Content-Type": "application/json; charset=utf-8" },
       });
     }
 
     const id = convertirNombreAId(nombreCompleto);
 
     if (!id) {
-      return new Response(JSON.stringify({ error: "Nombre inválido" }), {
+      return new Response(JSON.stringify({ error: "Nombre inválido para generar ID" }), {
         status: 400,
+        headers: { "Content-Type": "application/json; charset=utf-8" },
       });
     }
 
     const paciente = {
-      //Info paciente
+      // Info paciente
       afiliadoNumero: getStringOrDash(body.afiliadoNumero),
       dni: getStringOrDash(body.dni),
       edad: getStringOrDash(body.edad),
@@ -66,9 +71,7 @@ export async function POST(req) {
       calculo2: getStringOrDash(body.calculo2),
       calculo3: getStringOrDash(body.calculo3),
       cierreOjosYHagalo: getStringOrDash(body.cierreOjosYHagalo),
-      concurreALaConsultaMental: getStringOrDash(
-        body.concurreALaConsultaMental,
-      ),
+      concurreALaConsultaMental: getStringOrDash(body.concurreALaConsultaMental),
       fraseEscrita: getStringOrDash(body.fraseEscrita),
       hijosMental: getStringOrDash(body.hijosMental),
       logradoCopieDibujo: getStringOrDash(body.logradoCopieDibujo),
@@ -88,42 +91,32 @@ export async function POST(req) {
       // Funcional
       articulaciones: getStringOrDash(body.articulaciones),
       caidas: getStringOrDash(body.caidas),
-      camina: getStringOrDash(body.camina), // opciones solo - con apoyo
+      camina: getStringOrDash(body.camina),
       equilibrio: getStringOrDash(body.equilibrio),
       levantateYAnda: getStringOrDash(body.levantateYAnda),
-      pasaMuchoTiempoSentado: getStringOrDash(body.pasaMuchoTiempoSentado), // si - no
+      pasaMuchoTiempoSentado: getStringOrDash(body.pasaMuchoTiempoSentado),
 
-      // flia y apoderados
-      calidadDe: getStringOrDash(body.calidadDe), // lo rellenaria por lo que va solo -
+      // Flia y Apoderados
+      calidadDe: getStringOrDash(body.calidadDe),
 
-      //Interconsulta
-      antecedentesPatologicosActual: getStringOrDash(
-        body.antecedentesPatologicos,
-      ),
-      fechaUltModifAntecedentesPatologicos: getStringOrDash(
-        body.fechaUltModifAntecedentesPatologicos,
-      ), //se almacena la fecha actual de la edicion
-      fechaAnteriorModifAntecedentesPatologicos: getStringOrDash(
-        body.fechaAnteriorModifAntecedentesPatologicos,
-      ), //se almacena la fecha anterio de la edicion
+      // Interconsulta
+      antecedentesPatologicos: getStringOrDash(body.antecedentesPatologicos),
+      fechaUltModifAntecedentesPatologicos: getStringOrDash(body.fechaUltModifAntecedentesPatologicos),
+      fechaAnteriorModifAntecedentesPatologicos: getStringOrDash(body.fechaAnteriorModifAntecedentesPatologicos),
       enfermedadActual: getStringOrDash(body.enfermedadActual),
       enfermedadBase: getStringOrDash(body.enfermedadBase),
       fechaEnfermedadBase: getStringOrDash(body.fechaEnfermedadBase),
-      fechaUltModifEnfermedadActual: getStringOrDash(
-        body.fechaUltModifEnfermedadActual,
-      ),
-      fechaAnteriorModifEnfermedadActual: getStringOrDash(
-        body.fechaAnteriorModifEnfermedadActual,
-      ),
+      fechaUltModifEnfermedadActual: getStringOrDash(body.fechaUltModifEnfermedadActual),
+      fechaAnteriorModifEnfermedadActual: getStringOrDash(body.fechaAnteriorModifEnfermedadActual),
       informeInterconsulta: getStringOrDash(body.informeInterconsulta),
 
-      // Historia clinica
+      // Historia clínica
       tratamientoBase: getStringOrDash(body.tratamientoBase),
       fechaTratamientoBase: getStringOrDash(body.fechaTratamientoBase),
       tratamientoActual: getStringOrDash(body.tratamientoActual),
       fechaTratamientoActual: getStringOrDash(body.fechaTratamientoActual),
 
-      // clinico
+      // Clínico
       TA: getStringOrDash(body.TA),
       Cardio: getStringOrDash(body.Cardio),
       Digestivos: getStringOrDash(body.Digestivos),
@@ -149,7 +142,7 @@ export async function POST(req) {
       PsiquicaActiva: getStringOrDash(body.PsiquicaActiva),
       PsiquicaPasiva: getStringOrDash(body.PsiquicaPasiva),
 
-      //Examen fisico
+      // Examen físico
       FacialOjos: getStringOrDash(body.FacialOjos),
       FacialBoca: getStringOrDash(body.FacialBoca),
       FacialDenticion: getStringOrDash(body.FacialDenticion),
@@ -183,6 +176,7 @@ export async function POST(req) {
       SNCEquilibrio: getStringOrDash(body.SNCEquilibrio),
       SNCMarcha: getStringOrDash(body.SNCMarcha),
 
+      // Evolución
       Evolucion: getStringOrDash(body.Evolucion),
       UltFechaModifEvolucion: getStringOrDash(body.UltFechaModifEvolucion),
     };
@@ -192,19 +186,23 @@ export async function POST(req) {
       "pacientes",
       "lista",
       "nombresPacientes",
-      id,
+      id
     );
 
     await setDoc(pacienteDocRef, paciente);
 
     return new Response(
       JSON.stringify({ message: "Paciente creado correctamente", id }),
-      { status: 201 },
+      { 
+        status: 201,
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+      }
     );
   } catch (error) {
     console.error("Error creando paciente:", error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
+      headers: { "Content-Type": "application/json; charset=utf-8" },
     });
   }
 }
