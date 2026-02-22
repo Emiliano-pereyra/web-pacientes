@@ -368,7 +368,7 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
                   Foto del Paciente
                 </Typography>
                 <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-                  {/* Preview de la imagen */}
+                  {/* Vista foto paciente */}
                   <Box
                     sx={{
                       width: 120,
@@ -479,7 +479,7 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
             </Box>
           </Box>
         )}
-        {/* TAB 1: SOCIAL */}
+        {/* Social */}
         {tabIndex === 1 && (
           <Box>
             <Typography variant="h6" gutterBottom>
@@ -500,7 +500,6 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
                 onChange={handleChange}
                 fullWidth
               />
-              {/* CAMBIADO: De selector a texto libre */}
               <TextField
                 label="Con quién vive"
                 name="conQuienVive"
@@ -508,7 +507,6 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
                 onChange={handleChange}
                 fullWidth
               />
-              {/* CAMBIADO: De selector a texto libre */}
               <TextField
                 label="Concurre a consulta"
                 name="concurreALaConsulta"
@@ -547,7 +545,7 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
             </Box>
           </Box>
         )}
-        {/* TAB 2: MENTAL */}
+        {/* Mental */}
         {tabIndex === 2 && (
           <Box>
             <Typography variant="h6" gutterBottom>
@@ -575,7 +573,6 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
                 onChange={handleChange}
                 fullWidth
               />
-              {/* CAMBIADO: De selector a texto libre */}
               <TextField
                 label="Concurre a consulta (mental)"
                 name="concurreALaConsultaMental"
@@ -705,7 +702,7 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
             </Box>
           </Box>
         )}
-        {/* TAB 3: FUNCIONAL */}
+        {/* Funcional */}
         {tabIndex === 3 && (
           <Box>
             <Typography variant="h6" gutterBottom>
@@ -719,7 +716,6 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
                 mb: 3,
               }}
             >
-              {/* CAMBIADO: De selector a texto libre */}
               <TextField
                 label="Camina"
                 name="camina"
@@ -741,7 +737,6 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
                 onChange={handleChange}
                 fullWidth
               />
-              {/* CAMBIADO: De selector a texto libre */}
               <TextField
                 label="Pasa mucho tiempo sentado"
                 name="pasaMuchoTiempoSentado"
@@ -766,7 +761,7 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
             </Box>
           </Box>
         )}
-        {/* TAB 4: CLÍNICO */}
+        {/* Clinico */}
         {tabIndex === 4 && (
           <Box>
             <Typography variant="h6" gutterBottom>
@@ -1023,7 +1018,7 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
             </Box>
           </Box>
         )}
-        {/* TAB 5: EXAMEN FÍSICO */}
+        {/* Examen fisico*/}
         {tabIndex === 5 && (
           <Box>
             <Typography variant="h6" gutterBottom>
@@ -1367,7 +1362,7 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
             </Box>
           </Box>
         )}
-        {/* TAB 6: HISTORIA CLÍNICA */}
+        {/* Historia clínica */}
         {tabIndex === 6 && (
           <Box>
             <Typography variant="h6" gutterBottom>
