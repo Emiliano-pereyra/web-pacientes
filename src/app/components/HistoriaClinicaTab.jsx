@@ -167,7 +167,7 @@ const HistoriaClinicaTab = ({ paciente, datos }) => {
 
   return (
     <Box>
-      <Paper sx={{ p: 2, mb: 3, maxWidth: "600px" }}>
+      <Paper sx={{ p: 2, mb: 3, maxWidth: "650px" }}>
         <Box
           display="flex"
           justifyContent="space-between"

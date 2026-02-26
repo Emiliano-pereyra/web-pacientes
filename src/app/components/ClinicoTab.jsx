@@ -7,12 +7,14 @@ import {
   Grid,
   Alert,
   CircularProgress,
+  Avatar,
 } from "@mui/material";
 import Swal from "sweetalert2";
 import ModalEdicionClinico from "./ModalEdicionClinico";
 
 const ClinicoTab = ({ paciente, datos }) => {
   const [openModal, setOpenModal] = useState(false);
+  const [fotoError, setFotoError] = useState(false);
 
   const handleEditar = () => {
     if (!paciente) {
@@ -195,6 +197,19 @@ const ClinicoTab = ({ paciente, datos }) => {
     },
   };
 
+  const handleFotoError = () => {
+    setFotoError(true);
+  };
+
+  const getInitials = (nombre) => {
+    if (!nombre) return "?";
+    const palabras = nombre.trim().split(/\s+/);
+    if (palabras.length >= 2) {
+      return (palabras[0][0] + palabras[palabras.length - 1][0]).toUpperCase();
+    }
+    return nombre.substring(0, 2).toUpperCase();
+  };
+
   if (!paciente) {
     return (
       <Alert severity="info">
@@ -215,6 +230,68 @@ const ClinicoTab = ({ paciente, datos }) => {
 
   return (
     <Box>
+      <Paper sx={{ p: 2, mb: 3, maxWidth: "650px" }}>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={2}
+        >
+          <Typography variant="h6">Información</Typography>
+        </Box>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={4}>
+            <Typography variant="body2">
+              Fecha de ingreso: {paciente.fechaIngreso || "-"}
+            </Typography>
+            <Typography variant="body2">
+              Nombre completo: {paciente.nombreCompleto || "-"}
+            </Typography>
+            <Typography variant="body2">
+              Obra Social: {paciente.obraSocial || "-"}
+            </Typography>
+            <Typography variant="body2">DNI: {paciente.dni || "-"}</Typography>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Typography variant="body2">
+              Fecha de nacimiento: {paciente.fechaNacimiento || "-"}
+            </Typography>
+            <Typography variant="body2">
+              Edad: {paciente.edad || "-"}
+            </Typography>
+            <Typography variant="body2">
+              AF N°: {paciente.afiliadoNumero || "-"}
+            </Typography>
+          </Grid>
+          <Grid
+            item
+            xs={12}
+            md={4}
+            sx={{ ml: 5, mb: 2 }}
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+          >
+            <Avatar
+              src={paciente.urlFoto && !fotoError ? paciente.urlFoto : ""}
+              alt={paciente.nombreCompleto || "Paciente"}
+              onError={handleFotoError}
+              sx={{
+                width: 80,
+                height: 80,
+                fontSize: 32,
+                bgcolor:
+                  fotoError || !paciente.urlFoto ? "primary.main" : undefined,
+                border: "2px solid",
+                borderColor: "divider",
+              }}
+            >
+              {(fotoError || !paciente.urlFoto) &&
+                getInitials(paciente.nombreCompleto)}
+            </Avatar>
+          </Grid>
+        </Grid>
+      </Paper>
       <Paper sx={{ p: 2, mb: 3 }}>
         <Box
           display="flex"

@@ -169,9 +169,7 @@ const ResumenHCTab = ({ paciente, datos }) => {
         <Box
           sx={{
             p: 1,
-            bgcolor: "#fff",
             borderRadius: "4px",
-            boxShadow: "0 8px 16px rgba(0,0,0,0.08)",
           }}
         >
           <Typography variant="body2">
@@ -190,9 +188,7 @@ const ResumenHCTab = ({ paciente, datos }) => {
         <Box
           sx={{
             p: 1,
-            bgcolor: "#fff",
             borderRadius: "4px",
-            boxShadow: "0 8px 16px rgba(0,0,0,0.08)",
           }}
         >
           <Typography variant="body2">
@@ -206,9 +202,7 @@ const ResumenHCTab = ({ paciente, datos }) => {
         <Box
           sx={{
             p: 1,
-            bgcolor: "#fff",
             borderRadius: "4px",
-            boxShadow: "0 8px 16px rgba(0,0,0,0.08)",
           }}
         >
           <Typography variant="body2">{d(paciente.tratamientoBase)}</Typography>
