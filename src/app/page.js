@@ -249,8 +249,8 @@ const Home = () => {
                 onChange={handleTabChange}
                 variant="fullWidth"
               >
-                <Tab label="Historia Clínica" />
-                <Tab label="Clínico" />
+                <Tab label="Antecedentes" />
+                <Tab label="Clínico Psicosocial" />
                 <Tab label="Resumen HC" />
                 <Tab label="Información Familiar / Apoderado" />
                 <Tab label="Interconsulta" />

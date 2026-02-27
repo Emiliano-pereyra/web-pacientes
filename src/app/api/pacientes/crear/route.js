@@ -16,10 +16,7 @@ function convertirNombreAId(nombre) {
     .join("_");
 }
 
-/**
-  Convierte un valor a string o retorna "-" si está vacío
-  IMPORTANTE: No se aplica normalización para preservar ñ, acentos, tildes, etc.
- */
+
 function getStringOrDash(value) {
   if (value === undefined || value === null || value === "") {
     return "-";
@@ -35,25 +32,19 @@ export async function POST(req) {
     const { nombreCompleto } = body;
 
     if (!nombreCompleto?.trim()) {
-      return new Response(
-        JSON.stringify({ error: "El nombre completo es obligatorio" }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json; charset=utf-8" },
-        },
-      );
+      return new Response(JSON.stringify({ error: "El nombre completo es obligatorio" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+      });
     }
 
     const id = convertirNombreAId(nombreCompleto);
 
     if (!id) {
-      return new Response(
-        JSON.stringify({ error: "Nombre inválido para generar ID" }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json; charset=utf-8" },
-        },
-      );
+      return new Response(JSON.stringify({ error: "Nombre inválido para generar ID" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+      });
     }
 
     const fechaActual = new Date().toISOString().split("T")[0];
@@ -70,30 +61,7 @@ export async function POST(req) {
       obraSocial: getStringOrDash(body.obraSocial),
       urlFoto: getStringOrDash(body.urlFoto),
 
-      // === ANTECEDENTES (Texto Libre - Nueva estructura) ===
-      antecedentesCardiovascular: getStringOrDash(
-        body.antecedentesCardiovascular,
-      ),
-      antecedentesDigestivo: getStringOrDash(body.antecedentesDigestivo),
-      antecedentesMetabolico: getStringOrDash(body.antecedentesMetabolico),
-      antecedentesNeurologico: getStringOrDash(body.antecedentesNeurologico),
-      antecedentesUrologico: getStringOrDash(body.antecedentesUrologico),
-      antecedentesPsiquiatrico: getStringOrDash(body.antecedentesPsiquiatrico),
-      antecedentesOtros: getStringOrDash(body.antecedentesOtros),
-
-      // === EXAMEN FÍSICO (Texto Libre - Nueva estructura) ===
-      examenOrientacion: getStringOrDash(body.examenOrientacion),
-      examenCardiovascular: getStringOrDash(body.examenCardiovascular),
-      examenRespiratorio: getStringOrDash(body.examenRespiratorio),
-      examenDigestivo: getStringOrDash(body.examenDigestivo),
-      examenGenitourinario: getStringOrDash(body.examenGenitourinario),
-      examenNeurologico: getStringOrDash(body.examenNeurologico),
-      examenOtros: getStringOrDash(body.examenOtros),
-
-      // === TRATAMIENTO ACTUAL (Campo único de texto libre) ===
-      tratamientoActual: getStringOrDash(body.tratamientoActual),
-
-      // === SOCIAL (Para futura integración en creación/edición) ===
+      // === SOCIAL ===
       acompanado: getStringOrDash(body.acompanado),
       conQuienVive: getStringOrDash(body.conQuienVive),
       concurreALaConsulta: getStringOrDash(body.concurreALaConsulta),
@@ -102,14 +70,12 @@ export async function POST(req) {
       hijos: getStringOrDash(body.hijos),
       otros: getStringOrDash(body.otros),
 
-      // === MENTAL (Para futura integración en creación/edición) ===
+      // === MENTAL ===
       calculo1: getStringOrDash(body.calculo1),
       calculo2: getStringOrDash(body.calculo2),
       calculo3: getStringOrDash(body.calculo3),
       cierreOjosYHagalo: getStringOrDash(body.cierreOjosYHagalo),
-      concurreALaConsultaMental: getStringOrDash(
-        body.concurreALaConsultaMental,
-      ),
+      concurreALaConsultaMental: getStringOrDash(body.concurreALaConsultaMental),
       fraseEscrita: getStringOrDash(body.fraseEscrita),
       hijosMental: getStringOrDash(body.hijosMental),
       logradoCopieDibujo: getStringOrDash(body.logradoCopieDibujo),
@@ -126,7 +92,7 @@ export async function POST(req) {
       respuestaRepita: getStringOrDash(body.respuestaRepita),
       textoLeido: getStringOrDash(body.textoLeido),
 
-      // === FUNCIONAL (Para futura integración en creación/edición) ===
+      // === FUNCIONAL ===
       articulaciones: getStringOrDash(body.articulaciones),
       caidas: getStringOrDash(body.caidas),
       camina: getStringOrDash(body.camina),
@@ -204,6 +170,7 @@ export async function POST(req) {
       fechaEnfermedadBase: getStringOrDash(body.fechaEnfermedadBase),
       informeInterconsulta: getStringOrDash(body.informeInterconsulta),
       tratamientoBase: getStringOrDash(body.tratamientoBase),
+      tratamientoActual: getStringOrDash(body.tratamientoActual),
 
       // === EVOLUCIÓN ===
       Evolucion: getStringOrDash(body.Evolucion),
@@ -211,13 +178,9 @@ export async function POST(req) {
 
       // === FECHAS AUTO-GENERADAS AL CREAR ===
       fechaUltModifAntecedentesPatologicos: fechaActual,
-      fechaAnteriorModifAntecedentesPatologicos: getStringOrDash(
-        body.fechaAnteriorModifAntecedentesPatologicos,
-      ),
+      fechaAnteriorModifAntecedentesPatologicos: getStringOrDash(body.fechaAnteriorModifAntecedentesPatologicos),
       fechaUltModifEnfermedadActual: fechaActual,
-      fechaAnteriorModifEnfermedadActual: getStringOrDash(
-        body.fechaAnteriorModifEnfermedadActual,
-      ),
+      fechaAnteriorModifEnfermedadActual: getStringOrDash(body.fechaAnteriorModifEnfermedadActual),
       fechaTratamientoBase: getStringOrDash(body.fechaTratamientoBase),
       fechaTratamientoActual: getStringOrDash(body.fechaTratamientoActual),
     };
@@ -227,17 +190,17 @@ export async function POST(req) {
       "pacientes",
       "lista",
       "nombresPacientes",
-      id,
+      id
     );
 
     await setDoc(pacienteDocRef, paciente);
 
     return new Response(
       JSON.stringify({ message: "Paciente creado correctamente", id }),
-      {
+      { 
         status: 201,
         headers: { "Content-Type": "application/json; charset=utf-8" },
-      },
+      }
     );
   } catch (error) {
     console.error("Error creando paciente:", error);

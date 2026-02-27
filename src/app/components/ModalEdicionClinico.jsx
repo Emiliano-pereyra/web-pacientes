@@ -92,7 +92,7 @@ const ModalEdicionClinico = ({ open, onClose, datos, pacienteId }) => {
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
-      <DialogTitle>Editar Datos Clínicos</DialogTitle>
+      <DialogTitle>Editar Datos Clínicos Psicosociales</DialogTitle>
 
       <DialogContent dividers sx={{ maxHeight: "70vh", overflowY: "auto" }}>
         <LocalizationProvider dateAdapter={AdapterDateFns}>

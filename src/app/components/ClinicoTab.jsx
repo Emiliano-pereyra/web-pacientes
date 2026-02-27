@@ -44,7 +44,7 @@ const ClinicoTab = ({ paciente, datos }) => {
 
     Swal.fire({
       title: "Imprimir planilla",
-      text: "¿Deseas generar el PDF historia clínica?",
+      text: "¿Deseas generar el PDF antecedentes?",
       icon: "question",
       showCancelButton: true,
       confirmButtonText: "Sí, imprimir",
@@ -84,116 +84,123 @@ const ClinicoTab = ({ paciente, datos }) => {
     setOpenModal(false);
   };
 
+  // === ACTUALIZADO: datosParaEditar con Social, Mental y Funcional ===
   const datosParaEditar = {
-    antecedentes: datos?.antecedentes || {
-      vasculares: {
-        ta: paciente.TA,
-        cardio: paciente.Cardio,
-      },
-      digestivos: {
-        parrafoDigestivos: paciente.Digestivos,
-        constipacion: paciente.Constipacion,
-      },
-      metabolicas: {
-        parrafoMetabolicos: paciente.Metabolicas,
-      },
-      sensoriales: {
-        auditivas: paciente.Auditivas,
-        olfativas: paciente.Olfativas,
-        visuales: paciente.Visuales,
-        gustativas: paciente.Gustativas,
-      },
-      ginecologicas: {
-        parrafoGinecologicas: paciente.Ginecologicas,
-      },
-      vPerif: {
-        edemas: paciente.Edemas,
-        varices: paciente.Varices,
-        ulceras: paciente.Ulceras,
-      },
-      dbt: {
-        tiroides: paciente.Tiroides,
-      },
-      SNC: {
-        paralisis: paciente.Paralisis,
-        parestesias: paciente.Parestesias,
-        temblores: paciente.Temblores,
-        convulsiones: paciente.Convulsiones,
-        afasias: paciente.Afasias,
-        disartria: paciente.Disartria,
-      },
-      urologicas: {
-        parrafoUrologicas: paciente.Urologicas,
-      },
-      dermatologicas: {
-        parrafoDermatologicas: paciente.Dermatologicas,
-      },
-      actitudPsiquica: {
-        activa: paciente.PsiquicaActiva,
-        pasiva: paciente.PsiquicaPasiva,
-      },
+    Informacion: paciente
+      ? {
+          nombreCompleto: paciente.nombreCompleto || "",
+          dni: paciente.dni || "",
+          fechaNacimiento: paciente.fechaNacimiento || "",
+          edad: paciente.edad || "",
+          obraSocial: paciente.obraSocial || "",
+          afiliadoNumero: paciente.afiliadoNumero || "",
+          fechaIngreso: paciente.fechaIngreso || "",
+        }
+      : {},
+    // === NUEVOS CAMPOS - SOCIAL ===
+    social: {
+      acompanado: paciente?.acompanado || "",
+      conQuienVive: paciente?.conQuienVive || "",
+      concurreALaConsulta: paciente?.concurreALaConsulta || "",
+      conyuge: paciente?.conyuge || "",
+      hermanos: paciente?.hermanos || "",
+      hijos: paciente?.hijos || "",
+      otros: paciente?.otros || "",
     },
+    // === NUEVOS CAMPOS - MENTAL ===
+    mental: {
+      orientacionEnT: paciente?.orientacionEnT || "",
+      hijosMental: paciente?.hijosMental || "",
+      concurreALaConsultaMental: paciente?.concurreALaConsultaMental || "",
+      palabra1: paciente?.palabra1 || "",
+      palabra2: paciente?.palabra2 || "",
+      palabra3: paciente?.palabra3 || "",
+      calculo1: paciente?.calculo1 || "",
+      calculo2: paciente?.calculo2 || "",
+      calculo3: paciente?.calculo3 || "",
+      respuesta1: paciente?.respuesta1 || "",
+      respuesta2: paciente?.respuesta2 || "",
+      palabra1Memoria: paciente?.palabra1Memoria || "",
+      palabra2Memoria: paciente?.palabra2Memoria || "",
+      palabra3Memoria: paciente?.palabra3Memoria || "",
+      respuestaRepita: paciente?.respuestaRepita || "",
+      textoLeido: paciente?.textoLeido || "",
+      cierreOjosYHagalo: paciente?.cierreOjosYHagalo || "",
+      logradoDoblePapel: paciente?.logradoDoblePapel || "",
+      logradoCopieDibujo: paciente?.logradoCopieDibujo || "",
+      fraseEscrita: paciente?.fraseEscrita || "",
+    },
+    // === NUEVOS CAMPOS - FUNCIONAL ===
+    funcional: {
+      camina: paciente?.camina || "",
+      levantateYAnda: paciente?.levantateYAnda || "",
+      articulaciones: paciente?.articulaciones || "",
+      pasaMuchoTiempoSentado: paciente?.pasaMuchoTiempoSentado || "",
+      equilibrio: paciente?.equilibrio || "",
+      caidas: paciente?.caidas || "",
+    },
+    // === EXAMEN FÍSICO DETALLADO (Se mantiene en esta pestaña) ===
     examenFisico: datos?.examenFisico || {
       fasciales: {
-        ojos: paciente.FacialOjos,
-        boca: paciente.FacialBoca,
-        denticion: paciente.FacialDenticion,
+        ojos: paciente?.FacialOjos,
+        boca: paciente?.FacialBoca,
+        denticion: paciente?.FacialDenticion,
       },
       apCardiovascular: {
-        r1yr2: paciente.CardioR1R2,
+        r1yr2: paciente?.CardioR1R2,
       },
       apGenitourinario: {
-        ppbl: paciente.PPBL,
-        controlEsfinter: paciente.GenitourinarioEsfinter,
-        otro: paciente.GenitourinarioOtros,
+        ppbl: paciente?.PPBL,
+        controlEsfinter: paciente?.GenitourinarioEsfinter,
+        otro: paciente?.GenitourinarioOtros,
       },
       trMentales: {
-        atencion: paciente.TrAtencion,
-        orientacion: paciente.TrOrientacion,
-        memoria: paciente.TrMemoria,
-        signosDepresivos: paciente.SignoDepre,
-        trSueno: paciente.TrSueno,
+        atencion: paciente?.TrAtencion,
+        orientacion: paciente?.TrOrientacion,
+        memoria: paciente?.TrMemoria,
+        signosDepresivos: paciente?.TrSignoDepre,
+        trSueno: paciente?.TrSueno,
       },
       cuello: {
-        adenopatias: paciente.Adenopatias,
-        bocio: paciente.Bocio,
+        adenopatias: paciente?.Adenopatias,
+        bocio: paciente?.Bocio,
       },
       signosFallaCardiaca: {
-        ta: paciente.CardiacaTA,
-        edemas: paciente.CardiacaEdemas,
+        ta: paciente?.CardiacaTA,
+        edemas: paciente?.CardiacaEdemas,
       },
       dermatologicos: {
-        tejCp: paciente.TEJCP,
-        peso: paciente.Peso,
+        tejCp: paciente?.TEJCP,
+        peso: paciente?.Peso,
       },
       apRespiratoria: {
-        percusion: paciente.Percusion,
-        auscultacion: paciente.Auscultacion,
-        otros: paciente.RespiratoriaOtros,
+        percusion: paciente?.Percusion,
+        auscultacion: paciente?.Auscultacion,
+        otros: paciente?.RespiratoriaOtros,
       },
       apDigestivo: {
-        abdomen: paciente.Abdomen,
-        palpacion: paciente.Palpacion,
-        catarsis: paciente.Catarsis,
-        controlEsfinter: paciente.DigestivoEsfinter,
-        otro: paciente.DigestivoOtros,
+        abdomen: paciente?.Abdomen,
+        palpacion: paciente?.Palpacion,
+        catarsis: paciente?.Catarsis,
+        controlEsfinter: paciente?.DigestivoEsfinter,
+        otro: paciente?.DigestivoOtros,
       },
       SNC: {
-        alteracionesMotoras: paciente.SNCAltMotoras,
-        sensitivas: paciente.SNCSensitivas,
-        temblores: paciente.SNCTemblores,
-        postura: paciente.SNCPostura,
-        equilibrio: paciente.SNCEquilibrio,
-        marcha: paciente.SNCMarcha,
+        alteracionesMotoras: paciente?.SNCAltMotoras,
+        sensitivas: paciente?.SNCSensitivas,
+        temblores: paciente?.SNCTemblores,
+        postura: paciente?.SNCPostura,
+        equilibrio: paciente?.SNCEquilibrio,
+        marcha: paciente?.SNCMarcha,
       },
     },
+    // === TRATAMIENTO ACTUAL Y EVOLUCIÓN ===
     tratamientoActual: datos?.tratamientoActual || {
-      tratamientoActual: paciente.TratamientoActual,
+      tratamientoActual: paciente?.tratamientoActual,
     },
     evolucion: datos?.evolucion || {
-      texto:
-        "Lorem ipsum dolor sit, amet consectetur adipisicing elit. Velit, quo dolorem dignissimos veniam quos adipisci ab dolor maiores delectus voluptates! Maiores, placeat ullam perspiciatis asperiores amet atque adipisci labore minima!",
-      ultimaActualizacion: "",
+      texto: paciente?.Evolucion || "",
+      ultimaActualizacion: paciente?.UltFechaModifEvolucion || "",
     },
   };
 
@@ -230,6 +237,7 @@ const ClinicoTab = ({ paciente, datos }) => {
 
   return (
     <Box>
+      {/* === INFORMACIÓN DEL PACIENTE (Siempre visible) === */}
       <Paper sx={{ p: 2, mb: 3, maxWidth: "650px" }}>
         <Box
           display="flex"
@@ -292,6 +300,8 @@ const ClinicoTab = ({ paciente, datos }) => {
           </Grid>
         </Grid>
       </Paper>
+
+      {/* === SOCIAL (Nueva sección) === */}
       <Paper sx={{ p: 2, mb: 3 }}>
         <Box
           display="flex"
@@ -299,125 +309,40 @@ const ClinicoTab = ({ paciente, datos }) => {
           alignItems="center"
           mb={2}
         >
-          <Typography variant="h6">Antecedentes del paciente</Typography>
+          <Typography variant="h6">Social</Typography>
         </Box>
         <Grid container spacing={2}>
-          <Grid item xs={12} md={2}>
-            <Typography
-              variant="subtitle2"
-              sx={{ textDecoration: "underline" }}
-            >
-              Vasculares
+          <Grid item xs={12} md={4}>
+            <Typography variant="body2">
+              ¿Acompañado?: {safe(paciente.acompanado)}
             </Typography>
-            <Typography variant="body2">TA:</Typography>
-            <Typography variant="body2">Cardio:</Typography>
+            <Typography variant="body2">
+              Con quién vive: {safe(paciente.conQuienVive)}
+            </Typography>
+            <Typography variant="body2">
+              Concurre a consulta: {safe(paciente.concurreALaConsulta)}
+            </Typography>
           </Grid>
-          <Grid item xs={12} md={2}>
-            <Typography
-              variant="subtitle2"
-              sx={{ textDecoration: "underline" }}
-            >
-              Digestivos
+          <Grid item xs={12} md={4}>
+            <Typography variant="body2">
+              Cónyuge: {safe(paciente.conyuge)}
             </Typography>
-            <Typography variant="body2">Párrafo para digestivos</Typography>
-            <Typography variant="body2">Constipación:</Typography>
+            <Typography variant="body2">
+              Hermanos: {safe(paciente.hermanos)}
+            </Typography>
+            <Typography variant="body2">
+              Hijos: {safe(paciente.hijos)}
+            </Typography>
           </Grid>
-          <Grid item xs={12} md={2}>
-            <Typography
-              variant="subtitle2"
-              sx={{ textDecoration: "underline" }}
-            >
-              Metabólicas
+          <Grid item xs={12} md={4}>
+            <Typography variant="body2">
+              Otros: {safe(paciente.otros)}
             </Typography>
-            <Typography variant="body2">Párrafo para metabolicos</Typography>
-          </Grid>
-          <Grid item xs={12} md={2}>
-            <Typography
-              variant="subtitle2"
-              sx={{ textDecoration: "underline" }}
-            >
-              Sensoriales
-            </Typography>
-            <Typography variant="body2">Auditivas:</Typography>
-            <Typography variant="body2">Olfativas:</Typography>
-            <Typography variant="body2">Visuales:</Typography>
-            <Typography variant="body2">Gustativas:</Typography>
-          </Grid>
-          <Grid item xs={12} md={2}>
-            <Typography
-              variant="subtitle2"
-              sx={{ textDecoration: "underline" }}
-            >
-              Ginecológicas
-            </Typography>
-            <Typography variant="body2">Párrafo de ginecológicas</Typography>
-          </Grid>
-          <Grid item xs={12} md={2}>
-            <Typography
-              variant="subtitle2"
-              sx={{ textDecoration: "underline" }}
-            >
-              V PERIF
-            </Typography>
-            <Typography variant="body2">Edemas:</Typography>
-            <Typography variant="body2">Várices:</Typography>
-            <Typography variant="body2">Úlceras:</Typography>
-          </Grid>
-          <Grid item xs={12} md={2}>
-            <Typography
-              variant="subtitle2"
-              sx={{ textDecoration: "underline" }}
-            >
-              DBT
-            </Typography>
-            <Typography variant="body2">Tiroides:</Typography>
-          </Grid>
-          <Grid item xs={12} md={2}>
-            <Typography
-              variant="subtitle2"
-              sx={{ textDecoration: "underline" }}
-            >
-              SNC
-            </Typography>
-            <Typography variant="body2">Parálisis:</Typography>
-            <Typography variant="body2">Parestesias:</Typography>
-            <Typography variant="body2">Temblores:</Typography>
-            <Typography variant="body2">Convulsiones:</Typography>
-            <Typography variant="body2">Afasias:</Typography>
-            <Typography variant="body2">Disartria:</Typography>
-          </Grid>
-          <Grid item xs={12} md={2}>
-            <Typography
-              variant="subtitle2"
-              sx={{ textDecoration: "underline" }}
-            >
-              Urológicas
-            </Typography>
-            <Typography variant="body2">Párrafo de urologicas</Typography>
-          </Grid>
-          <Grid item xs={12} md={2}>
-            <Typography
-              variant="subtitle2"
-              sx={{ textDecoration: "underline" }}
-            >
-              Dermatológicas
-            </Typography>
-            <Typography variant="body2">Párrafo de dermatologicas:</Typography>
-          </Grid>
-          <Grid item xs={12} md={2}>
-            <Typography
-              variant="subtitle2"
-              sx={{ textDecoration: "underline" }}
-            >
-              Actitud psíquica
-            </Typography>
-            <Typography variant="body2">Activa:</Typography>
-            <Typography variant="body2">Pasiva:</Typography>
           </Grid>
         </Grid>
       </Paper>
 
-      {/* Examen físico */}
+      {/* === MENTAL (Nueva sección) === */}
       <Paper sx={{ p: 2, mb: 3 }}>
         <Box
           display="flex"
@@ -425,7 +350,173 @@ const ClinicoTab = ({ paciente, datos }) => {
           alignItems="center"
           mb={2}
         >
-          <Typography variant="h6">Examen físico</Typography>
+          <Typography variant="h6">Mental</Typography>
+        </Box>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={3}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline", mb: 1 }}
+            >
+              Orientación y Consulta
+            </Typography>
+            <Typography variant="body2">
+              Orientación en T: {safe(paciente.orientacionEnT)}
+            </Typography>
+            <Typography variant="body2">
+              Hijos: {safe(paciente.hijosMental)}
+            </Typography>
+            <Typography variant="body2">
+              Concurre a consulta: {safe(paciente.concurreALaConsultaMental)}
+            </Typography>
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline", mb: 1 }}
+            >
+              Fijación (3 palabras)
+            </Typography>
+            <Typography variant="body2">
+              Palabra 1: {safe(paciente.palabra1)}
+            </Typography>
+            <Typography variant="body2">
+              Palabra 2: {safe(paciente.palabra2)}
+            </Typography>
+            <Typography variant="body2">
+              Palabra 3: {safe(paciente.palabra3)}
+            </Typography>
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline", mb: 1 }}
+            >
+              Cálculo
+            </Typography>
+            <Typography variant="body2">
+              Cálculo 1: {safe(paciente.calculo1)}
+            </Typography>
+            <Typography variant="body2">
+              Cálculo 2: {safe(paciente.calculo2)}
+            </Typography>
+            <Typography variant="body2">
+              Cálculo 3: {safe(paciente.calculo3)}
+            </Typography>
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline", mb: 1 }}
+            >
+              Respuestas
+            </Typography>
+            <Typography variant="body2">
+              Respuesta 1: {safe(paciente.respuesta1)}
+            </Typography>
+            <Typography variant="body2">
+              Respuesta 2: {safe(paciente.respuesta2)}
+            </Typography>
+            <Typography variant="body2">
+              Repita: {safe(paciente.respuestaRepita)}
+            </Typography>
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline", mb: 1 }}
+            >
+              Memoria
+            </Typography>
+            <Typography variant="body2">
+              Palabra 1: {safe(paciente.palabra1Memoria)}
+            </Typography>
+            <Typography variant="body2">
+              Palabra 2: {safe(paciente.palabra2Memoria)}
+            </Typography>
+            <Typography variant="body2">
+              Palabra 3: {safe(paciente.palabra3Memoria)}
+            </Typography>
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline", mb: 1 }}
+            >
+              Lectura y Ejecución
+            </Typography>
+            <Typography variant="body2">
+              Texto leído: {safe(paciente.textoLeido)}
+            </Typography>
+            <Typography variant="body2">
+              Cierre ojos y hágalo: {safe(paciente.cierreOjosYHagalo)}
+            </Typography>
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline", mb: 1 }}
+            >
+              Tareas Manuales
+            </Typography>
+            <Typography variant="body2">
+              Logró doblar papel: {safe(paciente.logradoDoblePapel)}
+            </Typography>
+            <Typography variant="body2">
+              Logró copiar dibujo: {safe(paciente.logradoCopieDibujo)}
+            </Typography>
+            <Typography variant="body2">
+              Frase escrita: {safe(paciente.fraseEscrita)}
+            </Typography>
+          </Grid>
+        </Grid>
+      </Paper>
+
+      {/* === FUNCIONAL (Nueva sección) === */}
+      <Paper sx={{ p: 2, mb: 3 }}>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={2}
+        >
+          <Typography variant="h6">Funcional</Typography>
+        </Box>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={6}>
+            <Typography variant="body2">
+              Camina: {safe(paciente.camina)}
+            </Typography>
+            <Typography variant="body2">
+              Levántate y anda: {safe(paciente.levantateYAnda)}
+            </Typography>
+            <Typography variant="body2">
+              Articulaciones: {safe(paciente.articulaciones)}
+            </Typography>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Typography variant="body2">
+              Pasa mucho tiempo sentado: {safe(paciente.pasaMuchoTiempoSentado)}
+            </Typography>
+            <Typography variant="body2">
+              Equilibrio: {safe(paciente.equilibrio)}
+            </Typography>
+            <Typography variant="body2">
+              Caídas: {safe(paciente.caidas)}
+            </Typography>
+          </Grid>
+        </Grid>
+      </Paper>
+
+      {/* === EXAMEN FÍSICO DETALLADO (Se mantiene en esta pestaña) === */}
+      <Paper sx={{ p: 2, mb: 3 }}>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={2}
+        >
+          <Typography variant="h6">Examen Físico</Typography>
         </Box>
         <Grid container spacing={2}>
           <Grid item xs={12} md={2}>
@@ -435,42 +526,64 @@ const ClinicoTab = ({ paciente, datos }) => {
             >
               Fasciales
             </Typography>
-            <Typography variant="body2">Ojos:</Typography>
-            <Typography variant="body2">Boca:</Typography>
-            <Typography variant="body2">Dentición:</Typography>
+            <Typography variant="body2">
+              Ojos: {safe(paciente.FacialOjos)}
+            </Typography>
+            <Typography variant="body2">
+              Boca: {safe(paciente.FacialBoca)}
+            </Typography>
+            <Typography variant="body2">
+              Dentición: {safe(paciente.FacialDenticion)}
+            </Typography>
           </Grid>
           <Grid item xs={12} md={2}>
             <Typography
               variant="subtitle2"
               sx={{ textDecoration: "underline" }}
             >
-              Ap cardiovascular
+              Ap. Cardiovascular
             </Typography>
-            <Typography variant="body2">R1 y R2:</Typography>
+            <Typography variant="body2">
+              R1 y R2: {safe(paciente.CardioR1R2)}
+            </Typography>
           </Grid>
           <Grid item xs={12} md={2}>
             <Typography
               variant="subtitle2"
               sx={{ textDecoration: "underline" }}
             >
-              Ap. genitourinario
+              Ap. Genitourinario
             </Typography>
-            <Typography variant="body2">PPBL:</Typography>
-            <Typography variant="body2">Control de esfínter:</Typography>
-            <Typography variant="body2">Otro:</Typography>
+            <Typography variant="body2">PPBL: {safe(paciente.PPBL)}</Typography>
+            <Typography variant="body2">
+              Control esfínter: {safe(paciente.GenitourinarioEsfinter)}
+            </Typography>
+            <Typography variant="body2">
+              Otro: {safe(paciente.GenitourinarioOtros)}
+            </Typography>
           </Grid>
           <Grid item xs={12} md={2}>
             <Typography
               variant="subtitle2"
               sx={{ textDecoration: "underline" }}
             >
-              Tr. mentales
+              Tr. Mentales
             </Typography>
-            <Typography variant="body2">Atención:</Typography>
-            <Typography variant="body2">Orientación:</Typography>
-            <Typography variant="body2">Memoria:</Typography>
-            <Typography variant="body2">Signos depresivos:</Typography>
-            <Typography variant="body2">Tr. del sueño:</Typography>
+            <Typography variant="body2">
+              Atención: {safe(paciente.TrAtencion)}
+            </Typography>
+            <Typography variant="body2">
+              Orientación: {safe(paciente.TrOrientacion)}
+            </Typography>
+            <Typography variant="body2">
+              Memoria: {safe(paciente.TrMemoria)}
+            </Typography>
+            <Typography variant="body2">
+              Signos depresivos: {safe(paciente.TrSignoDepre)}
+            </Typography>
+            <Typography variant="body2">
+              Tr. del sueño: {safe(paciente.TrSueno)}
+            </Typography>
           </Grid>
           <Grid item xs={12} md={2}>
             <Typography
@@ -479,18 +592,26 @@ const ClinicoTab = ({ paciente, datos }) => {
             >
               Cuello
             </Typography>
-            <Typography variant="body2">Adenopatías:</Typography>
-            <Typography variant="body2">Bocio:</Typography>
+            <Typography variant="body2">
+              Adenopatías: {safe(paciente.Adenopatias)}
+            </Typography>
+            <Typography variant="body2">
+              Bocio: {safe(paciente.Bocio)}
+            </Typography>
           </Grid>
           <Grid item xs={12} md={2}>
             <Typography
               variant="subtitle2"
               sx={{ textDecoration: "underline" }}
             >
-              Signos falla cardíaca
+              Signos Falla Cardíaca
             </Typography>
-            <Typography variant="body2">TA:</Typography>
-            <Typography variant="body2">Edemas:</Typography>
+            <Typography variant="body2">
+              TA: {safe(paciente.CardiacaTA)}
+            </Typography>
+            <Typography variant="body2">
+              Edemas: {safe(paciente.CardiacaEdemas)}
+            </Typography>
           </Grid>
           <Grid item xs={12} md={2}>
             <Typography
@@ -499,32 +620,50 @@ const ClinicoTab = ({ paciente, datos }) => {
             >
               Dermatológicos
             </Typography>
-            <Typography variant="body2">TEJ CP:</Typography>
-            <Typography variant="body2">Peso:</Typography>
+            <Typography variant="body2">
+              TEJ CP: {safe(paciente.TEJCP)}
+            </Typography>
+            <Typography variant="body2">Peso: {safe(paciente.Peso)}</Typography>
           </Grid>
           <Grid item xs={12} md={2}>
             <Typography
               variant="subtitle2"
               sx={{ textDecoration: "underline" }}
             >
-              Ap. respiratoria
+              Ap. Respiratoria
             </Typography>
-            <Typography variant="body2">Percusión:</Typography>
-            <Typography variant="body2">Auscultación:</Typography>
-            <Typography variant="body2">Otros:</Typography>
+            <Typography variant="body2">
+              Percusión: {safe(paciente.Percusion)}
+            </Typography>
+            <Typography variant="body2">
+              Auscultación: {safe(paciente.Auscultacion)}
+            </Typography>
+            <Typography variant="body2">
+              Otros: {safe(paciente.RespiratoriaOtros)}
+            </Typography>
           </Grid>
           <Grid item xs={12} md={2}>
             <Typography
               variant="subtitle2"
               sx={{ textDecoration: "underline" }}
             >
-              Ap. digestivo
+              Ap. Digestivo
             </Typography>
-            <Typography variant="body2">Abdomen:</Typography>
-            <Typography variant="body2">A la palpación:</Typography>
-            <Typography variant="body2">Catarsis:</Typography>
-            <Typography variant="body2">Control de esfínter:</Typography>
-            <Typography variant="body2">Otro:</Typography>
+            <Typography variant="body2">
+              Abdomen: {safe(paciente.Abdomen)}
+            </Typography>
+            <Typography variant="body2">
+              Palpación: {safe(paciente.Palpacion)}
+            </Typography>
+            <Typography variant="body2">
+              Catarsis: {safe(paciente.Catarsis)}
+            </Typography>
+            <Typography variant="body2">
+              Control esfínter: {safe(paciente.DigestivoEsfinter)}
+            </Typography>
+            <Typography variant="body2">
+              Otro: {safe(paciente.DigestivoOtros)}
+            </Typography>
           </Grid>
           <Grid item xs={12} md={2}>
             <Typography
@@ -533,16 +672,29 @@ const ClinicoTab = ({ paciente, datos }) => {
             >
               SNC
             </Typography>
-            <Typography variant="body2">Alteraciones motoras:</Typography>
-            <Typography variant="body2">Sensitivas:</Typography>
-            <Typography variant="body2">Temblores:</Typography>
-            <Typography variant="body2">Postura:</Typography>
-            <Typography variant="body2">Equilibrio:</Typography>
-            <Typography variant="body2">Marcha:</Typography>
+            <Typography variant="body2">
+              Alt. motoras: {safe(paciente.SNCAltMotoras)}
+            </Typography>
+            <Typography variant="body2">
+              Sensitivas: {safe(paciente.SNCSensitivas)}
+            </Typography>
+            <Typography variant="body2">
+              Temblores: {safe(paciente.SNCTemblores)}
+            </Typography>
+            <Typography variant="body2">
+              Postura: {safe(paciente.SNCPostura)}
+            </Typography>
+            <Typography variant="body2">
+              Equilibrio: {safe(paciente.SNCEquilibrio)}
+            </Typography>
+            <Typography variant="body2">
+              Marcha: {safe(paciente.SNCMarcha)}
+            </Typography>
           </Grid>
         </Grid>
       </Paper>
 
+      {/* === TRATAMIENTO ACTUAL === */}
       <Paper sx={{ p: 2, mb: 3 }}>
         <Box
           display="flex"
@@ -550,12 +702,14 @@ const ClinicoTab = ({ paciente, datos }) => {
           alignItems="center"
           mb={2}
         >
-          <Typography variant="h6">Tratamiento actual</Typography>
+          <Typography variant="h6">Tratamiento Actual</Typography>
         </Box>
-        <Typography variant="body2">Tratamiento1...</Typography>
-        <Typography variant="body2">Tratamiento2...</Typography>
+        <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+          {safe(paciente.tratamientoActual)}
+        </Typography>
       </Paper>
 
+      {/* === EVOLUCIÓN === */}
       <Paper sx={{ p: 2, mb: 3 }}>
         <Box
           display="flex"
@@ -568,18 +722,16 @@ const ClinicoTab = ({ paciente, datos }) => {
               Evolución -
             </Typography>
             <Typography variant="subtitle2" component="span" ml={1}>
-              última fecha de actualización
+              última actualización: {safe(paciente.UltFechaModifEvolucion)}
             </Typography>
           </Box>
         </Box>
-        <Typography variant="body2">
-          Lorem ipsum dolor sit, amet consectetur adipisicing elit. Velit, quo
-          dolorem dignissimos veniam quos adipisci ab dolor maiores delectus
-          voluptates! Maiores, placeat ullam perspiciatis asperiores amet atque
-          adipisci labore minima!
+        <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+          {safe(paciente.Evolucion)}
         </Typography>
       </Paper>
 
+      {/* === BOTONES DE ACCIÓN === */}
       <Box display="flex" justifyContent="center" mt={3} gap={2}>
         <Button
           variant="contained"

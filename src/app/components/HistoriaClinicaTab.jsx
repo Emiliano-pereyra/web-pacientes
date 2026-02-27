@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import Swal from "sweetalert2";
 import ModalEdicionHistoriaClinica from "./ModalEdicionHC";
+
 const HistoriaClinicaTab = ({ paciente, datos }) => {
   const [openModal, setOpenModal] = useState(false);
   const [fotoError, setFotoError] = useState(false);
@@ -26,7 +27,7 @@ const HistoriaClinicaTab = ({ paciente, datos }) => {
   const handleImprimir = async () => {
     Swal.fire({
       title: "Imprimir planilla",
-      text: "¿Deseas generar el PDF de historia clínica?",
+      text: "¿Deseas generar el PDF de antecedentes?",
       icon: "question",
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
@@ -94,6 +95,7 @@ const HistoriaClinicaTab = ({ paciente, datos }) => {
     return nombre.substring(0, 2).toUpperCase();
   };
 
+  // === ACTUALIZADO: datosParaEditar con nueva estructura + secciones mantenidas ===
   const datosParaEditar = {
     Informacion: paciente
       ? {
@@ -106,51 +108,34 @@ const HistoriaClinicaTab = ({ paciente, datos }) => {
           fechaIngreso: paciente.fechaIngreso || "",
         }
       : {},
-    funcional: datos?.funcional || {
-      camina: paciente.camina,
-      levantateYAnda: paciente.levantateYAnda,
-      articulaciones: paciente.articulaciones,
-      pasaMuchoTiempoSentado: paciente.pasaMuchoTiempoSentado,
-      equilibrio: paciente.equilibrio,
-      caidas: paciente.caidas,
+    // === NUEVOS CAMPOS - ANTECEDENTES (Texto Libre) ===
+    antecedentes: {
+      cardiovascular: paciente?.antecedentesCardiovascular || "",
+      digestivo: paciente?.antecedentesDigestivo || "",
+      metabolico: paciente?.antecedentesMetabolico || "",
+      neurologico: paciente?.antecedentesNeurologico || "",
+      urologico: paciente?.antecedentesUrologico || "",
+      psiquiatrico: paciente?.antecedentesPsiquiatrico || "",
+      otros: paciente?.antecedentesOtros || "",
     },
-    social: datos?.social || {
-      conQuienVive: paciente.conQuienVive,
-      hijos: paciente.hijos,
-      concurreALaConsulta: paciente.concurreALaConsulta,
-      conyuge: paciente.conyuge,
-      hermanos: paciente.hermanos,
-      acompanado: paciente.acompanado,
-      otros: paciente.otros,
+    // === NUEVOS CAMPOS - EXAMEN FÍSICO (Texto Libre) ===
+    examenFisico: {
+      orientacion: paciente?.examenOrientacion || "",
+      cardiovascular: paciente?.examenCardiovascular || "",
+      respiratorio: paciente?.examenRespiratorio || "",
+      digestivo: paciente?.examenDigestivo || "",
+      genitourinario: paciente?.examenGenitourinario || "",
+      neurologico: paciente?.examenNeurologico || "",
+      otros: paciente?.examenOtros || "",
     },
-    mental: datos?.mental || {
-      orientacionEnT: paciente.orientacionEnT,
-      hijosMental: paciente.hijosMental,
-      concurreALaConsultaMental: paciente.concurreALaConsultaMental,
-      palabra1: paciente.palabra1,
-      palabra2: paciente.palabra2,
-      palabra3: paciente.palabra3,
-      calculo1: paciente.calculo1,
-      calculo2: paciente.calculo2,
-      calculo3: paciente.calculo3,
-      respuesta1: paciente.respuesta1,
-      respuesta2: paciente.respuesta2,
-      palabra1Memoria: paciente.palabra1Memoria,
-      palabra2Memoria: paciente.palabra2Memoria,
-      palabra3Memoria: paciente.palabra3Memoria,
-      respuestaRepita: paciente.respuestaRepita,
-      textoLeido: paciente.textoLeido,
-      cierreOjosYHagalo: paciente.cierreOjosYHagalo,
-      logradoDoblePapel: paciente.logradoDoblePapel,
-      logradoCopieDibujo: paciente.logradoCopieDibujo,
-      fraseEscrita: paciente.fraseEscrita,
-    },
+    // === NUEVO CAMPO - TRATAMIENTO ACTUAL ===
+    tratamientoActual: paciente?.tratamientoActual || "",
   };
 
   if (!paciente) {
     return (
       <Alert severity="info">
-        Por favor selecciona un paciente para ver la historia clínica.
+        Por favor selecciona un paciente para ver los antecedentes.
       </Alert>
     );
   }
@@ -167,6 +152,7 @@ const HistoriaClinicaTab = ({ paciente, datos }) => {
 
   return (
     <Box>
+      {/* === INFORMACIÓN DEL PACIENTE === */}
       <Paper sx={{ p: 2, mb: 3, maxWidth: "650px" }}>
         <Box
           display="flex"
@@ -230,6 +216,7 @@ const HistoriaClinicaTab = ({ paciente, datos }) => {
         </Grid>
       </Paper>
 
+      {/* === ANTECEDENTES (Nueva estructura - Texto Libre) === */}
       <Paper sx={{ p: 2, mb: 3 }}>
         <Box
           display="flex"
@@ -237,35 +224,90 @@ const HistoriaClinicaTab = ({ paciente, datos }) => {
           alignItems="center"
           mb={2}
         >
-          <Typography variant="h6">Funcional</Typography>
+          <Typography variant="h6">Antecedentes</Typography>
         </Box>
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
-            <Typography variant="body2">
-              Camina: {paciente.camina || "-"}
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline", mb: 1 }}
+            >
+              Cardiovascular
             </Typography>
-            <Typography variant="body2">
-              Levántate y anda: {paciente.levantateYAnda || "-"}
-            </Typography>
-            <Typography variant="body2">
-              Articulaciones: {paciente.articulaciones || "-"}
+            <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+              {paciente.antecedentesCardiovascular || "-"}
             </Typography>
           </Grid>
           <Grid item xs={12} md={6}>
-            <Typography variant="body2">
-              Pasa mucho tiempo sentado:{" "}
-              {paciente.pasaMuchoTiempoSentado || "-"}
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline", mb: 1 }}
+            >
+              Digestivo
             </Typography>
-            <Typography variant="body2">
-              Equilibrio: {paciente.equilibrio || "-"}
+            <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+              {paciente.antecedentesDigestivo || "-"}
             </Typography>
-            <Typography variant="body2">
-              Caídas: {paciente.caidas || "-"}
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline", mb: 1 }}
+            >
+              Metabólico
+            </Typography>
+            <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+              {paciente.antecedentesMetabolico || "-"}
+            </Typography>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline", mb: 1 }}
+            >
+              Neurológico
+            </Typography>
+            <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+              {paciente.antecedentesNeurologico || "-"}
+            </Typography>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline", mb: 1 }}
+            >
+              Urológico
+            </Typography>
+            <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+              {paciente.antecedentesUrologico || "-"}
+            </Typography>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline", mb: 1 }}
+            >
+              Psiquiátrico
+            </Typography>
+            <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+              {paciente.antecedentesPsiquiatrico || "-"}
+            </Typography>
+          </Grid>
+          <Grid item xs={12}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline", mb: 1 }}
+            >
+              Otros
+            </Typography>
+            <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+              {paciente.antecedentesOtros || "-"}
             </Typography>
           </Grid>
         </Grid>
       </Paper>
 
+      {/* === EXAMEN FÍSICO (Nueva estructura - Texto Libre) === */}
       <Paper sx={{ p: 2, mb: 3 }}>
         <Box
           display="flex"
@@ -273,39 +315,90 @@ const HistoriaClinicaTab = ({ paciente, datos }) => {
           alignItems="center"
           mb={2}
         >
-          <Typography variant="h6">Social</Typography>
+          <Typography variant="h6">Examen Físico</Typography>
         </Box>
         <Grid container spacing={2}>
-          <Grid item xs={12} md={4}>
-            <Typography variant="body2">
-              Con quién vive: {paciente.conQuienVive || "-"}
+          <Grid item xs={12} md={6}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline", mb: 1 }}
+            >
+              Orientación
             </Typography>
-            <Typography variant="body2">
-              Hijos: {paciente.hijos || "-"}
-            </Typography>
-            <Typography variant="body2">
-              Concurre a la consulta: {paciente.concurreALaConsulta || "-"}
-            </Typography>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Typography variant="body2">
-              Cónyuge: {paciente.conyuge || "-"}
-            </Typography>
-            <Typography variant="body2">
-              Hermanos: {paciente.hermanos || "-"}
-            </Typography>
-            <Typography variant="body2">
-              Acompañado: {paciente.acompanado || "-"}
+            <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+              {paciente.examenOrientacion || "-"}
             </Typography>
           </Grid>
-          <Grid item xs={12} md={4}>
-            <Typography variant="body2">
-              Otros: {paciente.otros || "-"}
+          <Grid item xs={12} md={6}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline", mb: 1 }}
+            >
+              AP. Cardiovascular
+            </Typography>
+            <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+              {paciente.examenCardiovascular || "-"}
+            </Typography>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline", mb: 1 }}
+            >
+              Respiratorio
+            </Typography>
+            <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+              {paciente.examenRespiratorio || "-"}
+            </Typography>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline", mb: 1 }}
+            >
+              Digestivo
+            </Typography>
+            <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+              {paciente.examenDigestivo || "-"}
+            </Typography>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline", mb: 1 }}
+            >
+              Genitourinario
+            </Typography>
+            <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+              {paciente.examenGenitourinario || "-"}
+            </Typography>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline", mb: 1 }}
+            >
+              Neurológico / Psiquis
+            </Typography>
+            <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+              {paciente.examenNeurologico || "-"}
+            </Typography>
+          </Grid>
+          <Grid item xs={12}>
+            <Typography
+              variant="subtitle2"
+              sx={{ textDecoration: "underline", mb: 1 }}
+            >
+              Otros
+            </Typography>
+            <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+              {paciente.examenOtros || "-"}
             </Typography>
           </Grid>
         </Grid>
       </Paper>
 
+      {/* === TRATAMIENTO ACTUAL (Campo único de texto libre) === */}
       <Paper sx={{ p: 2, mb: 3 }}>
         <Box
           display="flex"
@@ -313,153 +406,14 @@ const HistoriaClinicaTab = ({ paciente, datos }) => {
           alignItems="center"
           mb={2}
         >
-          <Typography variant="h6">Mental</Typography>
+          <Typography variant="h6">Tratamiento Actual</Typography>
         </Box>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={2}>
-            <Typography
-              variant="subtitle2"
-              sx={{ textDecoration: "underline" }}
-            >
-              Orientación en T y E:
-            </Typography>
-            <Typography variant="body2">
-              Orientación: {paciente.orientacionEnT || "-"}
-            </Typography>
-            <Typography variant="body2">
-              Hijos: {paciente.hijosMental || "-"}
-            </Typography>
-            <Typography variant="body2">
-              Concurre a la consulta:{" "}
-              {paciente.concurreALaConsultaMental || "-"}
-            </Typography>
-          </Grid>
-          <Grid item xs={12} md={2}>
-            <Typography
-              variant="subtitle2"
-              sx={{ textDecoration: "underline" }}
-            >
-              Fijación (repita 3 palabras)
-            </Typography>
-            <Typography variant="body2">
-              Palabra 1: {paciente.palabra1 || "-"}
-            </Typography>
-            <Typography variant="body2">
-              Palabra 2: {paciente.palabra2 || "-"}
-            </Typography>
-            <Typography variant="body2">
-              Palabra 3: {paciente.palabra3 || "-"}
-            </Typography>
-          </Grid>
-          <Grid item xs={12} md={2}>
-            <Typography
-              variant="subtitle2"
-              sx={{ textDecoration: "underline" }}
-            >
-              Concentración y cálculo
-            </Typography>
-            <Typography variant="body2">
-              Cálculo 1: {paciente.calculo1 || "-"}
-            </Typography>
-            <Typography variant="body2">
-              Cálculo 2: {paciente.calculo2 || "-"}
-            </Typography>
-            <Typography variant="body2">
-              Cálculo 3: {paciente.calculo3 || "-"}
-            </Typography>
-          </Grid>
-          <Grid item xs={12} md={2}>
-            <Typography
-              variant="subtitle2"
-              sx={{ textDecoration: "underline" }}
-            >
-              ¿Qué es esto?
-            </Typography>
-            <Typography variant="body2">
-              Respuesta 1: {paciente.respuesta1 || "-"}
-            </Typography>
-            <Typography variant="body2">
-              Respuesta 2: {paciente.respuesta2 || "-"}
-            </Typography>
-          </Grid>
-          <Grid item xs={12} md={2}>
-            <Typography
-              variant="subtitle2"
-              sx={{ textDecoration: "underline" }}
-            >
-              Memoria (3 palabras)
-            </Typography>
-            <Typography variant="body2">
-              Palabra 1: {paciente.palabra1Memoria || "-"}
-            </Typography>
-            <Typography variant="body2">
-              Palabra 2: {paciente.palabra2Memoria || "-"}
-            </Typography>
-            <Typography variant="body2">
-              Palabra 3: {paciente.palabra3Memoria || "-"}
-            </Typography>
-          </Grid>
-          <Grid item xs={12} md={2}>
-            <Typography
-              variant="subtitle2"
-              sx={{ textDecoration: "underline" }}
-            >
-              Repita
-            </Typography>
-            <Typography variant="body2">
-              Respuesta: {paciente.respuestaRepita || "-"}
-            </Typography>
-          </Grid>
-          <Grid item xs={12} md={2}>
-            <Typography
-              variant="subtitle2"
-              sx={{ textDecoration: "underline" }}
-            >
-              Lea esto
-            </Typography>
-            <Typography variant="body2">
-              Texto leído: {paciente.textoLeido || "-"}
-            </Typography>
-            <Typography variant="body2">
-              Cierre los ojos y hágalo: {paciente.cierreOjosYHagalo || "-"}
-            </Typography>
-          </Grid>
-          <Grid item xs={12} md={2}>
-            <Typography
-              variant="subtitle2"
-              sx={{ textDecoration: "underline" }}
-            >
-              Doble papel
-            </Typography>
-            <Typography variant="body2">
-              Logrado: {paciente.logradoDoblePapel || "-"}
-            </Typography>
-          </Grid>
-          <Grid item xs={12} md={2}>
-            <Typography
-              variant="subtitle2"
-              sx={{ textDecoration: "underline" }}
-            >
-              Copie dibujo
-            </Typography>
-            <Typography variant="body2">
-              Logrado: {paciente.logradoCopieDibujo || "-"}
-            </Typography>
-          </Grid>
-          <Grid item xs={12} md={2}>
-            <Typography
-              variant="subtitle2"
-              sx={{ textDecoration: "underline" }}
-            >
-              Escriba frase
-            </Typography>
-            <Typography variant="body2">
-              Frase escrita: {paciente.fraseEscrita || "-"}
-            </Typography>
-          </Grid>
-        </Grid>
+        <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+          {paciente.tratamientoActual || "-"}
+        </Typography>
       </Paper>
 
+      {/* === BOTONES DE ACCIÓN === */}
       <Box display="flex" justifyContent="center" mt={3} gap={2}>
         <Button
           variant="contained"
