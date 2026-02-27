@@ -4,6 +4,7 @@ import { doc, setDoc } from "firebase/firestore";
 /**
   Convierte un nombre completo en un ID válido para Firestore
   Ej: "María José López" → "María_José_López"
+  NOTA: Se preservan caracteres especiales como ñ, acentos, tildes
  */
 function convertirNombreAId(nombre) {
   if (!nombre) return "";
@@ -45,8 +46,10 @@ export async function POST(req) {
       });
     }
 
+    const fechaActual = new Date().toISOString().split("T")[0];
+
     const paciente = {
-      // Info paciente
+      // === DATOS PERSONALES ===
       afiliadoNumero: getStringOrDash(body.afiliadoNumero),
       dni: getStringOrDash(body.dni),
       edad: getStringOrDash(body.edad),
@@ -57,128 +60,46 @@ export async function POST(req) {
       obraSocial: getStringOrDash(body.obraSocial),
       urlFoto: getStringOrDash(body.urlFoto),
 
-      // Social
-      acompanado: getStringOrDash(body.acompanado),
-      conQuienVive: getStringOrDash(body.conQuienVive),
-      concurreALaConsulta: getStringOrDash(body.concurreALaConsulta),
-      conyuge: getStringOrDash(body.conyuge),
-      hermanos: getStringOrDash(body.hermanos),
-      hijos: getStringOrDash(body.hijos),
-      otros: getStringOrDash(body.otros),
+      // === ANTECEDENTES (Texto Libre - Nueva estructura) ===
+      antecedentesCardiovascular: getStringOrDash(body.antecedentesCardiovascular),
+      antecedentesDigestivo: getStringOrDash(body.antecedentesDigestivo),
+      antecedentesMetabolico: getStringOrDash(body.antecedentesMetabolico),
+      antecedentesNeurologico: getStringOrDash(body.antecedentesNeurologico),
+      antecedentesUrologico: getStringOrDash(body.antecedentesUrologico),
+      antecedentesPsiquiatrico: getStringOrDash(body.antecedentesPsiquiatrico),
+      antecedentesOtros: getStringOrDash(body.antecedentesOtros),
 
-      // Mental
-      calculo1: getStringOrDash(body.calculo1),
-      calculo2: getStringOrDash(body.calculo2),
-      calculo3: getStringOrDash(body.calculo3),
-      cierreOjosYHagalo: getStringOrDash(body.cierreOjosYHagalo),
-      concurreALaConsultaMental: getStringOrDash(body.concurreALaConsultaMental),
-      fraseEscrita: getStringOrDash(body.fraseEscrita),
-      hijosMental: getStringOrDash(body.hijosMental),
-      logradoCopieDibujo: getStringOrDash(body.logradoCopieDibujo),
-      logradoDoblePapel: getStringOrDash(body.logradoDoblePapel),
-      orientacionEnT: getStringOrDash(body.orientacionEnT),
-      palabra1: getStringOrDash(body.palabra1),
-      palabra1Memoria: getStringOrDash(body.palabra1Memoria),
-      palabra2: getStringOrDash(body.palabra2),
-      palabra2Memoria: getStringOrDash(body.palabra2Memoria),
-      palabra3: getStringOrDash(body.palabra3),
-      palabra3Memoria: getStringOrDash(body.palabra3Memoria),
-      respuesta1: getStringOrDash(body.respuesta1),
-      respuesta2: getStringOrDash(body.respuesta2),
-      respuestaRepita: getStringOrDash(body.respuestaRepita),
-      textoLeido: getStringOrDash(body.textoLeido),
+      // === EXAMEN FÍSICO (Texto Libre - Nueva estructura) ===
+      examenOrientacion: getStringOrDash(body.examenOrientacion),
+      examenCardiovascular: getStringOrDash(body.examenCardiovascular),
+      examenRespiratorio: getStringOrDash(body.examenRespiratorio),
+      examenDigestivo: getStringOrDash(body.examenDigestivo),
+      examenGenitourinario: getStringOrDash(body.examenGenitourinario),
+      examenNeurologico: getStringOrDash(body.examenNeurologico),
+      examenOtros: getStringOrDash(body.examenOtros),
 
-      // Funcional
-      articulaciones: getStringOrDash(body.articulaciones),
-      caidas: getStringOrDash(body.caidas),
-      camina: getStringOrDash(body.camina),
-      equilibrio: getStringOrDash(body.equilibrio),
-      levantateYAnda: getStringOrDash(body.levantateYAnda),
-      pasaMuchoTiempoSentado: getStringOrDash(body.pasaMuchoTiempoSentado),
+      // === TRATAMIENTO ACTUAL (Campo único de texto libre) ===
+      tratamientoActual: getStringOrDash(body.tratamientoActual),
 
-      // Flia y Apoderados
-      calidadDe: getStringOrDash(body.calidadDe),
-
-      // Interconsulta
+      // === CAMPOS DE HISTORIA CLÍNICA / INTERCONSULTA (Se mantienen) ===
       antecedentesPatologicos: getStringOrDash(body.antecedentesPatologicos),
-      fechaUltModifAntecedentesPatologicos: getStringOrDash(body.fechaUltModifAntecedentesPatologicos),
-      fechaAnteriorModifAntecedentesPatologicos: getStringOrDash(body.fechaAnteriorModifAntecedentesPatologicos),
       enfermedadActual: getStringOrDash(body.enfermedadActual),
       enfermedadBase: getStringOrDash(body.enfermedadBase),
       fechaEnfermedadBase: getStringOrDash(body.fechaEnfermedadBase),
-      fechaUltModifEnfermedadActual: getStringOrDash(body.fechaUltModifEnfermedadActual),
-      fechaAnteriorModifEnfermedadActual: getStringOrDash(body.fechaAnteriorModifEnfermedadActual),
       informeInterconsulta: getStringOrDash(body.informeInterconsulta),
-
-      // Historia clínica
       tratamientoBase: getStringOrDash(body.tratamientoBase),
+
+      // === FECHAS AUTO-GENERADAS AL CREAR (Mantener por confirmación) ===
+      // Estas fechas se setean automáticamente con la fecha de creación del paciente
+      fechaUltModifAntecedentesPatologicos: fechaActual,
+      fechaAnteriorModifAntecedentesPatologicos: getStringOrDash(body.fechaAnteriorModifAntecedentesPatologicos),
+      
+      fechaUltModifEnfermedadActual: fechaActual,
+      fechaAnteriorModifEnfermedadActual: getStringOrDash(body.fechaAnteriorModifEnfermedadActual),
+      
+      // Fechas de tratamientos (se mantienen por si se usan en el futuro)
       fechaTratamientoBase: getStringOrDash(body.fechaTratamientoBase),
-      tratamientoActual: getStringOrDash(body.tratamientoActual),
       fechaTratamientoActual: getStringOrDash(body.fechaTratamientoActual),
-
-      // Clínico
-      TA: getStringOrDash(body.TA),
-      Cardio: getStringOrDash(body.Cardio),
-      Digestivos: getStringOrDash(body.Digestivos),
-      Constipacion: getStringOrDash(body.Constipacion),
-      Metabolicas: getStringOrDash(body.Metabolicas),
-      Auditivas: getStringOrDash(body.Auditivas),
-      Olfativas: getStringOrDash(body.Olfativas),
-      Visuales: getStringOrDash(body.Visuales),
-      Gustativas: getStringOrDash(body.Gustativas),
-      Ginecologicas: getStringOrDash(body.Ginecologicas),
-      Edemas: getStringOrDash(body.Edemas),
-      Varices: getStringOrDash(body.Varices),
-      Ulceras: getStringOrDash(body.Ulceras),
-      Tiroides: getStringOrDash(body.Tiroides),
-      Paralisis: getStringOrDash(body.Paralisis),
-      Parestesias: getStringOrDash(body.Parestesias),
-      Temblores: getStringOrDash(body.Temblores),
-      Convulsiones: getStringOrDash(body.Convulsiones),
-      Afasias: getStringOrDash(body.Afasias),
-      Disartria: getStringOrDash(body.Disartria),
-      Urologicas: getStringOrDash(body.Urologicas),
-      Dermatologicas: getStringOrDash(body.Dermatologicas),
-      PsiquicaActiva: getStringOrDash(body.PsiquicaActiva),
-      PsiquicaPasiva: getStringOrDash(body.PsiquicaPasiva),
-
-      // Examen físico
-      FacialOjos: getStringOrDash(body.FacialOjos),
-      FacialBoca: getStringOrDash(body.FacialBoca),
-      FacialDenticion: getStringOrDash(body.FacialDenticion),
-      CardioR1R2: getStringOrDash(body.CardioR1R2),
-      PPBL: getStringOrDash(body.PPBL),
-      GenitourinarioEsfinter: getStringOrDash(body.GenitourinarioEsfinter),
-      GenitourinarioOtros: getStringOrDash(body.GenitourinarioOtros),
-      TrAtencion: getStringOrDash(body.TrAtencion),
-      TrOrientacion: getStringOrDash(body.TrOrientacion),
-      TrMemoria: getStringOrDash(body.TrMemoria),
-      TrSignoDepre: getStringOrDash(body.TrSignoDepre),
-      TrSueno: getStringOrDash(body.TrSueno),
-      Adenopatias: getStringOrDash(body.Adenopatias),
-      Bocio: getStringOrDash(body.Bocio),
-      CardiacaTA: getStringOrDash(body.CardiacaTA),
-      CardiacaEdemas: getStringOrDash(body.CardiacaEdemas),
-      TEJCP: getStringOrDash(body.TEJCP),
-      Peso: getStringOrDash(body.Peso),
-      Percusion: getStringOrDash(body.Percusion),
-      Auscultacion: getStringOrDash(body.Auscultacion),
-      RespiratoriaOtros: getStringOrDash(body.RespiratoriaOtros),
-      Abdomen: getStringOrDash(body.Abdomen),
-      Palpacion: getStringOrDash(body.Palpacion),
-      Catarsis: getStringOrDash(body.Catarsis),
-      DigestivoEsfinter: getStringOrDash(body.DigestivoEsfinter),
-      DigestivoOtros: getStringOrDash(body.DigestivoOtros),
-      SNCAltMotoras: getStringOrDash(body.SNCAltMotoras),
-      SNCSensitivas: getStringOrDash(body.SNCSensitivas),
-      SNCTemblores: getStringOrDash(body.SNCTemblores),
-      SNCPostura: getStringOrDash(body.SNCPostura),
-      SNCEquilibrio: getStringOrDash(body.SNCEquilibrio),
-      SNCMarcha: getStringOrDash(body.SNCMarcha),
-
-      // Evolución
-      Evolucion: getStringOrDash(body.Evolucion),
-      UltFechaModifEvolucion: getStringOrDash(body.UltFechaModifEvolucion),
     };
 
     const pacienteDocRef = doc(
