@@ -14,13 +14,13 @@ export async function POST(request) {
   try {
     const formData = await request.formData();
     const file = formData.get('file');
-    const patientId = formData.get('patientId');
+    const pacienteId = formData.get('pacienteId');
 
     if (!file) {
       return NextResponse.json({ error: 'No se proporcionó ningún archivo' }, { status: 400 });
     }
 
-    if (!patientId) {
+    if (!pacienteId) {
       return NextResponse.json({ error: 'Falta el ID del paciente' }, { status: 400 });
     }
 
@@ -30,7 +30,7 @@ export async function POST(request) {
     const originalName = file.name;
     const fileExtension = originalName.split('.').pop();
 
-    const fileName = `${patientId}_${Date.now()}.${fileExtension}`;
+    const fileName = `${pacienteId}_${Date.now()}.${fileExtension}`;
 
     const auth = new google.auth.GoogleAuth({
       keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,

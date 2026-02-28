@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, Suspense } from "react";
 import {
   Container,
   AppBar,
   Toolbar,
   Typography,
   Box,
-  Paper,
   Menu,
   IconButton,
   Button,
@@ -21,6 +20,8 @@ import {
 } from "@mui/material";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
+import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
 import axios from "axios";
 import Swal from "sweetalert2";
 
@@ -30,8 +31,35 @@ import InterconsultaTab from "./components/InterconsultaTab";
 import ResumenHCTab from "./components/ResumenHCTab";
 import ClinicoTab from "./components/ClinicoTab";
 import CrearPacienteModal from "./components/ModalCrearPaciente";
+import ModalSubirFotoPaciente from "./components/modalSubirFotos";
+import { useRouter, useSearchParams } from "next/navigation";
+import ModalGaleriaFotosPaciente from "./components/ModalGaleriaFotosPaciente";
 
-const Home = () => {
+function PageLoading() {
+  return (
+    <Container maxWidth={false} sx={{ maxWidth: "100vw", padding: 0 }}>
+      <AppBar position="static" color="default" elevation={1}>
+        <Toolbar>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            Panel — Pacientes
+          </Typography>
+        </Toolbar>
+      </AppBar>
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="60vh"
+      >
+        <CircularProgress />
+      </Box>
+    </Container>
+  );
+}
+
+function HomeContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [cliente, setCliente] = useState(null);
   const [pacientes, setPacientes] = useState([]);
   const [selectedPaciente, setSelectedPaciente] = useState(null);
@@ -40,7 +68,9 @@ const Home = () => {
   const [error, setError] = useState(null);
   const [tabIndex, setTabIndex] = useState(0);
   const [tabData, setTabData] = useState({});
-  const [openCrearModal, setOpenCrearModal] = useState(false); // Estado para el modal
+  const [openCrearModal, setOpenCrearModal] = useState(false);
+  const [openFotoModal, setOpenFotoModal] = useState(false);
+  const [openGaleriaModal, setOpenGaleriaModal] = useState(false);
 
   useEffect(() => {
     const fetchPacientes = async () => {
@@ -61,36 +91,48 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
+    const pacienteIdUrl = searchParams?.get("paciente");
+    if (pacienteIdUrl && pacientes.length > 0) {
+      const pacienteEncontrado = pacientes.find((p) => p.id === pacienteIdUrl);
+      if (pacienteEncontrado) {
+        setSelectedPaciente({
+          id: pacienteEncontrado.id,
+          nombreVisible: pacienteEncontrado.nombre,
+        });
+      }
+    }
+  }, [pacientes, searchParams]);
+
+  useEffect(() => {
     if (!selectedPaciente?.id) return;
+
+    const params = new URLSearchParams(window.location.search);
+    params.set("paciente", selectedPaciente.id);
+    window.history.replaceState(
+      {},
+      "",
+      `${window.location.pathname}?${params}`,
+    );
 
     const fetchDatosPaciente = async () => {
       try {
-        console.log(
-          "Intentando cargar datos para paciente ID:",
-          selectedPaciente.id
-        );
+        console.log("Cargando datos para paciente ID:", selectedPaciente.id);
         setLoading(true);
+        setError(null);
+
         const res = await axios.get(
-          `/api/pacientes/datos?id=${selectedPaciente.id}`
+          `/api/pacientes/datos?id=${selectedPaciente.id}`,
         );
 
-        console.log("Respuesta del backend:", res);
-        console.log("Datos del paciente cargados:", res.data);
-
-        setTabData({
-          general: res.data,
-        });
+        console.log("Datos cargados:", res.data);
+        setTabData({ general: res.data });
       } catch (err) {
-        console.error("Error completo:", err);
-        console.error(
-          "Error al cargar datos del paciente:",
-          err.response?.data || err.message
-        );
+        console.error("Error cargando datos:", err);
         setError("No se pudieron cargar los datos del paciente");
         Swal.fire(
           "Error",
           "No se pudieron cargar los datos del paciente",
-          "error"
+          "error",
         );
       } finally {
         setLoading(false);
@@ -98,6 +140,24 @@ const Home = () => {
     };
 
     fetchDatosPaciente();
+  }, [selectedPaciente]);
+
+  const refreshPacienteData = useCallback(async () => {
+    if (!selectedPaciente?.id) return;
+
+    try {
+      setLoading(true);
+      const res = await axios.get(
+        `/api/pacientes/datos?id=${selectedPaciente.id}`,
+      );
+      setTabData({ general: res.data });
+      return true;
+    } catch (err) {
+      console.error("Error refrescando datos:", err);
+      return false;
+    } finally {
+      setLoading(false);
+    }
   }, [selectedPaciente]);
 
   const handleUserMenuOpen = (event) => {
@@ -121,6 +181,7 @@ const Home = () => {
     }).then((result) => {
       if (result.isConfirmed) {
         Swal.fire("Sesión cerrada", "", "success");
+        // window.location.href = '/login';
       }
     });
     handleUserMenuClose();
@@ -130,23 +191,79 @@ const Home = () => {
     setTabIndex(newValue);
   };
 
+  const handlePacienteChange = (event, newValue) => {
+    if (!newValue || !newValue.id) {
+      setSelectedPaciente(null);
+      setTabData({});
+      window.history.replaceState({}, "", window.location.pathname);
+      return;
+    }
+    setSelectedPaciente({
+      id: newValue.id,
+      nombreVisible: newValue.nombreVisible,
+    });
+  };
+
   const getTabData = (tabName) => {
     return tabData[tabName] || {};
   };
 
-  // Función para abrir el modal
   const handleOpenCrearModal = () => {
     setOpenCrearModal(true);
   };
 
-  // Función para cerrar el modal
   const handleCloseCrearModal = () => {
     setOpenCrearModal(false);
   };
 
-  const handleCrearSuccess = (nuevoId) => {
-    Swal.fire("Éxito", "Paciente creado correctamente", "success");
-    setPacientes(prev => [...prev, { id: nuevoId, nombre: nuevoId }]);
+  const handleOpenFotoModal = () => {
+    setOpenFotoModal(true);
+  };
+  const handleCloseFotoModal = () => setOpenFotoModal(false);
+
+  const handleCrearSuccess = async (nuevoId) => {
+    try {
+      const res = await axios.get("/api/pacientes");
+      setPacientes(res.data);
+
+      const nuevoPaciente = res.data.find((p) => p.id === nuevoId);
+      if (nuevoPaciente) {
+        setSelectedPaciente({
+          id: nuevoPaciente.id,
+          nombreVisible: nuevoPaciente.nombre,
+        });
+      }
+
+      Swal.fire("Éxito", "Paciente creado correctamente", "success");
+      handleCloseCrearModal();
+    } catch (err) {
+      console.error("Error post-creación:", err);
+      Swal.fire(
+        "Éxito",
+        "Paciente creado (error al refrescar lista)",
+        "success",
+      );
+    }
+  };
+
+  const handleFotoUploadSuccess = async (metadata) => {
+    const exito = await refreshPacienteData();
+    if (exito) {
+      console.log("Datos actualizados tras subir foto:", metadata);
+    }
+    // El modal se cierra desde dentro del componente ModalSubirFotoPaciente
+  };
+
+  const handleOpenGaleriaModal = () => {
+    setOpenGaleriaModal(true);
+  };
+
+  const handleCloseGaleriaModal = () => setOpenGaleriaModal(false);
+
+  const handleFotosDeleted = (count) => {
+    if (count > 0) {
+      refreshPacienteData();
+    }
   };
 
   return (
@@ -221,14 +338,37 @@ const Home = () => {
             )}
             sx={{ flex: 1, maxWidth: 400 }}
           />
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={handleOpenCrearModal}
-            sx={{ minWidth: 120 }}
-          >
-            Crear Paciente
-          </Button>
+          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+            {selectedPaciente && (
+              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                <Button
+                  variant="outlined"
+                  color="info"
+                  onClick={handleOpenGaleriaModal}
+                  startIcon={<PhotoLibraryIcon />}
+                >
+                  Ver Galería
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  onClick={handleOpenFotoModal}
+                  startIcon={<AddPhotoAlternateIcon />}
+                >
+                  Subir Foto
+                </Button>
+              </Box>
+            )}
+
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={handleOpenCrearModal}
+              sx={{ minWidth: 120 }}
+            >
+              Crear Paciente
+            </Button>
+          </Box>
         </Box>
 
         {error && (
@@ -298,8 +438,34 @@ const Home = () => {
           onCreateSuccess={handleCrearSuccess}
         />
       )}
+
+      {openFotoModal && selectedPaciente && (
+        <ModalSubirFotoPaciente
+          open={openFotoModal}
+          onClose={handleCloseFotoModal}
+          pacienteId={selectedPaciente.id}
+          patientName={selectedPaciente.nombreVisible}
+          onUploadSuccess={handleFotoUploadSuccess}
+        />
+      )}
+
+      {openGaleriaModal && selectedPaciente && (
+        <ModalGaleriaFotosPaciente
+          open={openGaleriaModal}
+          onClose={handleCloseGaleriaModal}
+          pacienteId={selectedPaciente.id}
+          patientName={selectedPaciente.nombreVisible}
+          onDeleted={handleFotosDeleted}
+        />
+      )}
     </Container>
   );
-};
+}
 
-export default Home;
+export default function Home() {
+  return (
+    <Suspense fallback={<PageLoading />}>
+      <HomeContent />
+    </Suspense>
+  );
+}

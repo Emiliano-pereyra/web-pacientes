@@ -183,6 +183,8 @@ export async function POST(req) {
       fechaAnteriorModifEnfermedadActual: getStringOrDash(body.fechaAnteriorModifEnfermedadActual),
       fechaTratamientoBase: getStringOrDash(body.fechaTratamientoBase),
       fechaTratamientoActual: getStringOrDash(body.fechaTratamientoActual),
+
+       galeriaFotos: [], 
     };
 
     const pacienteDocRef = doc(

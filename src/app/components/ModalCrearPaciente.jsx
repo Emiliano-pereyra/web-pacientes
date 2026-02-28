@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -37,6 +37,14 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
   const [error, setError] = useState("");
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl && previewUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -120,63 +128,85 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
     }
   };
 
-  const handlePhotoUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      setError("Por favor seleccione una imagen válida (jpg, png, gif, etc.)");
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setError("La imagen es demasiado grande. Máximo 5MB.");
-      return;
-    }
-    setUploadingPhoto(true);
-    setError("");
-    try {
-      const preview = URL.createObjectURL(file);
-      setPreviewUrl(preview);
-      const tempId = formData.nombreCompleto
-        ? formData.nombreCompleto
-            .trim()
-            .split(/\s+/)
-            .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
-            .join("_")
-        : `paciente_${Date.now()}`;
-      const formDataUpload = new FormData();
-      formDataUpload.append("file", file);
-      formDataUpload.append("patientId", tempId);
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formDataUpload,
-      });
-      const result = await response.json();
-      if (!response.ok) {
-        throw new Error(result.error || "Error al subir la imagen");
-      }
-      setFormData((prev) => ({
-        ...prev,
-        urlFoto: result.url,
-      }));
-    } catch (err) {
-      console.error("Error subiendo foto:", err);
-      setError(err.message);
-      setPreviewUrl(null);
-    } finally {
-      setUploadingPhoto(false);
-    }
-  };
+ const handlePhotoUpload = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  // Validaciones
+  if (!file.type.startsWith("image/")) {
+    setError("Por favor seleccione una imagen válida (jpg, png, gif, etc.)");
+    return;
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    setError("La imagen es demasiado grande. Máximo 5MB.");
+    return;
+  }
 
-  const handleRemovePhoto = () => {
-    setFormData((prev) => ({
-      ...prev,
-      urlFoto: "",
-    }));
-    setPreviewUrl(null);
-    if (previewUrl) {
+  if (!formData.nombreCompleto?.trim()) {
+    setError("Ingrese primero el nombre completo del paciente para subir la foto.");
+    return;
+  }
+
+  setUploadingPhoto(true);
+  setError("");
+
+  try {
+    const preview = URL.createObjectURL(file);
+    
+    if (previewUrl && previewUrl.startsWith('blob:')) {
       URL.revokeObjectURL(previewUrl);
     }
-  };
+    setPreviewUrl(preview);
+
+    const tempId = formData.nombreCompleto
+      .trim()
+      .split(/\s+/)
+      .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
+      .join("_");
+
+    const formDataUpload = new FormData();
+    formDataUpload.append("file", file);
+    formDataUpload.append("tipo", "perfil");
+    formDataUpload.append("descripcion", "Foto de perfil al crear paciente");
+
+    const response = await fetch(`/api/pacientes/${tempId}/fotos`, {
+      method: "POST",
+      body: formDataUpload,
+
+    });
+
+    const result = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(result.error || "Error al subir la imagen");
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      urlFoto: result.url,
+    }));
+
+  } catch (err) {
+    console.error("Error subiendo foto:", err);
+    setError(err.message);
+    
+    setPreviewUrl(null);
+  } finally {
+    setUploadingPhoto(false);
+  }
+};
+
+const handleRemovePhoto = () => {
+  if (previewUrl && previewUrl.startsWith('blob:')) {
+    URL.revokeObjectURL(previewUrl);
+  }
+  
+  setFormData((prev) => ({
+    ...prev,
+    urlFoto: "",
+  }));
+  setPreviewUrl(null);
+};
 
   return (
     <Dialog
@@ -392,8 +422,13 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
             <Typography variant="h6" gutterBottom>
               Antecedentes
             </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
-              Complete solo los campos relevantes. Información parcial permitida.
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ mb: 2, display: "block" }}
+            >
+              Complete solo los campos relevantes. Información parcial
+              permitida.
             </Typography>
             <Box
               sx={{
@@ -477,8 +512,13 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
             <Typography variant="h6" gutterBottom>
               Examen Físico
             </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
-              Complete solo los campos relevantes. Información parcial permitida.
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ mb: 2, display: "block" }}
+            >
+              Complete solo los campos relevantes. Información parcial
+              permitida.
             </Typography>
             <Box
               sx={{
@@ -562,7 +602,11 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
             <Typography variant="h6" gutterBottom>
               Tratamiento Actual
             </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ mb: 2, display: "block" }}
+            >
               Descripción libre del tratamiento actual.
             </Typography>
             <Box

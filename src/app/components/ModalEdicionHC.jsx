@@ -23,12 +23,12 @@ const ModalEdicionHistoriaClinica = ({ open, onClose, datos, pacienteId }) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (open) {
+    if (open && datos) {
       const initialValues = {
-        Informacion: { ...datos.Informacion },
-        funcional: { ...datos.funcional },
-        social: { ...datos.social },
-        mental: { ...datos.mental },
+        Informacion: { ...(datos.Informacion || {}) },
+        antecedentes: { ...(datos.antecedentes || {}) },
+        examenFisico: { ...(datos.examenFisico || {}) },
+        tratamientoActual: datos.tratamientoActual || "",
       };
       setFormValues(initialValues);
     }
@@ -39,13 +39,23 @@ const ModalEdicionHistoriaClinica = ({ open, onClose, datos, pacienteId }) => {
   };
 
   const handleChange = (section, field, value) => {
-    setFormValues((prev) => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [field]: value,
-      },
-    }));
+    if (["antecedentes", "examenFisico"].includes(section)) {
+      setFormValues((prev) => ({
+        ...prev,
+        [section]: {
+          ...prev[section],
+          [field]: value,
+        },
+      }));
+    } else {
+      setFormValues((prev) => ({
+        ...prev,
+        [section]: {
+          ...prev[section],
+          [field]: value,
+        },
+      }));
+    }
   };
 
   const handleSubmit = async () => {
@@ -53,20 +63,38 @@ const ModalEdicionHistoriaClinica = ({ open, onClose, datos, pacienteId }) => {
     try {
       const flattened = {};
 
-      Object.keys(formValues).forEach((section) => {
-        const sectionData = formValues[section];
-        if (sectionData && typeof sectionData === "object") {
-          Object.keys(sectionData).forEach((field) => {
-            flattened[field] = sectionData[field];
-          });
-        }
-      });
+      if (formValues.Informacion) {
+        Object.keys(formValues.Informacion).forEach((field) => {
+          flattened[field] = formValues.Informacion[field];
+        });
+      }
 
-      const res = await fetch(`/api/pacientes/editar?id=${pacienteId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(flattened),
-      });
+      if (formValues.antecedentes) {
+        Object.keys(formValues.antecedentes).forEach((field) => {
+          const key = `antecedentes${field.charAt(0).toUpperCase() + field.slice(1)}`;
+          flattened[key] = formValues.antecedentes[field];
+        });
+      }
+
+      if (formValues.examenFisico) {
+        Object.keys(formValues.examenFisico).forEach((field) => {
+          const key = `examen${field.charAt(0).toUpperCase() + field.slice(1)}`;
+          flattened[key] = formValues.examenFisico[field];
+        });
+      }
+
+      if (formValues.tratamientoActual !== undefined) {
+        flattened.tratamientoActual = formValues.tratamientoActual;
+      }
+
+      const res = await fetch(
+        `/api/pacientes/editar/antecedentes?id=${pacienteId}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(flattened),
+        },
+      );
 
       const result = await res.json();
       if (!res.ok) throw new Error(result.error || "Error al guardar");
@@ -81,20 +109,29 @@ const ModalEdicionHistoriaClinica = ({ open, onClose, datos, pacienteId }) => {
     }
   };
 
-  const sections = ["Informacion", "funcional", "social", "mental"];
+  const sections = [
+    "Informacion",
+    "antecedentes",
+    "examenFisico",
+    "tratamientoActual",
+  ];
   const currentSection = sections[tabIndex];
-  const currentData = formValues[currentSection] || {};
 
-  const getValue = (field) => {
-    const value = currentData[field];
+  const getValue = (section, field) => {
+    if (section === "tratamientoActual") {
+      return formValues.tratamientoActual || "";
+    }
+    const sectionData = formValues[section] || {};
+    const value = sectionData[field];
     if (value === null || value === undefined) return "";
     return value;
   };
 
   const getDateValue = (field) => {
-    const value = currentData[field];
+    const value = formValues.Informacion?.[field];
     if (!value) return null;
-    return new Date(value);
+    const date = new Date(value);
+    return isNaN(date.getTime()) ? null : date;
   };
 
   return (
@@ -110,9 +147,9 @@ const ModalEdicionHistoriaClinica = ({ open, onClose, datos, pacienteId }) => {
               variant="scrollable"
             >
               <Tab label="Información" />
-              <Tab label="Funcional" />
-              <Tab label="Social" />
-              <Tab label="Mental" />
+              <Tab label="Antecedentes" />
+              <Tab label="Examen Físico" />
+              <Tab label="Tratamiento Actual" />
             </Tabs>
           </Box>
 
@@ -130,32 +167,33 @@ const ModalEdicionHistoriaClinica = ({ open, onClose, datos, pacienteId }) => {
                 <TextField
                   sx={{ flex: 1, minWidth: 200 }}
                   label="Nombre Completo"
-                  value={getValue("nombreCompleto")}
+                  value={getValue("Informacion", "nombreCompleto")}
                   onChange={(e) =>
-                    handleChange("Informacion", "nombreCompleto", e.target.value)
+                    handleChange(
+                      "Informacion",
+                      "nombreCompleto",
+                      e.target.value,
+                    )
                   }
                   variant="outlined"
-                  placeholder="Nombre completo actual"
                 />
                 <TextField
                   sx={{ flex: 1, minWidth: 150 }}
                   label="DNI"
-                  value={getValue("dni")}
+                  value={getValue("Informacion", "dni")}
                   onChange={(e) =>
                     handleChange("Informacion", "dni", e.target.value)
                   }
                   variant="outlined"
-                  placeholder="DNI actual"
                 />
                 <TextField
                   sx={{ flex: 1, minWidth: 180 }}
                   label="Obra Social"
-                  value={getValue("obraSocial")}
+                  value={getValue("Informacion", "obraSocial")}
                   onChange={(e) =>
                     handleChange("Informacion", "obraSocial", e.target.value)
                   }
                   variant="outlined"
-                  placeholder="Obra social actual"
                 />
               </Box>
 
@@ -175,36 +213,37 @@ const ModalEdicionHistoriaClinica = ({ open, onClose, datos, pacienteId }) => {
                     onChange={(newValue) =>
                       handleChange("Informacion", "fechaNacimiento", newValue)
                     }
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        fullWidth
-                        variant="outlined"
-                        placeholder="Fecha de nacimiento actual"
-                      />
-                    )}
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        variant: "outlined",
+                        placeholder: "Fecha de nacimiento",
+                      },
+                    }}
                   />
                 </Box>
                 <TextField
                   sx={{ flex: 1, minWidth: 120 }}
                   label="Edad"
                   type="number"
-                  value={getValue("edad")}
+                  value={getValue("Informacion", "edad")}
                   onChange={(e) =>
                     handleChange("Informacion", "edad", e.target.value)
                   }
                   variant="outlined"
-                  placeholder="Edad actual"
                 />
                 <TextField
                   sx={{ flex: 1, minWidth: 180 }}
                   label="Número de afiliado"
-                  value={getValue("afiliadoNumero")}
+                  value={getValue("Informacion", "afiliadoNumero")}
                   onChange={(e) =>
-                    handleChange("Informacion", "afiliadoNumero", e.target.value)
+                    handleChange(
+                      "Informacion",
+                      "afiliadoNumero",
+                      e.target.value,
+                    )
                   }
                   variant="outlined"
-                  placeholder="Número de afiliado actual"
                 />
               </Box>
 
@@ -215,490 +254,263 @@ const ModalEdicionHistoriaClinica = ({ open, onClose, datos, pacienteId }) => {
                   onChange={(newValue) =>
                     handleChange("Informacion", "fechaIngreso", newValue)
                   }
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      fullWidth
-                      variant="outlined"
-                      placeholder="Fecha de ingreso actual"
-                    />
-                  )}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      variant: "outlined",
+                      placeholder: "Fecha de ingreso",
+                    },
+                  }}
                 />
               </Box>
             </Box>
           )}
 
-          {currentSection === "funcional" && (
+          {currentSection === "antecedentes" && (
             <Box>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "row",
-                  flexWrap: "wrap",
-                  gap: 2,
-                  mb: 2,
-                }}
-              >
-                <TextField
-                  sx={{ flex: 1, minWidth: 180 }}
-                  label="Camina"
-                  value={getValue("camina")}
-                  onChange={(e) =>
-                    handleChange("funcional", "camina", e.target.value)
-                  }
-                  variant="outlined"
-                  placeholder="Valor actual: camina"
-                />
-                <TextField
-                  sx={{ flex: 1, minWidth: 180 }}
-                  label="Levántate y anda"
-                  value={getValue("levantateYAnda")}
-                  onChange={(e) =>
-                    handleChange("funcional", "levantateYAnda", e.target.value)
-                  }
-                  variant="outlined"
-                  placeholder="Valor actual: levántate y anda"
-                />
-                <TextField
-                  sx={{ flex: 1, minWidth: 180 }}
-                  label="Articulaciones"
-                  value={getValue("articulaciones")}
-                  onChange={(e) =>
-                    handleChange("funcional", "articulaciones", e.target.value)
-                  }
-                  variant="outlined"
-                  placeholder="Valor actual: articulaciones"
-                />
-              </Box>
-
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "row",
-                  flexWrap: "wrap",
-                  gap: 2,
-                  mb: 2,
-                }}
-              >
-                <TextField
-                  sx={{ flex: 1, minWidth: 200 }}
-                  label="Pasa mucho tiempo sentado"
-                  value={getValue("pasaMuchoTiempoSentado")}
-                  onChange={(e) =>
-                    handleChange(
-                      "funcional",
-                      "pasaMuchoTiempoSentado",
-                      e.target.value,
-                    )
-                  }
-                  variant="outlined"
-                  placeholder="Valor actual"
-                />
-                <TextField
-                  sx={{ flex: 1, minWidth: 180 }}
-                  label="Equilibrio"
-                  value={getValue("equilibrio")}
-                  onChange={(e) =>
-                    handleChange("funcional", "equilibrio", e.target.value)
-                  }
-                  variant="outlined"
-                  placeholder="Valor actual: equilibrio"
-                />
-                <TextField
-                  sx={{ flex: 1, minWidth: 150 }}
-                  label="Caídas"
-                  value={getValue("caidas")}
-                  onChange={(e) =>
-                    handleChange("funcional", "caidas", e.target.value)
-                  }
-                  variant="outlined"
-                  placeholder="Valor actual: caídas"
-                />
-              </Box>
+              <GridContainer>
+                <GridItem>
+                  <TextField
+                    label="Cardiovascular"
+                    value={getValue("antecedentes", "cardiovascular")}
+                    onChange={(e) =>
+                      handleChange(
+                        "antecedentes",
+                        "cardiovascular",
+                        e.target.value,
+                      )
+                    }
+                    multiline
+                    rows={3}
+                    fullWidth
+                    variant="outlined"
+                  />
+                </GridItem>
+                <GridItem>
+                  <TextField
+                    label="Digestivo"
+                    value={getValue("antecedentes", "digestivo")}
+                    onChange={(e) =>
+                      handleChange("antecedentes", "digestivo", e.target.value)
+                    }
+                    multiline
+                    rows={3}
+                    fullWidth
+                    variant="outlined"
+                  />
+                </GridItem>
+                <GridItem>
+                  <TextField
+                    label="Metabólico"
+                    value={getValue("antecedentes", "metabolico")}
+                    onChange={(e) =>
+                      handleChange("antecedentes", "metabolico", e.target.value)
+                    }
+                    multiline
+                    rows={3}
+                    fullWidth
+                    variant="outlined"
+                  />
+                </GridItem>
+                <GridItem>
+                  <TextField
+                    label="Neurológico"
+                    value={getValue("antecedentes", "neurologico")}
+                    onChange={(e) =>
+                      handleChange(
+                        "antecedentes",
+                        "neurologico",
+                        e.target.value,
+                      )
+                    }
+                    multiline
+                    rows={3}
+                    fullWidth
+                    variant="outlined"
+                  />
+                </GridItem>
+                <GridItem>
+                  <TextField
+                    label="Urológico"
+                    value={getValue("antecedentes", "urologico")}
+                    onChange={(e) =>
+                      handleChange("antecedentes", "urologico", e.target.value)
+                    }
+                    multiline
+                    rows={3}
+                    fullWidth
+                    variant="outlined"
+                  />
+                </GridItem>
+                <GridItem>
+                  <TextField
+                    label="Psiquiátrico"
+                    value={getValue("antecedentes", "psiquiatrico")}
+                    onChange={(e) =>
+                      handleChange(
+                        "antecedentes",
+                        "psiquiatrico",
+                        e.target.value,
+                      )
+                    }
+                    multiline
+                    rows={3}
+                    fullWidth
+                    variant="outlined"
+                  />
+                </GridItem>
+                <GridItemFull>
+                  <TextField
+                    label="Otros"
+                    value={getValue("antecedentes", "otros")}
+                    onChange={(e) =>
+                      handleChange("antecedentes", "otros", e.target.value)
+                    }
+                    multiline
+                    rows={3}
+                    fullWidth
+                    variant="outlined"
+                  />
+                </GridItemFull>
+              </GridContainer>
             </Box>
           )}
 
-          {currentSection === "social" && (
+          {currentSection === "examenFisico" && (
             <Box>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "row",
-                  flexWrap: "wrap",
-                  gap: 2,
-                  mb: 2,
-                }}
-              >
-                <TextField
-                  sx={{ flex: 1, minWidth: 180 }}
-                  label="Con quién vive"
-                  value={getValue("conQuienVive")}
-                  onChange={(e) =>
-                    handleChange("social", "conQuienVive", e.target.value)
-                  }
-                  variant="outlined"
-                  placeholder="Valor actual"
-                />
-                <TextField
-                  sx={{ flex: 1, minWidth: 150 }}
-                  label="Hijos"
-                  value={getValue("hijos")}
-                  onChange={(e) =>
-                    handleChange("social", "hijos", e.target.value)
-                  }
-                  variant="outlined"
-                  placeholder="Valor actual: hijos"
-                />
-                <TextField
-                  sx={{ flex: 1, minWidth: 200 }}
-                  label="Concurre a la consulta"
-                  value={getValue("concurreALaConsulta")}
-                  onChange={(e) =>
-                    handleChange("social", "concurreALaConsulta", e.target.value)
-                  }
-                  variant="outlined"
-                  placeholder="Valor actual"
-                />
-              </Box>
-
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "row",
-                  flexWrap: "wrap",
-                  gap: 2,
-                  mb: 2,
-                }}
-              >
-                <TextField
-                  sx={{ flex: 1, minWidth: 180 }}
-                  label="Cónyuge"
-                  value={getValue("conyuge")}
-                  onChange={(e) =>
-                    handleChange("social", "conyuge", e.target.value)
-                  }
-                  variant="outlined"
-                  placeholder="Valor actual: cónyuge"
-                />
-                <TextField
-                  sx={{ flex: 1, minWidth: 180 }}
-                  label="Hermanos"
-                  value={getValue("hermanos")}
-                  onChange={(e) =>
-                    handleChange("social", "hermanos", e.target.value)
-                  }
-                  variant="outlined"
-                  placeholder="Valor actual: hermanos"
-                />
-                <TextField
-                  sx={{ flex: 1, minWidth: 180 }}
-                  label="Acompañado"
-                  value={getValue("acompanado")}
-                  onChange={(e) =>
-                    handleChange("social", "acompanado", e.target.value)
-                  }
-                  variant="outlined"
-                  placeholder="Valor actual: acompañado"
-                />
-              </Box>
-
-              <Box sx={{ mb: 2 }}>
-                <TextField
-                  fullWidth
-                  label="Otros"
-                  multiline
-                  rows={3}
-                  value={getValue("otros")}
-                  onChange={(e) =>
-                    handleChange("social", "otros", e.target.value)
-                  }
-                  variant="outlined"
-                  placeholder="Otros datos actuales"
-                />
-              </Box>
+              <GridContainer>
+                <GridItem>
+                  <TextField
+                    label="Orientación"
+                    value={getValue("examenFisico", "orientacion")}
+                    onChange={(e) =>
+                      handleChange(
+                        "examenFisico",
+                        "orientacion",
+                        e.target.value,
+                      )
+                    }
+                    multiline
+                    rows={3}
+                    fullWidth
+                    variant="outlined"
+                  />
+                </GridItem>
+                <GridItem>
+                  <TextField
+                    label="AP. Cardiovascular"
+                    value={getValue("examenFisico", "cardiovascular")}
+                    onChange={(e) =>
+                      handleChange(
+                        "examenFisico",
+                        "cardiovascular",
+                        e.target.value,
+                      )
+                    }
+                    multiline
+                    rows={3}
+                    fullWidth
+                    variant="outlined"
+                  />
+                </GridItem>
+                <GridItem>
+                  <TextField
+                    label="Respiratorio"
+                    value={getValue("examenFisico", "respiratorio")}
+                    onChange={(e) =>
+                      handleChange(
+                        "examenFisico",
+                        "respiratorio",
+                        e.target.value,
+                      )
+                    }
+                    multiline
+                    rows={3}
+                    fullWidth
+                    variant="outlined"
+                  />
+                </GridItem>
+                <GridItem>
+                  <TextField
+                    label="Digestivo"
+                    value={getValue("examenFisico", "digestivo")}
+                    onChange={(e) =>
+                      handleChange("examenFisico", "digestivo", e.target.value)
+                    }
+                    multiline
+                    rows={3}
+                    fullWidth
+                    variant="outlined"
+                  />
+                </GridItem>
+                <GridItem>
+                  <TextField
+                    label="Genitourinario"
+                    value={getValue("examenFisico", "genitourinario")}
+                    onChange={(e) =>
+                      handleChange(
+                        "examenFisico",
+                        "genitourinario",
+                        e.target.value,
+                      )
+                    }
+                    multiline
+                    rows={3}
+                    fullWidth
+                    variant="outlined"
+                  />
+                </GridItem>
+                <GridItem>
+                  <TextField
+                    label="Neurológico / Psiquis"
+                    value={getValue("examenFisico", "neurologico")}
+                    onChange={(e) =>
+                      handleChange(
+                        "examenFisico",
+                        "neurologico",
+                        e.target.value,
+                      )
+                    }
+                    multiline
+                    rows={3}
+                    fullWidth
+                    variant="outlined"
+                  />
+                </GridItem>
+                <GridItemFull>
+                  <TextField
+                    label="Otros"
+                    value={getValue("examenFisico", "otros")}
+                    onChange={(e) =>
+                      handleChange("examenFisico", "otros", e.target.value)
+                    }
+                    multiline
+                    rows={3}
+                    fullWidth
+                    variant="outlined"
+                  />
+                </GridItemFull>
+              </GridContainer>
             </Box>
           )}
 
-          {currentSection === "mental" && (
+          {currentSection === "tratamientoActual" && (
             <Box>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "row",
-                  flexWrap: "wrap",
-                  gap: 2,
-                  mb: 2,
-                }}
-              >
-                <TextField
-                  sx={{ flex: 1, minWidth: 180 }}
-                  label="Orientación en T"
-                  value={getValue("orientacionEnT")}
-                  onChange={(e) =>
-                    handleChange("mental", "orientacionEnT", e.target.value)
-                  }
-                  variant="outlined"
-                  placeholder="Valor actual"
-                />
-                <TextField
-                  sx={{ flex: 1, minWidth: 150 }}
-                  label="Hijos (Mental)"
-                  value={getValue("hijosMental")}
-                  onChange={(e) =>
-                    handleChange("mental", "hijosMental", e.target.value)
-                  }
-                  variant="outlined"
-                  placeholder="Valor actual"
-                />
-                <TextField
-                  sx={{ flex: 1, minWidth: 220 }}
-                  label="Concurre a la consulta (Mental)"
-                  value={getValue("concurreALaConsultaMental")}
-                  onChange={(e) =>
-                    handleChange(
-                      "mental",
-                      "concurreALaConsultaMental",
-                      e.target.value,
-                    )
-                  }
-                  variant="outlined"
-                  placeholder="Valor actual"
-                />
-              </Box>
-
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "row",
-                  flexWrap: "wrap",
-                  gap: 2,
-                  mb: 2,
-                }}
-              >
-                <TextField
-                  sx={{ flex: 1, minWidth: 150 }}
-                  label="Palabra 1"
-                  value={getValue("palabra1")}
-                  onChange={(e) =>
-                    handleChange("mental", "palabra1", e.target.value)
-                  }
-                  variant="outlined"
-                  placeholder="Valor actual: palabra 1"
-                />
-                <TextField
-                  sx={{ flex: 1, minWidth: 150 }}
-                  label="Palabra 2"
-                  value={getValue("palabra2")}
-                  onChange={(e) =>
-                    handleChange("mental", "palabra2", e.target.value)
-                  }
-                  variant="outlined"
-                  placeholder="Valor actual: palabra 2"
-                />
-                <TextField
-                  sx={{ flex: 1, minWidth: 150 }}
-                  label="Palabra 3"
-                  value={getValue("palabra3")}
-                  onChange={(e) =>
-                    handleChange("mental", "palabra3", e.target.value)
-                  }
-                  variant="outlined"
-                  placeholder="Valor actual: palabra 3"
-                />
-              </Box>
-
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "row",
-                  flexWrap: "wrap",
-                  gap: 2,
-                  mb: 2,
-                }}
-              >
-                <TextField
-                  sx={{ flex: 1, minWidth: 150 }}
-                  label="Cálculo 1"
-                  value={getValue("calculo1")}
-                  onChange={(e) =>
-                    handleChange("mental", "calculo1", e.target.value)
-                  }
-                  variant="outlined"
-                  placeholder="Valor actual"
-                />
-                <TextField
-                  sx={{ flex: 1, minWidth: 150 }}
-                  label="Cálculo 2"
-                  value={getValue("calculo2")}
-                  onChange={(e) =>
-                    handleChange("mental", "calculo2", e.target.value)
-                  }
-                  variant="outlined"
-                  placeholder="Valor actual"
-                />
-                <TextField
-                  sx={{ flex: 1, minWidth: 150 }}
-                  label="Cálculo 3"
-                  value={getValue("calculo3")}
-                  onChange={(e) =>
-                    handleChange("mental", "calculo3", e.target.value)
-                  }
-                  variant="outlined"
-                  placeholder="Valor actual"
-                />
-              </Box>
-
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "row",
-                  flexWrap: "wrap",
-                  gap: 2,
-                  mb: 2,
-                }}
-              >
-                <TextField
-                  sx={{ flex: 1, minWidth: 180 }}
-                  label="Respuesta 1"
-                  value={getValue("respuesta1")}
-                  onChange={(e) =>
-                    handleChange("mental", "respuesta1", e.target.value)
-                  }
-                  variant="outlined"
-                  placeholder="Valor actual"
-                />
-                <TextField
-                  sx={{ flex: 1, minWidth: 180 }}
-                  label="Respuesta 2"
-                  value={getValue("respuesta2")}
-                  onChange={(e) =>
-                    handleChange("mental", "respuesta2", e.target.value)
-                  }
-                  variant="outlined"
-                  placeholder="Valor actual"
-                />
-              </Box>
-
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "row",
-                  flexWrap: "wrap",
-                  gap: 2,
-                  mb: 2,
-                }}
-              >
-                <TextField
-                  sx={{ flex: 1, minWidth: 180 }}
-                  label="Palabra 1 Memoria"
-                  value={getValue("palabra1Memoria")}
-                  onChange={(e) =>
-                    handleChange("mental", "palabra1Memoria", e.target.value)
-                  }
-                  variant="outlined"
-                  placeholder="Valor actual"
-                />
-                <TextField
-                  sx={{ flex: 1, minWidth: 180 }}
-                  label="Palabra 2 Memoria"
-                  value={getValue("palabra2Memoria")}
-                  onChange={(e) =>
-                    handleChange("mental", "palabra2Memoria", e.target.value)
-                  }
-                  variant="outlined"
-                  placeholder="Valor actual"
-                />
-                <TextField
-                  sx={{ flex: 1, minWidth: 180 }}
-                  label="Palabra 3 Memoria"
-                  value={getValue("palabra3Memoria")}
-                  onChange={(e) =>
-                    handleChange("mental", "palabra3Memoria", e.target.value)
-                  }
-                  variant="outlined"
-                  placeholder="Valor actual"
-                />
-              </Box>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "row",
-                  flexWrap: "wrap",
-                  gap: 2,
-                  mb: 2,
-                }}
-              >
-                <TextField
-                  sx={{ flex: 1, minWidth: 180 }}
-                  label="Respuesta Repita"
-                  value={getValue("respuestaRepita")}
-                  onChange={(e) =>
-                    handleChange("mental", "respuestaRepita", e.target.value)
-                  }
-                  variant="outlined"
-                  placeholder="Valor actual"
-                />
-                <TextField
-                  sx={{ flex: 1, minWidth: 180 }}
-                  label="Texto Leído"
-                  value={getValue("textoLeido")}
-                  onChange={(e) =>
-                    handleChange("mental", "textoLeido", e.target.value)
-                  }
-                  variant="outlined"
-                  placeholder="Valor actual"
-                />
-                <TextField
-                  sx={{ flex: 1, minWidth: 200 }}
-                  label="Cierre ojos y hágalo"
-                  value={getValue("cierreOjosYHagalo")}
-                  onChange={(e) =>
-                    handleChange("mental", "cierreOjosYHagalo", e.target.value)
-                  }
-                  variant="outlined"
-                  placeholder="Valor actual"
-                />
-              </Box>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "row",
-                  flexWrap: "wrap",
-                  gap: 2,
-                  mb: 2,
-                }}
-              >
-                <TextField
-                  sx={{ flex: 1, minWidth: 180 }}
-                  label="Logrado Doble Papel"
-                  value={getValue("logradoDoblePapel")}
-                  onChange={(e) =>
-                    handleChange("mental", "logradoDoblePapel", e.target.value)
-                  }
-                  variant="outlined"
-                  placeholder="Valor actual"
-                />
-                <TextField
-                  sx={{ flex: 1, minWidth: 180 }}
-                  label="Logrado Copie Dibujo"
-                  value={getValue("logradoCopieDibujo")}
-                  onChange={(e) =>
-                    handleChange("mental", "logradoCopieDibujo", e.target.value)
-                  }
-                  variant="outlined"
-                  placeholder="Valor actual"
-                />
-                <TextField
-                  sx={{ flex: 1, minWidth: 180 }}
-                  label="Frase Escrita"
-                  value={getValue("fraseEscrita")}
-                  onChange={(e) =>
-                    handleChange("mental", "fraseEscrita", e.target.value)
-                  }
-                  variant="outlined"
-                  placeholder="Valor actual"
-                />
-              </Box>
+              <TextField
+                label="Descripción del Tratamiento Actual"
+                value={formValues.tratamientoActual || ""}
+                onChange={(e) =>
+                  setFormValues((prev) => ({
+                    ...prev,
+                    tratamientoActual: e.target.value,
+                  }))
+                }
+                multiline
+                rows={10}
+                fullWidth
+                variant="outlined"
+                placeholder="Detalle medicamentos, dosis, frecuencia y observaciones..."
+              />
             </Box>
           )}
         </LocalizationProvider>
@@ -721,5 +533,23 @@ const ModalEdicionHistoriaClinica = ({ open, onClose, datos, pacienteId }) => {
     </Dialog>
   );
 };
+
+const GridContainer = ({ children }) => (
+  <Box
+    sx={{
+      display: "grid",
+      gridTemplateColumns: "repeat(2, 1fr)",
+      gap: 2,
+      mb: 2,
+    }}
+  >
+    {children}
+  </Box>
+);
+
+const GridItem = ({ children }) => <Box>{children}</Box>;
+const GridItemFull = ({ children }) => (
+  <Box sx={{ gridColumn: "span 2" }}>{children}</Box>
+);
 
 export default ModalEdicionHistoriaClinica;
