@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { getStorage, ref, deleteObject } from 'firebase/storage';
-import { db } from '@/lib/firebase';
-import { doc, updateDoc, arrayRemove } from 'firebase/firestore';
+import { ref, deleteObject } from 'firebase/storage';
+import { db, storage } from '@/lib/firebase';
+import { doc, updateDoc, getDoc } from 'firebase/firestore';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -11,12 +11,10 @@ export async function DELETE(request, { params }) {
     const { pacienteId } = await params;
     const { fotoIds, paths } = await request.json();
 
-    // Validaciones
     if (!Array.isArray(fotoIds) || fotoIds.length === 0) {
       return NextResponse.json({ error: 'Debe proporcionar al menos un ID de foto' }, { status: 400 });
     }
 
-    const storage = getStorage();
     const eliminated = [];
     const errors = [];
 
@@ -33,8 +31,6 @@ export async function DELETE(request, { params }) {
 
     if (eliminated.length > 0) {
       const pacienteRef = doc(db, 'pacientes/lista/nombresPacientes', pacienteId);
-      
-      const fotosARemover = fotoIds.map(id => ({ id }));
       
       const pacienteSnap = await getDoc(pacienteRef);
       if (pacienteSnap.exists()) {
@@ -56,7 +52,11 @@ export async function DELETE(request, { params }) {
     });
 
   } catch (error) {
-    console.error('Error eliminando fotos:', error);
+    console.error('Error eliminando fotos:', {
+      message: error.message,
+      code: error.code,
+      bucket: storage.app?.options?.storageBucket
+    });
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

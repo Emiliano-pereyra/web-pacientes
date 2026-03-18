@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db } from '@/lib/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '@/lib/firebase';
 import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
 
 export const runtime = 'nodejs';
@@ -31,7 +31,6 @@ export async function POST(request, { params }) {
     const fileExtension = file.name.split('.').pop();
     const fileName = `${tipo}_${Date.now()}.${fileExtension}`;
     
-    const storage = getStorage();
     const storageRef = ref(storage, `pacientes/${pacienteId}/${fileName}`);
 
     const snapshot = await uploadBytes(storageRef, buffer, {
@@ -68,7 +67,12 @@ export async function POST(request, { params }) {
     return NextResponse.json({ success: true, url: downloadURL, metadata: fotoMetadata });
 
   } catch (error) {
-    console.error('Error subiendo archivo:', error);
+    console.error('Error subiendo archivo:', {
+      message: error.message,
+      code: error.code,
+      status: error.status_,
+      bucket: storage.app?.options?.storageBucket
+    });
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
