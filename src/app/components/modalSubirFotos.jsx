@@ -17,6 +17,7 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import Swal from "sweetalert2";
+import Image from "next/image";
 
 const TIPOS_FOTO = [
   { value: "perfil", label: "Foto de Perfil (urlFoto)" },
@@ -113,7 +114,7 @@ export default function ModalSubirFotoPaciente({
             fullWidth
             sx={{ py: 2, borderStyle: "dashed" }}
           >
-            {file ? `📎 ${file.name}` : "Seleccionar archivo"}
+            {file ? `${file.name}` : "Seleccionar archivo"}
             <input
               ref={fileInputRef}
               type="file"
@@ -144,41 +145,62 @@ export default function ModalSubirFotoPaciente({
               bgcolor: "#f5f5f5",
             }}
           >
-            <img
+            <Box
+              component="img"
               src={preview}
-              alt="Preview"
-              loading="lazy"
-              unoptimized
-              style={{ maxWidth: "100%", maxHeight: 200, objectFit: "contain" }}
+              alt="Vista previa"
+              sx={{
+                maxWidth: "100%",
+                maxHeight: 200,
+                objectFit: "contain",
+                display: "block",
+                mx: "auto",
+              }}
             />
           </Box>
         )}
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "row",
+            gap: 2,
+            mb: 2,
+            alignItems: "flex-start",
+          }}
+        >
+          <FormControl fullWidth sx={{ flex: 1 }}>
+            <InputLabel shrink>Tipo de contenido</InputLabel>
+            <Select
+              value={tipo}
+              label="Tipo de contenido"
+              onChange={(e) => setTipo(e.target.value)}
+              sx={{
+                height: 56,
+                "& .MuiSelect-select": {
+                  display: "flex",
+                  alignItems: "center",
+                  height: "100%",
+                  py: 1,
+                },
+              }}
+            >
+              {TIPOS_FOTO.map((opt) => (
+                <MenuItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
 
-        <FormControl fullWidth sx={{ mb: 2 }}>
-          <InputLabel>Tipo de contenido</InputLabel>
-          <Select
-            value={tipo}
-            label="Tipo de contenido"
-            onChange={(e) => setTipo(e.target.value)}
-          >
-            {TIPOS_FOTO.map((opt) => (
-              <MenuItem key={opt.value} value={opt.value}>
-                {opt.label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        <TextField
-          fullWidth
-          label="Descripción (opcional)"
-          placeholder="Ej: Control mensual, receta del 15/03, etc."
-          value={descripcion}
-          onChange={(e) => setDescripcion(e.target.value)}
-          multiline
-          rows={2}
-          sx={{ mb: 1 }}
-        />
+          <TextField
+            fullWidth
+            label="Descripción (opcional)"
+            value={descripcion}
+            onChange={(e) => setDescripcion(e.target.value)}
+            multiline
+            sx={{ flex: 1 }}
+          />
+        </Box>
 
         {tipo === "perfil" && (
           <Alert severity="info" sx={{ mb: 1, fontSize: "0.85rem" }}>
