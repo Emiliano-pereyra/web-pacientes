@@ -61,7 +61,7 @@ const ModalEdicionResumenHc = ({ open, onClose, datos, pacienteId }) => {
         }
       });
 
-      const res = await fetch(`/api/pacientes/editar?id=${pacienteId}`, {
+      const res = await fetch(`/api/pacientes/editar/resumenHC?id=${pacienteId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(flattened),

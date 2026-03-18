@@ -17,7 +17,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import Swal from "sweetalert2";
 
-const ModalEdicionHistoriaClinica = ({ open, onClose, datos, pacienteId }) => {
+const ModalEdicionAntecedentes = ({ open, onClose, datos, pacienteId }) => {
   const [tabIndex, setTabIndex] = useState(0);
   const [formValues, setFormValues] = useState({});
   const [loading, setLoading] = useState(false);
@@ -25,10 +25,10 @@ const ModalEdicionHistoriaClinica = ({ open, onClose, datos, pacienteId }) => {
   useEffect(() => {
     if (open && datos) {
       const initialValues = {
-        Informacion: { ...(datos.Informacion || {}) },
-        antecedentes: { ...(datos.antecedentes || {}) },
-        examenFisico: { ...(datos.examenFisico || {}) },
-        tratamientoActual: datos.tratamientoActual || "",
+        Informacion: { ...datos.Informacion },
+        antecedentes: { ...datos.antecedentes },
+        examenFisico: { ...datos.examenFisico },
+        tratamientoActual: datos.tratamientoActual,
       };
       setFormValues(initialValues);
     }
@@ -57,6 +57,8 @@ const ModalEdicionHistoriaClinica = ({ open, onClose, datos, pacienteId }) => {
       }));
     }
   };
+
+  console.log("Datos recibidos en el modal:", datos); 
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -552,4 +554,4 @@ const GridItemFull = ({ children }) => (
   <Box sx={{ gridColumn: "span 2" }}>{children}</Box>
 );
 
-export default ModalEdicionHistoriaClinica;
+export default ModalEdicionAntecedentes;

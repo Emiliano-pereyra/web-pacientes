@@ -10,7 +10,7 @@ import {
   Avatar,
 } from "@mui/material";
 import Swal from "sweetalert2";
-import ModalEdicionHistoriaClinica from "./ModalEdicionHC";
+import ModalEdicionAntecedentes from "./ModalEdicionAntecedentes";
 
 const HistoriaClinicaTab = ({ paciente, datos }) => {
   const [openModal, setOpenModal] = useState(false);
@@ -438,7 +438,7 @@ const HistoriaClinicaTab = ({ paciente, datos }) => {
       </Box>
 
       {openModal && (
-        <ModalEdicionHistoriaClinica
+        <ModalEdicionAntecedentes
           open={openModal}
           onClose={handleCloseModal}
           datos={datosParaEditar}
