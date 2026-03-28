@@ -73,7 +73,7 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
       const fechaActual = getCurrentDate();
 
       const payload = {
-        // Info paciente (Datos Personales)
+        // === DATOS PERSONALES ===
         nombreCompleto: formData.nombreCompleto || "",
         dni: formData.dni || "",
         edad: formData.edad || "",
@@ -84,26 +84,138 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
         fechaNacimiento: formData.fechaNacimiento || "",
         fechaIngreso: formData.fechaIngreso || fechaActual,
 
-        // Antecedentes (Texto Libre)
-        antecedentesCardiovascular: formData.antecedentesCardiovascular || "",
-        antecedentesDigestivo: formData.antecedentesDigestivo || "",
-        antecedentesMetabolico: formData.antecedentesMetabolico || "",
-        antecedentesNeurologico: formData.antecedentesNeurologico || "",
-        antecedentesUrologico: formData.antecedentesUrologico || "",
-        antecedentesPsiquiatrico: formData.antecedentesPsiquiatrico || "",
-        antecedentesOtros: formData.antecedentesOtros || "",
+        // === ANTECEDENTES PATOLÓGICOS ===
+        Cardio: formData.antecedentesCardiovascular || "",
+        Digestivos: formData.antecedentesDigestivo || "",
+        Constipacion: formData.antecedentesDigestivo || "",
+        Metabolicas: formData.antecedentesMetabolico || "",
 
-        // Examen Físico (Texto Libre)
-        examenOrientacion: formData.examenOrientacion || "",
-        examenCardiovascular: formData.examenCardiovascular || "",
-        examenRespiratorio: formData.examenRespiratorio || "",
-        examenDigestivo: formData.examenDigestivo || "",
-        examenGenitourinario: formData.examenGenitourinario || "",
-        examenNeurologico: formData.examenNeurologico || "",
+        // Neurológico
+        Paralisis: formData.antecedentesNeurologico || "",
+        Parestesias: formData.antecedentesNeurologico || "",
+        Temblores: formData.antecedentesNeurologico || "",
+        Convulsiones: formData.antecedentesNeurologico || "",
+        Afasias: formData.antecedentesNeurologico || "",
+        Disartria: formData.antecedentesNeurologico || "",
+
+        Urologicas: formData.antecedentesUrologico || "",
+        PsiquicaActiva: formData.antecedentesPsiquiatrico || "",
+        PsiquicaPasiva: formData.antecedentesPsiquiatrico || "",
+
+        // "Otros" antecedentes
+        antecedentesPatologicos: formData.antecedentesOtros || "",
+        Auditivas: formData.antecedentesOtros || "",
+        Olfativas: formData.antecedentesOtros || "",
+        Visuales: formData.antecedentesOtros || "",
+        Gustativas: formData.antecedentesOtros || "",
+        Ginecologicas: formData.antecedentesOtros || "",
+        Edemas: formData.antecedentesOtros || "",
+        Varices: formData.antecedentesOtros || "",
+        Ulceras: formData.antecedentesOtros || "",
+        Tiroides: formData.antecedentesOtros || "",
+        Dermatologicas: formData.antecedentesOtros || "",
+
+        // === EXAMEN FÍSICO  ===
+        // Orientación / Mental
+        TrOrientacion: formData.examenOrientacion || "",
+        TrAtencion: formData.examenOrientacion || "",
+        TrMemoria: formData.examenOrientacion || "",
+        TrSignoDepre: formData.examenOrientacion || "",
+        TrSueno: formData.examenOrientacion || "",
+
+        // Cardiovascular
+        CardioR1R2: formData.examenCardiovascular || "",
+        PPBL: formData.examenCardiovascular || "",
+        CardiacaTA: formData.examenCardiovascular || "",
+        CardiacaEdemas: formData.examenCardiovascular || "",
+        TEJCP: formData.examenCardiovascular || "",
+
+        // Respiratorio
+        Auscultacion: formData.examenRespiratorio || "",
+        Percusion: formData.examenRespiratorio || "",
+        RespiratoriaOtros: formData.examenRespiratorio || "",
+
+        // Digestivo
+        Abdomen: formData.examenDigestivo || "",
+        Palpacion: formData.examenDigestivo || "",
+        Catarsis: formData.examenDigestivo || "",
+        DigestivoEsfinter: formData.examenDigestivo || "",
+        DigestivoOtros: formData.examenDigestivo || "",
+
+        // Genitourinario
+        GenitourinarioEsfinter: formData.examenGenitourinario || "",
+        GenitourinarioOtros: formData.examenGenitourinario || "",
+
+        // Neurológico / Psiquis
+        SNCAltMotoras: formData.examenNeurologico || "",
+        SNCSensitivas: formData.examenNeurologico || "",
+        SNCTemblores: formData.examenNeurologico || "",
+        SNCPostura: formData.examenNeurologico || "",
+        SNCEquilibrio: formData.examenNeurologico || "",
+        SNCMarcha: formData.examenNeurologico || "",
+
+        // Facial / Otros
+        FacialOjos: formData.examenOtros || "",
+        FacialBoca: formData.examenOtros || "",
+        FacialDenticion: formData.examenOtros || "",
+        Adenopatias: formData.examenOtros || "",
+        Bocio: formData.examenOtros || "",
         examenOtros: formData.examenOtros || "",
 
-        // Tratamiento Actual (Texto Libre)
+        // === TRATAMIENTO ACTUAL ===
         tratamientoActual: formData.tratamientoActual || "",
+        fechaTratamientoActual: formData.tratamientoActual ? fechaActual : "",
+
+        // === CAMPOS ADICIONALES QUE EL BACKEND ESPERA ===
+        // Social
+        acompanado: "",
+        conQuienVive: "",
+        concurreALaConsulta: "",
+        conyuge: "",
+        hermanos: "",
+        hijos: "",
+        otros: "",
+        // Mental
+        calculo1: "",
+        calculo2: "",
+        calculo3: "",
+        cierreOjosYHagalo: "",
+        concurreALaConsultaMental: "",
+        fraseEscrita: "",
+        hijosMental: "",
+        logradoCopieDibujo: "",
+        logradoDoblePapel: "",
+        orientacionEnT: "",
+        palabra1: "",
+        palabra1Memoria: "",
+        palabra2: "",
+        palabra2Memoria: "",
+        palabra3: "",
+        palabra3Memoria: "",
+        respuesta1: "",
+        respuesta2: "",
+        respuestaRepita: "",
+        textoLeido: "",
+        // Funcional
+        articulaciones: "",
+        caidas: "",
+        camina: "",
+        equilibrio: "",
+        levantateYAnda: "",
+        pasaMuchoTiempoSentado: "",
+        // Familia
+        calidadDe: "",
+        // Evolución
+        Evolucion: "",
+        UltFechaModifEvolucion: "",
+        enfermedadActual: "",
+        enfermedadBase: "",
+        fechaEnfermedadBase: "",
+        informeInterconsulta: "",
+        tratamientoBase: "",
+        fechaAnteriorModifAntecedentesPatologicos: "",
+        fechaAnteriorModifEnfermedadActual: "",
+        fechaTratamientoBase: "",
       };
 
       const res = await fetch("/api/pacientes/crear", {
@@ -127,85 +239,85 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
     }
   };
 
- const handlePhotoUpload = async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  
-  // Validaciones
-  if (!file.type.startsWith("image/")) {
-    setError("Por favor seleccione una imagen válida (jpg, png, gif, etc.)");
-    return;
-  }
-  if (file.size > 5 * 1024 * 1024) {
-    setError("La imagen es demasiado grande. Máximo 5MB.");
-    return;
-  }
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-  if (!formData.nombreCompleto?.trim()) {
-    setError("Ingrese primero el nombre completo del paciente para subir la foto.");
-    return;
-  }
-
-  setUploadingPhoto(true);
-  setError("");
-
-  try {
-    const preview = URL.createObjectURL(file);
-    
-    if (previewUrl && previewUrl.startsWith('blob:')) {
-      URL.revokeObjectURL(previewUrl);
+    // Validaciones
+    if (!file.type.startsWith("image/")) {
+      setError("Por favor seleccione una imagen válida (jpg, png, gif, etc.)");
+      return;
     }
-    setPreviewUrl(preview);
+    if (file.size > 5 * 1024 * 1024) {
+      setError("La imagen es demasiado grande. Máximo 5MB.");
+      return;
+    }
 
-    const tempId = formData.nombreCompleto
-      .trim()
-      .split(/\s+/)
-      .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
-      .join("_");
+    if (!formData.nombreCompleto?.trim()) {
+      setError(
+        "Ingrese primero el nombre completo del paciente para subir la foto.",
+      );
+      return;
+    }
 
-    const formDataUpload = new FormData();
-    formDataUpload.append("file", file);
-    formDataUpload.append("tipo", "perfil");
-    formDataUpload.append("descripcion", "Foto de perfil al crear paciente");
+    setUploadingPhoto(true);
+    setError("");
 
-    const response = await fetch(`/api/pacientes/${tempId}/fotos`, {
-      method: "POST",
-      body: formDataUpload,
+    try {
+      const preview = URL.createObjectURL(file);
 
-    });
+      if (previewUrl && previewUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(previewUrl);
+      }
+      setPreviewUrl(preview);
 
-    const result = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(result.error || "Error al subir la imagen");
+      const tempId = formData.nombreCompleto
+        .trim()
+        .split(/\s+/)
+        .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
+        .join("_");
+
+      const formDataUpload = new FormData();
+      formDataUpload.append("file", file);
+      formDataUpload.append("tipo", "perfil");
+      formDataUpload.append("descripcion", "Foto de perfil al crear paciente");
+
+      const response = await fetch(`/api/pacientes/${tempId}/fotos`, {
+        method: "POST",
+        body: formDataUpload,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Error al subir la imagen");
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        urlFoto: result.url,
+      }));
+    } catch (err) {
+      console.error("Error subiendo foto:", err);
+      setError(err.message);
+
+      setPreviewUrl(null);
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    if (previewUrl && previewUrl.startsWith("blob:")) {
+      URL.revokeObjectURL(previewUrl);
     }
 
     setFormData((prev) => ({
       ...prev,
-      urlFoto: result.url,
+      urlFoto: "",
     }));
-
-  } catch (err) {
-    console.error("Error subiendo foto:", err);
-    setError(err.message);
-    
     setPreviewUrl(null);
-  } finally {
-    setUploadingPhoto(false);
-  }
-};
-
-const handleRemovePhoto = () => {
-  if (previewUrl && previewUrl.startsWith('blob:')) {
-    URL.revokeObjectURL(previewUrl);
-  }
-  
-  setFormData((prev) => ({
-    ...prev,
-    urlFoto: "",
-  }));
-  setPreviewUrl(null);
-};
+  };
 
   return (
     <Dialog
