@@ -154,7 +154,6 @@ const ResumenHCTab = ({ paciente, datos }) => {
 
   return (
     <Box>
-      {/* === INFORMACIÓN DEL PACIENTE === */}
       <Paper sx={{ p: 2, mb: 3, maxWidth: "650px" }}>
         <Box
           display="flex"
@@ -218,7 +217,6 @@ const ResumenHCTab = ({ paciente, datos }) => {
         </Grid>
       </Paper>
 
-      {/* === ANTECEDENTES (Nueva estructura - Texto Libre) === */}
       <Paper sx={{ p: 2, mb: 3 }}>
         <Box
           display="flex"
@@ -309,22 +307,6 @@ const ResumenHCTab = ({ paciente, datos }) => {
         </Grid>
       </Paper>
 
-      {/* === ENFERMEDAD DE BASE === */}
-      <Paper sx={{ p: 2, mb: 3 }}>
-        <Box display="flex" alignItems="center" mb={1}>
-          <Typography variant="h6">Enfermedad de base -</Typography>
-          <Typography variant="subtitle2" ml={1} color="text.secondary">
-            {safe(paciente.fechaUltModifAntecedentesPatologicos)}
-          </Typography>
-        </Box>
-        <Box sx={{ p: 1, borderRadius: "4px", bgcolor: "grey.50" }}>
-          <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
-            {safe(paciente.antecedentesPatologicos)}
-          </Typography>
-        </Box>
-      </Paper>
-
-      {/* === ENFERMEDAD ACTUAL (con fecha de modificación) === */}
       <Paper sx={{ p: 2, mb: 3 }}>
         <Box display="flex" alignItems="center" mb={1}>
           <Typography variant="h6">Enfermedad actual -</Typography>
@@ -332,34 +314,22 @@ const ResumenHCTab = ({ paciente, datos }) => {
             {safe(paciente.fechaUltModifEnfermedadActual)}
           </Typography>
         </Box>
-        <Box sx={{ p: 1, borderRadius: "4px", bgcolor: "grey.50" }}>
+        <Box sx={{ p: 1, borderRadius: "4px" }}>
           <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
             {safe(paciente.enfermedadActual)}
           </Typography>
         </Box>
       </Paper>
 
-      {/* === TRATAMIENTO DE BASE === */}
-      <Paper sx={{ p: 2, mb: 3 }}>
-        <Typography variant="h6">Tratamiento de base</Typography>
-        <Box sx={{ p: 1, borderRadius: "4px", bgcolor: "grey.50", mt: 1 }}>
-          <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
-            {safe(paciente.tratamientoBase)}
-          </Typography>
-        </Box>
-      </Paper>
-
-      {/* === TRATAMIENTO ACTUAL (Nuevo campo) === */}
       <Paper sx={{ p: 2, mb: 3 }}>
         <Typography variant="h6">Tratamiento Actual</Typography>
-        <Box sx={{ p: 1, borderRadius: "4px", bgcolor: "grey.50", mt: 1 }}>
+        <Box sx={{ p: 1, borderRadius: "4px", mt: 1 }}>
           <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
             {safe(paciente.tratamientoActual)}
           </Typography>
         </Box>
       </Paper>
 
-      {/* === BOTONES DE ACCIÓN === */}
       <Box display="flex" justifyContent="center" mt={3} gap={2}>
         <Button
           variant="contained"

@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, Suspense } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  Suspense,
+  useRef,
+} from "react";
 import {
   Container,
   AppBar,
@@ -71,6 +77,9 @@ function HomeContent() {
   const [openCrearModal, setOpenCrearModal] = useState(false);
   const [openFotoModal, setOpenFotoModal] = useState(false);
   const [openGaleriaModal, setOpenGaleriaModal] = useState(false);
+  const [sincronizando, setSincronizando] = useState(false);
+  const lastFetchedPatientId = React.useRef(null);
+  const isUrlSyncRef = React.useRef(false);
 
   useEffect(() => {
     const fetchPacientes = async () => {
@@ -92,31 +101,50 @@ function HomeContent() {
 
   useEffect(() => {
     const pacienteIdUrl = searchParams?.get("paciente");
+
     if (pacienteIdUrl && pacientes.length > 0) {
       const pacienteEncontrado = pacientes.find((p) => p.id === pacienteIdUrl);
+
       if (pacienteEncontrado) {
-        setSelectedPaciente({
-          id: pacienteEncontrado.id,
-          nombreVisible: pacienteEncontrado.nombre,
+        isUrlSyncRef.current = true;
+
+        setSelectedPaciente((prev) => {
+          if (prev?.id === pacienteEncontrado.id) return prev;
+          return {
+            id: pacienteEncontrado.id,
+            nombreVisible: pacienteEncontrado.nombre,
+          };
         });
       }
     }
   }, [pacientes, searchParams]);
 
   useEffect(() => {
-    if (!selectedPaciente?.id) return;
+    if (!selectedPaciente?.id) {
+      lastFetchedPatientId.current = null;
+      return;
+    }
 
-    const params = new URLSearchParams(window.location.search);
-    params.set("paciente", selectedPaciente.id);
-    window.history.replaceState(
-      {},
-      "",
-      `${window.location.pathname}?${params}`,
-    );
+    if (lastFetchedPatientId.current === selectedPaciente.id) {
+      return;
+    }
+
+    if (!isUrlSyncRef.current) {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("paciente") !== selectedPaciente.id) {
+        params.set("paciente", selectedPaciente.id);
+        window.history.replaceState(
+          {},
+          "",
+          `${window.location.pathname}?${params}`,
+        );
+      }
+    }
+    isUrlSyncRef.current = false;
 
     const fetchDatosPaciente = async () => {
       try {
-        console.log("Cargando datos para paciente ID:", selectedPaciente.id);
+        console.log(" Cargando datos para paciente:", selectedPaciente.id);
         setLoading(true);
         setError(null);
 
@@ -124,10 +152,12 @@ function HomeContent() {
           `/api/pacientes/datos?id=${selectedPaciente.id}`,
         );
 
-        console.log("Datos cargados:", res.data);
+        console.log(" Datos cargados:", res.data);
         setTabData({ general: res.data });
+
+        lastFetchedPatientId.current = selectedPaciente.id;
       } catch (err) {
-        console.error("Error cargando datos:", err);
+        console.error(" Error cargando datos:", err);
         setError("No se pudieron cargar los datos del paciente");
         Swal.fire(
           "Error",
@@ -140,7 +170,7 @@ function HomeContent() {
     };
 
     fetchDatosPaciente();
-  }, [selectedPaciente]);
+  }, [selectedPaciente?.id]);
 
   const refreshPacienteData = useCallback(async () => {
     if (!selectedPaciente?.id) return;
@@ -181,7 +211,6 @@ function HomeContent() {
     }).then((result) => {
       if (result.isConfirmed) {
         Swal.fire("Sesión cerrada", "", "success");
-        // window.location.href = '/login';
       }
     });
     handleUserMenuClose();
@@ -189,23 +218,6 @@ function HomeContent() {
 
   const handleTabChange = (event, newValue) => {
     setTabIndex(newValue);
-  };
-
-  const handlePacienteChange = (event, newValue) => {
-    if (!newValue || !newValue.id) {
-      setSelectedPaciente(null);
-      setTabData({});
-      window.history.replaceState({}, "", window.location.pathname);
-      return;
-    }
-    setSelectedPaciente({
-      id: newValue.id,
-      nombreVisible: newValue.nombreVisible,
-    });
-  };
-
-  const getTabData = (tabName) => {
-    return tabData[tabName] || {};
   };
 
   const handleOpenCrearModal = () => {
@@ -223,14 +235,19 @@ function HomeContent() {
 
   const handleCrearSuccess = async (nuevoId) => {
     try {
+      setSincronizando(true);
+
       const res = await axios.get("/api/pacientes");
       setPacientes(res.data);
 
       const nuevoPaciente = res.data.find((p) => p.id === nuevoId);
       if (nuevoPaciente) {
-        setSelectedPaciente({
-          id: nuevoPaciente.id,
-          nombreVisible: nuevoPaciente.nombre,
+        setSelectedPaciente((prev) => {
+          if (prev?.id === nuevoPaciente.id) return prev;
+          return {
+            id: nuevoPaciente.id,
+            nombreVisible: nuevoPaciente.nombre,
+          };
         });
       }
 
@@ -243,15 +260,21 @@ function HomeContent() {
         "Paciente creado (error al refrescar lista)",
         "success",
       );
+    } finally {
+      setSincronizando(false);
     }
   };
 
   const handleFotoUploadSuccess = async (metadata) => {
-    const exito = await refreshPacienteData();
-    if (exito) {
-      console.log("Datos actualizados tras subir foto:", metadata);
+    setSincronizando(true);
+    try {
+      const exito = await refreshPacienteData();
+      if (exito) {
+        console.log("Datos actualizados tras subir foto:", metadata);
+      }
+    } finally {
+      setSincronizando(false);
     }
-    // El modal se cierra desde dentro del componente ModalSubirFotoPaciente
   };
 
   const handleOpenGaleriaModal = () => {
@@ -262,7 +285,8 @@ function HomeContent() {
 
   const handleFotosDeleted = (count) => {
     if (count > 0) {
-      refreshPacienteData();
+      setSincronizando(true);
+      refreshPacienteData().finally(() => setSincronizando(false));
     }
   };
 
@@ -319,14 +343,20 @@ function HomeContent() {
               console.log("Nuevo valor seleccionado:", newValue);
 
               if (!newValue || !newValue.id) {
-                setSelectedPaciente(null);
-                setTabData({});
+                if (selectedPaciente) {
+                  setSelectedPaciente(null);
+                  setTabData({});
+                  lastFetchedPatientId.current = null;
+                }
                 return;
               }
 
-              setSelectedPaciente({
-                id: newValue.id,
-                nombreVisible: newValue.nombreVisible,
+              setSelectedPaciente((prev) => {
+                if (prev?.id === newValue.id) return prev;
+                return {
+                  id: newValue.id,
+                  nombreVisible: newValue.nombreVisible,
+                };
               });
             }}
             renderInput={(params) => (
@@ -334,6 +364,17 @@ function HomeContent() {
                 {...params}
                 label="Seleccionar paciente"
                 variant="outlined"
+                InputProps={{
+                  ...params.InputProps,
+                  endAdornment: (
+                    <>
+                      {sincronizando && (
+                        <CircularProgress size={20} sx={{ mr: 1 }} />
+                      )}
+                      {params.InputProps.endAdornment}
+                    </>
+                  ),
+                }}
               />
             )}
             sx={{ flex: 1, maxWidth: 400 }}

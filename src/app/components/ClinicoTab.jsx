@@ -694,7 +694,6 @@ const ClinicoTab = ({ paciente, datos }) => {
         </Grid>
       </Paper>
 
-      {/* === TRATAMIENTO ACTUAL === */}
       <Paper sx={{ p: 2, mb: 3 }}>
         <Box
           display="flex"
@@ -709,7 +708,6 @@ const ClinicoTab = ({ paciente, datos }) => {
         </Typography>
       </Paper>
 
-      {/* === EVOLUCIÓN === */}
       <Paper sx={{ p: 2, mb: 3 }}>
         <Box
           display="flex"
@@ -719,10 +717,10 @@ const ClinicoTab = ({ paciente, datos }) => {
         >
           <Box display="flex" alignItems="center">
             <Typography variant="h6" component="span">
-              Evolución -
+              Evolución 
             </Typography>
             <Typography variant="subtitle2" component="span" ml={1}>
-              última actualización: {safe(paciente.UltFechaModifEvolucion)}
+              {safe(paciente.UltFechaModifEvolucion)}
             </Typography>
           </Box>
         </Box>

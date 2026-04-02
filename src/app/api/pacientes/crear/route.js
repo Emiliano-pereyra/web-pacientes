@@ -1,10 +1,11 @@
-import { db } from "@/lib/firebase";
+import { db, storage } from "@/lib/firebase";
 import { doc, setDoc } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { NextResponse } from "next/server";
+export const runtime = "nodejs";
 
 /**
-  Convierte un nombre completo en un ID válido para Firestore
-  Ej: "María José López" → "María_José_López"
-  NOTA: Se preservan caracteres especiales como ñ, acentos, tildes
+ * Convierte un nombre completo en un ID válido para Firestore
  */
 function convertirNombreAId(nombre) {
   if (!nombre) return "";
@@ -16,7 +17,6 @@ function convertirNombreAId(nombre) {
     .join("_");
 }
 
-
 function getStringOrDash(value) {
   if (value === undefined || value === null || value === "") {
     return "-";
@@ -26,25 +26,99 @@ function getStringOrDash(value) {
 
 export async function POST(req) {
   try {
-    const body = await req.json();
-    console.log("Datos recibidos:", body);
+    const contentType = req.headers.get("content-type") || "";
+    let body = {};
+    let file = null;
+
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await req.formData();
+      file = formData.get("file");
+
+      for (const [key, value] of formData.entries()) {
+        if (key !== "file" && typeof value === "string") {
+          body[key] = value;
+        }
+      }
+    } else {
+      body = await req.json();
+    }
 
     const { nombreCompleto } = body;
 
     if (!nombreCompleto?.trim()) {
-      return new Response(JSON.stringify({ error: "El nombre completo es obligatorio" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json; charset=utf-8" },
-      });
+      return NextResponse.json(
+        { error: "El nombre completo es obligatorio" },
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json; charset=utf-8" },
+        },
+      );
     }
 
     const id = convertirNombreAId(nombreCompleto);
-
     if (!id) {
-      return new Response(JSON.stringify({ error: "Nombre inválido para generar ID" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json; charset=utf-8" },
+      return NextResponse.json(
+        { error: "Nombre inválido para generar ID" },
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json; charset=utf-8" },
+        },
+      );
+    }
+
+    let urlFoto = getStringOrDash(body.urlFoto);
+    let fotoMetadata = null;
+
+    if (file && file.size > 0) {
+      const allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "image/gif",
+      ];
+      const fileExtension = file.name.split(".").pop()?.toLowerCase();
+
+      if (!allowedTypes.includes(file.type)) {
+        return NextResponse.json(
+          { error: "Tipo de archivo no permitido. Solo JPG, PNG, WebP o GIF" },
+          { status: 400 },
+        );
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        return NextResponse.json(
+          { error: "La imagen supera el límite de 5MB" },
+          { status: 400 },
+        );
+      }
+
+      const bytes = await file.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+      const fileName = `perfil_${Date.now()}.${fileExtension}`;
+      const storageRef = ref(storage, `pacientes/${id}/${fileName}`);
+
+      await uploadBytes(storageRef, buffer, {
+        contentType: file.type,
+        customMetadata: {
+          pacienteId: id,
+          tipo: "perfil",
+          uploadedAt: new Date().toISOString(),
+        },
       });
+
+      const downloadURL = await getDownloadURL(storageRef);
+      urlFoto = downloadURL;
+
+      fotoMetadata = {
+        id: `perfil_${Date.now()}`,
+        url: downloadURL,
+        path: storageRef.fullPath,
+        tipo: "perfil",
+        descripcion: "Foto de perfil al crear paciente",
+        nombreOriginal: file.name,
+        mimeType: file.type,
+        size: file.size,
+        uploadedAt: new Date().toISOString(),
+      };
     }
 
     const fechaActual = new Date().toISOString().split("T")[0];
@@ -57,9 +131,9 @@ export async function POST(req) {
       fechaIngreso: getStringOrDash(body.fechaIngreso),
       fechaNacimiento: getStringOrDash(body.fechaNacimiento),
       genero: getStringOrDash(body.genero),
-      nombreCompleto: getStringOrDash(body.nombreCompleto),
+      nombreCompleto: getStringOrDash(nombreCompleto),
       obraSocial: getStringOrDash(body.obraSocial),
-      urlFoto: getStringOrDash(body.urlFoto),
+      urlFoto: urlFoto,
 
       // === SOCIAL ===
       acompanado: getStringOrDash(body.acompanado),
@@ -75,7 +149,9 @@ export async function POST(req) {
       calculo2: getStringOrDash(body.calculo2),
       calculo3: getStringOrDash(body.calculo3),
       cierreOjosYHagalo: getStringOrDash(body.cierreOjosYHagalo),
-      concurreALaConsultaMental: getStringOrDash(body.concurreALaConsultaMental),
+      concurreALaConsultaMental: getStringOrDash(
+        body.concurreALaConsultaMental,
+      ),
       fraseEscrita: getStringOrDash(body.fraseEscrita),
       hijosMental: getStringOrDash(body.hijosMental),
       logradoCopieDibujo: getStringOrDash(body.logradoCopieDibujo),
@@ -103,7 +179,7 @@ export async function POST(req) {
       // === FAMILIA Y APODERADOS ===
       calidadDe: getStringOrDash(body.calidadDe),
 
-      // === CLÍNICO / ANTECEDENTES PATOLÓGICOS DETALLADOS ===
+      // === CLÍNICO / ANTECEDENTES ===
       TA: getStringOrDash(body.TA),
       Cardio: getStringOrDash(body.Cardio),
       Digestivos: getStringOrDash(body.Digestivos),
@@ -129,7 +205,7 @@ export async function POST(req) {
       PsiquicaActiva: getStringOrDash(body.PsiquicaActiva),
       PsiquicaPasiva: getStringOrDash(body.PsiquicaPasiva),
 
-      // === EXAMEN FÍSICO DETALLADO ===
+      // === EXAMEN FÍSICO ===
       FacialOjos: getStringOrDash(body.FacialOjos),
       FacialBoca: getStringOrDash(body.FacialBoca),
       FacialDenticion: getStringOrDash(body.FacialDenticion),
@@ -163,7 +239,7 @@ export async function POST(req) {
       SNCEquilibrio: getStringOrDash(body.SNCEquilibrio),
       SNCMarcha: getStringOrDash(body.SNCMarcha),
 
-      // === HISTORIA CLÍNICA / INTERCONSULTA ===
+      // === HISTORIA CLÍNICA ===
       antecedentesPatologicos: getStringOrDash(body.antecedentesPatologicos),
       enfermedadActual: getStringOrDash(body.enfermedadActual),
       enfermedadBase: getStringOrDash(body.enfermedadBase),
@@ -176,15 +252,20 @@ export async function POST(req) {
       Evolucion: getStringOrDash(body.Evolucion),
       UltFechaModifEvolucion: getStringOrDash(body.UltFechaModifEvolucion),
 
-      // === FECHAS AUTO-GENERADAS AL CREAR ===
+      // === FECHAS AUTO ===
       fechaUltModifAntecedentesPatologicos: fechaActual,
-      fechaAnteriorModifAntecedentesPatologicos: getStringOrDash(body.fechaAnteriorModifAntecedentesPatologicos),
+      fechaAnteriorModifAntecedentesPatologicos: getStringOrDash(
+        body.fechaAnteriorModifAntecedentesPatologicos,
+      ),
       fechaUltModifEnfermedadActual: fechaActual,
-      fechaAnteriorModifEnfermedadActual: getStringOrDash(body.fechaAnteriorModifEnfermedadActual),
+      fechaAnteriorModifEnfermedadActual: getStringOrDash(
+        body.fechaAnteriorModifEnfermedadActual,
+      ),
       fechaTratamientoBase: getStringOrDash(body.fechaTratamientoBase),
       fechaTratamientoActual: getStringOrDash(body.fechaTratamientoActual),
 
-       galeriaFotos: [], 
+      // === GALERÍA ===
+      galeriaFotos: fotoMetadata ? [fotoMetadata] : [],
     };
 
     const pacienteDocRef = doc(
@@ -192,23 +273,34 @@ export async function POST(req) {
       "pacientes",
       "lista",
       "nombresPacientes",
-      id
+      id,
     );
-
     await setDoc(pacienteDocRef, paciente);
 
-    return new Response(
-      JSON.stringify({ message: "Paciente creado correctamente", id }),
-      { 
+    return NextResponse.json(
+      {
+        message: "Paciente creado correctamente",
+        id,
+        urlFoto,
+        hasPhoto: !!fotoMetadata,
+      },
+      {
         status: 201,
         headers: { "Content-Type": "application/json; charset=utf-8" },
-      }
+      },
     );
   } catch (error) {
-    console.error("Error creando paciente:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { "Content-Type": "application/json; charset=utf-8" },
+    console.error("Error creando paciente:", {
+      message: error.message,
+      code: error.code,
+      stack: error.stack,
     });
+    return NextResponse.json(
+      { error: error.message || "Error interno al crear paciente" },
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+      },
+    );
   }
 }
