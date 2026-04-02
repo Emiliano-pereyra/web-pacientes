@@ -335,9 +335,10 @@ function HomeContent() {
             disablePortal
             options={pacientes.map((p) => ({
               id: p.id,
-              nombreVisible: p.nombre,
+              nombreVisible: p.nombreVisible,
             }))}
             getOptionLabel={(option) => option?.nombreVisible || ""}
+            isOptionEqualToValue={(option, value) => option?.id === value?.id}
             value={selectedPaciente}
             onChange={(event, newValue) => {
               console.log("Nuevo valor seleccionado:", newValue);
@@ -350,7 +351,6 @@ function HomeContent() {
                 }
                 return;
               }
-
               setSelectedPaciente((prev) => {
                 if (prev?.id === newValue.id) return prev;
                 return {
