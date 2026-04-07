@@ -20,11 +20,8 @@ import Swal from "sweetalert2";
 import Image from "next/image";
 
 const TIPOS_FOTO = [
-  { value: "perfil", label: "Foto de Perfil (urlFoto)" },
-  { value: "evolucion", label: "Evolución / Seguimiento" },
-  { value: "tratamiento", label: "Tratamiento / Procedimiento" },
-  { value: "documento", label: "Documento / Receta" },
-  { value: "otros", label: "Otros" },
+  { value: "perfil", label: "Foto de Perfil" },
+  { value: "adicional", label: "Archivos adicionales" },
 ];
 
 export default function ModalSubirFotoPaciente({
@@ -35,7 +32,7 @@ export default function ModalSubirFotoPaciente({
   onUploadSuccess,
 }) {
   const [file, setFile] = useState(null);
-  const [tipo, setTipo] = useState("general");
+  const [tipo, setTipo] = useState("adicional");
   const [descripcion, setDescripcion] = useState("");
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState(null);
@@ -95,7 +92,7 @@ export default function ModalSubirFotoPaciente({
 
   const handleClose = () => {
     setFile(null);
-    setTipo("general");
+    setTipo("adicional");
     setDescripcion("");
     setPreview(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -204,8 +201,8 @@ export default function ModalSubirFotoPaciente({
 
         {tipo === "perfil" && (
           <Alert severity="info" sx={{ mb: 1, fontSize: "0.85rem" }}>
-            Al seleccionar Foto de Perfil, esta imagen también se establecerá
-            como la foto principal del paciente.
+            Esta imagen reemplazará la foto de perfil actual del paciente. La
+            imagen anterior se conservará en la galería.
           </Alert>
         )}
       </DialogContent>
