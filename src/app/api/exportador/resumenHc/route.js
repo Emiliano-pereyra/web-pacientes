@@ -17,7 +17,7 @@ export async function POST(req) {
     console.error("Error al generar PDF clínico:", error);
     return new Response(
       JSON.stringify({ error: error.message || "Error al generar el PDF" }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }
 }

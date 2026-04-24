@@ -42,7 +42,7 @@ const config = {
 };
 
 //  HISTORIA CLÍNICA (ya implementado antes)
-async function generarPDFHistoriaClinica(datos) {
+export async function generarPDFHistoriaClinica(datos) {
   const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
 
   const pdfDoc = await PDFDocument.create();
@@ -578,7 +578,7 @@ async function generarPDFHistoriaClinica(datos) {
 }
 
 // CLÍNICO
-async function generarPDFClinico({ paciente, historia }) {
+export async function generarPDFClinico({ paciente, historia }) {
   const doc = new PDFDocument(config);
   const { titleSize, subtitleSize, textSize, lineHeight, groupSpacing } =
     config;
@@ -661,7 +661,7 @@ async function generarPDFClinico({ paciente, historia }) {
 }
 
 // FAMILIA Y APODERADOS
-async function generarPDFFliaYApod({ paciente, informacionAdicional }) {
+export async function generarPDFFliaYApod({ paciente, informacionAdicional }) {
   const doc = new PDFDocument(config);
   const { titleSize, subtitleSize, textSize, lineHeight, groupSpacing } =
     config;
@@ -703,7 +703,7 @@ async function generarPDFFliaYApod({ paciente, informacionAdicional }) {
 }
 
 // INTERCONSULTA
-async function generarPDFInterconsulta({
+export async function generarPDFInterconsulta({
   paciente,
   antecedentesPatologicos,
   enfermedadActual,
@@ -764,7 +764,7 @@ async function generarPDFInterconsulta({
 }
 
 // RESUMEN HC
-async function generarPDFResumenHC({
+export async function generarPDFResumenHC({
   paciente,
   enfermedadBase,
   enfermedadActual,
