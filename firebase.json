@@ -1,5 +1,6 @@
 {
   "hosting": {
+<<<<<<< HEAD
     "site": "pacientes-2c28e",
     "source": ".",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
@@ -8,3 +9,13 @@
     }
   }
 }
+=======
+    "source": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ]
+  }
+}
+>>>>>>> 5b8341ff5b2bd5121035b27d5b4baf0191121453
