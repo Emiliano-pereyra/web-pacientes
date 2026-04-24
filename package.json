@@ -9,17 +9,6 @@
     "lint": "eslint"
   },
   "dependencies": {
-<<<<<<< HEAD
-    "@mui/x-date-pickers": "^8.18.0",
-    "date-fns": "^4.1.0",
-    "firebase": "^12.6.0",
-    "firebase-functions": "^7.0.0",
-    "firebase-tools": "^14.25.1",
-    "next": "16.0.3",
-    "pdfkit": "^0.17.2",
-    "react": "19.2.0",
-    "react-dom": "19.2.0"
-=======
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^7.3.7",
@@ -36,16 +25,11 @@
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "sweetalert2": "^11.26.17"
->>>>>>> 5b8341ff5b2bd5121035b27d5b4baf0191121453
   },
   "devDependencies": {
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.0.3",
-<<<<<<< HEAD
-    "firebase-frameworks": "^0.11.8"
-=======
     "firebase-frameworks": "^0.4.2"
->>>>>>> 5b8341ff5b2bd5121035b27d5b4baf0191121453
   }
 }
