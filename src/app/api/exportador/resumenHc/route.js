@@ -1,11 +1,11 @@
-import { generarPDFHistoria } from "@/utils/pdf/exportadorController";
+import { generarPDFResumenHC } from "@/controller/exportadorController";
 
 export const runtime = "nodejs";
 
 export async function POST(req) {
   try {
     const { datos } = await req.json();
-    const pdfBuffer = await generarPDFHistoria(datos, "resumen-hc");
+    const pdfBuffer = await generarPDFResumenHC(datos, "resumen-hc");
 
     return new Response(pdfBuffer, {
       headers: {

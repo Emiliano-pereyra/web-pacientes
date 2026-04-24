@@ -1,11 +1,11 @@
-import { generarPDFHistoria } from "@/utils/pdf/exportadorController";
+import { generarPDFClinico } from "@/controller/exportadorController";
 
 export const runtime = "nodejs";
 
 export async function POST(req) {
   try {
     const { datos } = await req.json();
-    const pdfBuffer = await generarPDFHistoria(datos, "clinico");
+    const pdfBuffer = await generarPDFClinico(datos, "clinico");
 
     return new Response(pdfBuffer, {
       headers: {

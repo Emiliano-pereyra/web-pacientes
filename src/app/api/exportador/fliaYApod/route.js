@@ -1,11 +1,11 @@
-import { generarPDFHistoria } from "@/utils/pdf/exportadorController";
+import { generarPDFFliaYApod } from "@/controller/exportadorController";
 
 export const runtime = "nodejs";
 
 export async function POST(req) {
   try {
     const { datos } = await req.json();
-    const pdfBuffer = await generarPDFHistoria(datos, "flia-y-apod");
+    const pdfBuffer = await generarPDFFliaYApod(datos, "flia-y-apod");
 
     return new Response(pdfBuffer, {
       headers: {
