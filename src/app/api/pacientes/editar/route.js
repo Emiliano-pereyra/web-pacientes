@@ -1,7 +1,4 @@
 import { db } from "@/lib/firebase";
-<<<<<<< HEAD
-import { doc, updateDoc } from "firebase/firestore";
-=======
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 
 function getStringOrDash(value) {
@@ -10,40 +7,22 @@ function getStringOrDash(value) {
   }
   return String(value);
 }
->>>>>>> 5b8341ff5b2bd5121035b27d5b4baf0191121453
 
 export async function PUT(req) {
   try {
     const url = new URL(req.url);
-<<<<<<< HEAD
-    const id = url.searchParams.get('id');
-=======
     const id = url.searchParams.get("id");
->>>>>>> 5b8341ff5b2bd5121035b27d5b4baf0191121453
 
     if (!id) {
       return new Response(
         JSON.stringify({ error: "Falta el parámetro id del paciente" }),
-<<<<<<< HEAD
-        { status: 400 }
-=======
         { status: 400 },
->>>>>>> 5b8341ff5b2bd5121035b27d5b4baf0191121453
       );
     }
 
     const body = await req.json();
     console.log("Datos recibidos para actualizar:", body);
 
-<<<<<<< HEAD
-    const pacienteDocRef = doc(db, "pacientes", "lista", "nombresPacientes", id);
-
-    await updateDoc(pacienteDocRef, body);
-
-    return new Response(
-      JSON.stringify({ message: "Datos actualizados correctamente" }),
-      { status: 200 }
-=======
     const pacienteDocRef = doc(
       db,
       "pacientes",
@@ -151,7 +130,6 @@ export async function PUT(req) {
     return new Response(
       JSON.stringify({ message: "Datos actualizados correctamente" }),
       { status: 200 },
->>>>>>> 5b8341ff5b2bd5121035b27d5b4baf0191121453
     );
   } catch (error) {
     console.error("Error actualizando datos del paciente:", error);
@@ -159,8 +137,4 @@ export async function PUT(req) {
       status: 500,
     });
   }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 5b8341ff5b2bd5121035b27d5b4baf0191121453

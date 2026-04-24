@@ -1,9 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-<<<<<<< HEAD
-  /* config options here */
-  reactCompiler: true,
-=======
   reactCompiler: true,
 
   images: {
@@ -36,7 +32,6 @@ const nextConfig = {
   experimental: {
     webpackBuildWorker: true,
   },
->>>>>>> 5b8341ff5b2bd5121035b27d5b4baf0191121453
 };
 
 export default nextConfig;

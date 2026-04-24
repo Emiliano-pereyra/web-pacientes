@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-import React, { useState } from "react";
-=======
 import React, { useEffect, useState } from "react";
->>>>>>> 5b8341ff5b2bd5121035b27d5b4baf0191121453
 import {
   Dialog,
   DialogTitle,
@@ -11,31 +7,6 @@ import {
   Button,
   TextField,
   Box,
-<<<<<<< HEAD
-  Stepper,
-  Step,
-  StepLabel,
-  Alert,
-  CircularProgress,
-} from "@mui/material";
-
-const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
-  const [activeStep, setActiveStep] = useState(0);
-  const [formData, setFormData] = useState({
-    nombre: "",
-    apellido: "",
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  const steps = ["Datos Personales"];
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-=======
   Alert,
   CircularProgress,
   Typography,
@@ -86,25 +57,10 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
->>>>>>> 5b8341ff5b2bd5121035b27d5b4baf0191121453
     }));
     if (error) setError("");
   };
 
-<<<<<<< HEAD
-  const handleNext = () => {
-    if (activeStep === 0) {
-      if (!formData.nombre.trim() || !formData.apellido.trim()) {
-        setError("Nombre y apellido son obligatorios.");
-        return;
-      }
-    }
-    setActiveStep((prev) => prev + 1);
-  };
-
-  const handleBack = () => {
-    setActiveStep((prev) => prev - 1);
-=======
   const handleTabChange = (event, newValue) => {
     setTabIndex(newValue);
   };
@@ -139,26 +95,11 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
       URL.revokeObjectURL(previewUrl);
     }
     setPreviewUrl(preview);
->>>>>>> 5b8341ff5b2bd5121035b27d5b4baf0191121453
   };
 
   const handleSubmit = async () => {
     setLoading(true);
     setError("");
-<<<<<<< HEAD
-    try {
-      const dataToSend = {
-        id: `${formData.nombre} ${formData.apellido}`,
-        ...formData,
-      };
-
-      const res = await fetch("/api/pacientes/crear", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(dataToSend),
-=======
 
     try {
       if (!formData.nombreCompleto?.trim()) {
@@ -471,7 +412,6 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
       const res = await fetch("/api/pacientes/crear", {
         method: "POST",
         body: formDataToSend,
->>>>>>> 5b8341ff5b2bd5121035b27d5b4baf0191121453
       });
 
       const result = await res.json();
@@ -483,63 +423,13 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
       onCreateSuccess(result.id);
       onClose();
     } catch (err) {
-<<<<<<< HEAD
-      console.error("Error creando paciente:", err);
-=======
       console.error(" Error creando paciente:", err);
->>>>>>> 5b8341ff5b2bd5121035b27d5b4baf0191121453
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-<<<<<<< HEAD
-  const renderStep = (step) => {
-    switch (step) {
-      case 0:
-        return (
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <TextField
-              fullWidth
-              label="Nombre"
-              name="nombre"
-              value={formData.nombre}
-              onChange={handleChange}
-              required
-              variant="outlined"
-              margin="normal"
-            />
-            <TextField
-              fullWidth
-              label="Apellido"
-              name="apellido"
-              value={formData.apellido}
-              onChange={handleChange}
-              required
-              variant="outlined"
-              margin="normal"
-            />
-          </Box>
-        );
-      default:
-        return <div>Step not found</div>;
-    }
-  };
-
-  return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Crear Nuevo Paciente</DialogTitle>
-      <DialogContent dividers>
-        <Stepper activeStep={activeStep} sx={{ mb: 3 }}>
-          {steps.map((label) => (
-            <Step key={label}>
-              <StepLabel>{label}</StepLabel>
-            </Step>
-          ))}
-        </Stepper>
-
-=======
   const handleRemovePhoto = () => {
     if (previewUrl && previewUrl.startsWith("blob:")) {
       URL.revokeObjectURL(previewUrl);
@@ -594,40 +484,11 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
     >
       <DialogTitle>Crear Nuevo Paciente</DialogTitle>
       <DialogContent dividers sx={{ maxHeight: "65vh", overflowY: "auto" }}>
->>>>>>> 5b8341ff5b2bd5121035b27d5b4baf0191121453
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
           </Alert>
         )}
-<<<<<<< HEAD
-
-        {renderStep(activeStep)}
-      </DialogContent>
-      <DialogActions>
-        {activeStep > 0 && (
-          <Button onClick={handleBack} color="secondary">
-            Volver
-          </Button>
-        )}
-        <Button onClick={onClose} color="secondary">
-          Cancelar
-        </Button>
-        {activeStep < steps.length - 1 ? (
-          <Button onClick={handleNext} color="primary">
-            Siguiente
-          </Button>
-        ) : (
-          <Button
-            onClick={handleSubmit}
-            color="primary"
-            variant="contained"
-            disabled={loading}
-          >
-            {loading ? <CircularProgress size={24} /> : "Crear Paciente"}
-          </Button>
-        )}
-=======
         <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>
           <Tabs
             value={tabIndex}
@@ -1018,14 +879,9 @@ const CrearPacienteModal = ({ open, onClose, onCreateSuccess }) => {
         >
           {loading ? <CircularProgress size={24} /> : "Crear Paciente"}
         </Button>
->>>>>>> 5b8341ff5b2bd5121035b27d5b4baf0191121453
       </DialogActions>
     </Dialog>
   );
 };
 
-<<<<<<< HEAD
 export default CrearPacienteModal;
-=======
-export default CrearPacienteModal;
->>>>>>> 5b8341ff5b2bd5121035b27d5b4baf0191121453

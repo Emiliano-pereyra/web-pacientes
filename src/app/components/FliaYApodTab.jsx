@@ -7,15 +7,6 @@ import {
   Grid,
   Alert,
   CircularProgress,
-<<<<<<< HEAD
-} from "@mui/material";
-import Swal from "sweetalert2";
-import ModalEdicion from "./ModalEdicion";
-
-const FliaYApodTab = ({ paciente, datos }) => {
-  const [openModal, setOpenModal] = useState(false);
-
-=======
   Avatar,
 } from "@mui/material";
 import Swal from "sweetalert2";
@@ -23,7 +14,6 @@ import ModalEdicionFliaYApod from "./ModalEdicionFliaYApod";
 const FliaYApodTab = ({ paciente, datos }) => {
   const [openModal, setOpenModal] = useState(false);
   const [fotoError, setFotoError] = useState(false);
->>>>>>> 5b8341ff5b2bd5121035b27d5b4baf0191121453
   const handleEditar = () => {
     if (!paciente) {
       Swal.fire("Error", "No hay paciente seleccionado", "error");
@@ -32,9 +22,6 @@ const FliaYApodTab = ({ paciente, datos }) => {
     setOpenModal(true);
   };
 
-<<<<<<< HEAD
-  const handleImprimir = () => {
-=======
   const safe = (value) => {
     if (
       value === undefined ||
@@ -53,7 +40,6 @@ const FliaYApodTab = ({ paciente, datos }) => {
       return;
     }
 
->>>>>>> 5b8341ff5b2bd5121035b27d5b4baf0191121453
     Swal.fire({
       title: "Imprimir planilla",
       text: "¿Deseas imprimir la planilla de información familiar y apoderados?",
@@ -63,11 +49,6 @@ const FliaYApodTab = ({ paciente, datos }) => {
       cancelButtonColor: "#d33",
       confirmButtonText: "Sí, imprimir",
       cancelButtonText: "Cancelar",
-<<<<<<< HEAD
-    }).then((result) => {
-      if (result.isConfirmed) {
-        Swal.fire("Imprimiendo", "Generando PDF...", "info");
-=======
     }).then(async (result) => {
       if (result.isConfirmed) {
         Swal.fire({
@@ -109,7 +90,6 @@ const FliaYApodTab = ({ paciente, datos }) => {
             "error",
           );
         }
->>>>>>> 5b8341ff5b2bd5121035b27d5b4baf0191121453
       }
     });
   };
@@ -126,13 +106,8 @@ const FliaYApodTab = ({ paciente, datos }) => {
         }
       : {},
     informacionAdicional: datos?.informacionAdicional || {
-<<<<<<< HEAD
-      yo: "",
-      dniNumero: "",
-=======
       yo: paciente.nombreCompleto,
       dniNumero: paciente.dni,
->>>>>>> 5b8341ff5b2bd5121035b27d5b4baf0191121453
       calidad: "",
       residenteNombre: "",
       textoConsentimiento:
@@ -140,8 +115,6 @@ const FliaYApodTab = ({ paciente, datos }) => {
     },
   };
 
-<<<<<<< HEAD
-=======
   const handleFotoError = () => {
     setFotoError(true);
   };
@@ -155,7 +128,6 @@ const FliaYApodTab = ({ paciente, datos }) => {
     return nombre.substring(0, 2).toUpperCase();
   };
 
->>>>>>> 5b8341ff5b2bd5121035b27d5b4baf0191121453
   if (!paciente) {
     return (
       <Alert severity="info">
@@ -173,25 +145,6 @@ const FliaYApodTab = ({ paciente, datos }) => {
     );
   }
 
-<<<<<<< HEAD
-  return (
-    <Box>
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2 }}>
-            <Box
-              display="flex"
-              justifyContent="space-between"
-              alignItems="center"
-              mb={2}
-            >
-              <Typography variant="h6">Información adicional</Typography>
-            </Box>
-            <Box
-              sx={{
-                backgroundColor: "#ffffff",
-                boxShadow: "0 8px 16px rgba(0, 0, 0, 0.08)",
-=======
   const d = (v) => v ?? "-";
 
   return (
@@ -266,22 +219,10 @@ const FliaYApodTab = ({ paciente, datos }) => {
             <Typography variant="h6">Información adicional</Typography>
             <Box
               sx={{
->>>>>>> 5b8341ff5b2bd5121035b27d5b4baf0191121453
                 p: 1,
                 borderRadius: "4px",
               }}
             >
-<<<<<<< HEAD
-              <Typography variant="body2">Yo:</Typography>
-              <Box display="flex" alignItems="center" gap={6} mt={1}>
-                <Typography variant="body2">
-                  Identificado/a con DNI N°:
-                </Typography>
-                <Typography variant="body2">y en calidad de:</Typography>
-              </Box>
-              <Typography variant="body2" mt={1}>
-                Del residente Sr/Sra:
-=======
               <Typography variant="body2">
                 Yo: {d(paciente.nombreCompleto)}
               </Typography>
@@ -295,7 +236,6 @@ const FliaYApodTab = ({ paciente, datos }) => {
               </Box>
               <Typography variant="body2" mt={1}>
                 Del residente Sr/Sra: {d(paciente.nombreCompleto)}
->>>>>>> 5b8341ff5b2bd5121035b27d5b4baf0191121453
               </Typography>
             </Box>
           </Paper>
@@ -314,10 +254,6 @@ const FliaYApodTab = ({ paciente, datos }) => {
             <Box
               sx={{
                 backgroundColor: "#ffffff",
-<<<<<<< HEAD
-                boxShadow: "0 8px 16px rgba(0, 0, 0, 0.08)",
-=======
->>>>>>> 5b8341ff5b2bd5121035b27d5b4baf0191121453
                 p: 1,
                 borderRadius: "4px",
               }}
@@ -358,11 +294,7 @@ const FliaYApodTab = ({ paciente, datos }) => {
       </Box>
 
       {openModal && (
-<<<<<<< HEAD
-        <ModalEdicion
-=======
         <ModalEdicionFliaYApod
->>>>>>> 5b8341ff5b2bd5121035b27d5b4baf0191121453
           open={openModal}
           onClose={handleCloseModal}
           datos={datosParaEditar}

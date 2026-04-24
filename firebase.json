@@ -1,15 +1,5 @@
 {
   "hosting": {
-<<<<<<< HEAD
-    "site": "pacientes-2c28e",
-    "source": ".",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-    "frameworksBackend": {
-      "region": "us-east1"
-    }
-  }
-}
-=======
     "source": ".",
     "ignore": [
       "firebase.json",
@@ -18,4 +8,3 @@
     ]
   }
 }
->>>>>>> 5b8341ff5b2bd5121035b27d5b4baf0191121453
