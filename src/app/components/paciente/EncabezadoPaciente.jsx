@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Avatar, Box, Button, ButtonBase, Paper, Tooltip, Typography } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
-import { formatearFecha, mostrar } from "@/lib/paciente/logica";
+import { fallecio, formatearFecha, mostrar } from "@/lib/paciente/logica";
 
 function iniciales(nombre) {
   if (!nombre) return "?";
@@ -25,7 +25,7 @@ export default function EncabezadoPaciente({ paciente, acciones, onAbrirGaleria,
 
   const datos = [
     ["DNI", mostrar(dp.dni)],
-    ["Edad", /^\d+$/.test(edad || "") ? `${edad} años` : mostrar(edad)],
+    [fallecio(paciente) ? "Edad al fallecer" : "Edad", /^\d+$/.test(edad || "") ? `${edad} años` : mostrar(edad)],
     ["Nacimiento", mostrar(formatearFecha(dp.fechaNacimiento))],
     ["Género", mostrar(dp.genero)],
     ["Obra social", mostrar(dp.obraSocial)],

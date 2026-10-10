@@ -79,8 +79,15 @@ export function calcularEdad(fechaNacimiento, referencia = new Date()) {
   return edad >= 0 && edad < 130 ? edad : null;
 }
 
-/** Edad calculada; si no hay fecha de nacimiento usa la edad que tenía cargada el modelo viejo. */
+/**
+ * Edad calculada; si no hay fecha de nacimiento usa la edad que tenía cargada el modelo viejo.
+ * Si el paciente falleció, es la edad al fallecer (no sigue sumando años).
+ */
 export function edadDePaciente(paciente) {
+  const alFallecer = paciente?.estado === "baja" && paciente?.baja?.tipo === "fallecimiento"
+    ? paciente.baja.fallecimiento?.edad
+    : null;
+  if (alFallecer != null) return String(alFallecer);
   const calc = calcularEdad(getPath(paciente, "datosPersonales.fechaNacimiento"));
   if (calc !== null) return String(calc);
   const vieja = getPath(paciente, "datosPersonales.edadRegistrada");

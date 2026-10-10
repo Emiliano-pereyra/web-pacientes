@@ -12,7 +12,7 @@ import {
   claveModificacion,
   getPath,
 } from "@/lib/paciente/schema";
-import { etiquetaFallecido, formatearFecha, formatearFechaHora, mostrar, resumenBaja } from "@/lib/paciente/logica";
+import { etiquetaFallecido, fallecio, formatearFecha, formatearFechaHora, mostrar, resumenBaja } from "@/lib/paciente/logica";
 
 const VACIO = "—";
 
@@ -21,7 +21,7 @@ function encabezadoPaciente(doc, p, responsable) {
   doc.camposEnLinea([
     ["Paciente", mostrar(dp.nombreCompleto, VACIO)],
     ["DNI", mostrar(dp.dni, VACIO)],
-    ["Edad", mostrar(p.derivados?.edad, VACIO)],
+    [fallecio(p) ? "Edad al fallecer" : "Edad", mostrar(p.derivados?.edad, VACIO)],
     ["Fecha de nacimiento", mostrar(formatearFecha(dp.fechaNacimiento), VACIO)],
     ["Obra social", mostrar(dp.obraSocial, VACIO)],
     ["N.º de afiliado", mostrar(dp.afiliadoNumero, VACIO)],

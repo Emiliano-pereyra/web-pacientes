@@ -106,6 +106,14 @@ describe("edad", () => {
     expect(calcularEdad("", ref)).toBeNull();
   });
 
+  it("si falleció, la edad queda fija en la edad al fallecer", () => {
+    const p = pacienteVacio();
+    setPath(p, "datosPersonales.fechaNacimiento", "1938-05-20");
+    p.estado = "baja";
+    p.baja = { tipo: "fallecimiento", fallecimiento: { fecha: "2026-09-12", edad: 88 } };
+    expect(edadDePaciente(p)).toBe("88");
+  });
+
   it("sin fecha de nacimiento usa la edad que tenía el modelo viejo, aclarándolo", () => {
     const p = pacienteVacio();
     setPath(p, "datosPersonales.edadRegistrada", "82");
