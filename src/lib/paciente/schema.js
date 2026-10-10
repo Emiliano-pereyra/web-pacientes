@@ -35,10 +35,12 @@ export const MMSE_ITEMS = [
 
 export const MMSE_MAX = MMSE_ITEMS.reduce((acc, i) => acc + i.max, 0);
 
-// Escala tomada de la planilla en papel (pie del PDF original).
+// Escala de la planilla en papel, ajustada a su máximo real: los ítems suman 28
+// (cálculo vale 3, no 5 como en el MMSE estándar de 30). Solo se movió el tope;
+// los demás cortes son los originales. Definido por el equipo (10/10/2026).
 export const MMSE_ESCALA = [
-  { desde: 30, hasta: 30, texto: "Sin patología" },
-  { desde: 25, hasta: 29, texto: "Ligero déficit" },
+  { desde: 28, hasta: 28, texto: "Sin patología" },
+  { desde: 25, hasta: 27, texto: "Ligero déficit" },
   { desde: 20, hasta: 24, texto: "Deterioro leve" },
   { desde: 15, hasta: 19, texto: "Deterioro moderado" },
   { desde: 0, hasta: 14, texto: "Deterioro severo" },

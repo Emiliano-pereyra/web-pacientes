@@ -167,13 +167,22 @@ describe("MMSE", () => {
     }
   });
 
-  // PENDIENTE DE DECISIÓN CLÍNICA: los máximos de la planilla suman 28 (cálculo vale 3),
-  // pero la escala pide 30 para "Sin patología". Con todo correcto hoy sale "Ligero déficit".
-  // Ver src/lib/paciente/schema.js (MMSE_ITEMS y MMSE_ESCALA).
-  it.skip("con todos los ítems en el máximo, la interpretación es «Sin patología»", () => {
+  // La planilla suma 28 (cálculo vale 3); la escala se ajustó a ese máximo.
+  it("con todos los ítems en el máximo (28), la interpretación es «Sin patología»", () => {
     const r = resultadoMMSE(conMMSE(maximos));
-    expect(r.total).toBe(30);
+    expect(r.total).toBe(28);
+    expect(r.max).toBe(28);
     expect(r.interpretacion).toBe("Sin patología");
+  });
+
+  it("27 ya es «Ligero déficit»", () => {
+    const r = resultadoMMSE(conMMSE((item) => (item.id === "copia" ? 0 : item.max)));
+    expect(r.total).toBe(27);
+    expect(r.interpretacion).toBe("Ligero déficit");
+  });
+
+  it("el tope de la escala coincide con el máximo de la planilla", () => {
+    expect(Math.max(...MMSE_ESCALA.map((e) => e.hasta))).toBe(MMSE_MAX);
   });
 });
 
