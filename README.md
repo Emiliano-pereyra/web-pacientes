@@ -7,7 +7,11 @@ Historia clínica de pacientes (Next.js 16 + MUI + Firebase).
 ```bash
 npm install
 npm run dev
+npm test        # tests de la lógica clínica (Vitest)
 ```
+
+Los tests (`src/**/*.test.js`) cubren edad, MMSE, validaciones de DNI y fechas,
+cálculo de cambios para el historial y la migración del modelo viejo.
 
 ## Estructura
 
