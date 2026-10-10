@@ -22,7 +22,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
-import axios from "axios";
+import { api } from "@/lib/cliente/api";
 import Swal from "sweetalert2";
 
 const TIPOS_LABELS = {
@@ -54,10 +54,10 @@ export default function ModalGaleriaFotosPaciente({
     try {
       setLoading(true);
       setError(null);
-      const res = await axios.get(`/api/pacientes/${pacienteId}/fotos/listar`);
+      const data = await api.listarFotos(pacienteId);
 
-      if (res.data.success) {
-        setFotos(res.data.fotos);
+      if (data.success) {
+        setFotos(data.fotos);
       } else {
         setError("No se pudieron cargar las fotos");
       }
@@ -130,29 +130,19 @@ export default function ModalGaleriaFotosPaciente({
     try {
       setDeleting(true);
 
-      const pathsAEliminar = fotosAEliminar.map((f) => f.path);
+      const data = await api.eliminarFotos(pacienteId, selectedIds);
 
-      const res = await axios.delete(
-        `/api/pacientes/${pacienteId}/fotos/eliminar`,
-        {
-          data: {
-            fotoIds: selectedIds,
-            paths: pathsAEliminar,
-          },
-        },
-      );
-
-       if (res.data.success) {
+      if (data.success) {
         await fetchFotos();
         setSelectedIds([]);
-        Swal.fire("Eliminado", res.data.message, "success");
-        onDeleted?.(res.data.eliminated);
+        Swal.fire("Eliminado", data.message, "success");
+        onDeleted?.(data.eliminated);
       }
     } catch (err) {
       console.error("Error eliminando:", err);
       Swal.fire(
         "Error",
-        err.response?.data?.error || "No se pudieron eliminar las fotos",
+        err.message || "No se pudieron eliminar las fotos",
         "error",
       );
     } finally {

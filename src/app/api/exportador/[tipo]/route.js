@@ -1,6 +1,7 @@
 import { listarEvoluciones, obtenerPaciente, respuestaError, ErrorNegocio } from "@/lib/server/pacientesService";
 import { generarPdf } from "@/lib/server/pdf/generarPdf";
 import { PESTANAS } from "@/lib/paciente/schema";
+import { usuarioDe } from "@/lib/server/http";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,6 +13,7 @@ export const dynamic = "force-dynamic";
  */
 export async function POST(request, { params }) {
   try {
+    await usuarioDe(request);
     const { tipo } = await params;
     if (!PESTANAS.some((p) => p.id === tipo)) throw new ErrorNegocio("Tipo de PDF no soportado", 404);
     const { id } = await request.json();

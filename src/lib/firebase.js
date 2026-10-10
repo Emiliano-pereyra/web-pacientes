@@ -1,6 +1,9 @@
-import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
+/**
+ * Firebase en el navegador: solo se usa para iniciar sesión.
+ * Los datos se leen y escriben siempre a través de la API (ver src/lib/server).
+ */
+import { getApp, getApps, initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
 
 export const firebaseConfig = {
   apiKey: "AIzaSyA0UHMyHqtxx5yDsBaRFXbMkTbfkF4qYs0",
@@ -11,6 +14,5 @@ export const firebaseConfig = {
   appId: "1:458153598528:web:f92a305edc99cb269949a5",
 };
 
-const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app, "(default)");
-export const storage = getStorage(app); 
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+export const auth = getAuth(app);

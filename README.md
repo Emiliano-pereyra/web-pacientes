@@ -68,5 +68,24 @@ GOOGLE_APPLICATION_CREDENTIALS=./service-account.json npm run migrar -- --aplica
 | GET | `/api/pacientes/{id}/historial?campo=` | Historial de cambios |
 | POST | `/api/exportador/{pestaña}` | PDF de la pestaña (`{ id }`) |
 
-> Pendiente (fase de seguridad): autenticación. Hasta entonces, el profesional
-> que figura en historial y evoluciones es el que se escribe en la barra superior.
+Todas las rutas exigen `Authorization: Bearer <token de Firebase Auth>` de un usuario dado de alta y activo.
+`GET /api/usuarios/yo` devuelve el usuario actual.
+
+## Usuarios y acceso
+
+- Login con Google o con email y contraseña (Firebase Auth). La contraseña se elige con
+  "Crear o recuperar mi contraseña" en la pantalla de ingreso.
+- Solo entran los usuarios de la colección `usuarios/{uid}` (`email, nombre, matricula, rol, activo`).
+  Roles: `admin` y `profesional`.
+- Historial, evoluciones y fotos registran al usuario autenticado (nombre + matrícula).
+- El servidor usa Firebase Admin; las reglas de Firestore y Storage niegan todo acceso directo.
+
+```bash
+npm run usuarios -- crear <email> --nombre "Nombre" --matricula "MN 1234" --rol admin|profesional
+npm run usuarios -- listar
+npm run usuarios -- rol <email> profesional
+npm run usuarios -- desactivar <email>
+```
+
+Credenciales: en local, `GOOGLE_APPLICATION_CREDENTIALS=./service-account.json` en `.env.local`;
+en Vercel, la variable `FIREBASE_SERVICE_ACCOUNT` con el JSON completo de la cuenta de servicio.

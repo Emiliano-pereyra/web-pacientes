@@ -1,45 +1,34 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
-import { InputAdornment, TextField } from "@mui/material";
-import BadgeIcon from "@mui/icons-material/Badge";
-import { getProfesional, setProfesional } from "@/lib/cliente/api";
+import { Box, Button, Chip, Typography } from "@mui/material";
+import LogoutIcon from "@mui/icons-material/Logout";
+import { ROLES } from "@/lib/usuarios";
+import { useSesion } from "./auth/Sesion";
 
 /**
- * Nombre de quien está usando el sistema. Se guarda en el navegador y se
- * registra en el historial de cambios y en las evoluciones.
- * Provisorio: cuando haya login se toma del usuario autenticado.
+ * Usuario que inició sesión. Es quien queda registrado en el historial de
+ * cambios, las evoluciones y las fotos.
  */
 export default function ProfesionalActual() {
-  // valor guardado en el navegador ("" durante el render del servidor)
-  const guardado = useSyncExternalStore(
-    () => () => {},
-    getProfesional,
-    () => "",
-  );
-  const [editando, setEditando] = useState(null);
-  const valor = editando ?? guardado;
+  const { usuario, salir } = useSesion() || {};
+  if (!usuario) return null;
 
   return (
-    <TextField
-      size="small"
-      placeholder="Profesional"
-      value={valor}
-      onChange={(e) => setEditando(e.target.value)}
-      onBlur={() => {
-        if (editando !== null) setProfesional(editando);
-        setEditando(null);
-      }}
-      sx={{ width: 220, bgcolor: "background.paper" }}
-      slotProps={{
-        input: {
-          startAdornment: (
-            <InputAdornment position="start">
-              <BadgeIcon fontSize="small" />
-            </InputAdornment>
-          ),
-        },
-      }}
-    />
+    <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+      <Box sx={{ textAlign: "right", display: { xs: "none", sm: "block" } }}>
+        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+          {usuario.nombre}
+        </Typography>
+        {usuario.matricula && (
+          <Typography variant="caption" color="text.secondary">
+            Mat. {usuario.matricula}
+          </Typography>
+        )}
+      </Box>
+      <Chip size="small" label={ROLES[usuario.rol] || usuario.rol} color={usuario.rol === "admin" ? "secondary" : "default"} />
+      <Button size="small" startIcon={<LogoutIcon />} onClick={salir}>
+        Salir
+      </Button>
+    </Box>
   );
 }

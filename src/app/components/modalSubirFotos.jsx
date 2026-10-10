@@ -15,7 +15,7 @@ import {
   Box,
   Typography,
 } from "@mui/material";
-import axios from "axios";
+import { api } from "@/lib/cliente/api";
 import Swal from "sweetalert2";
 import Image from "next/image";
 
@@ -65,24 +65,18 @@ export default function ModalSubirFotoPaciente({
     formData.append("descripcion", descripcion.trim());
 
     try {
-      const res = await axios.post(
-        `/api/pacientes/${pacienteId}/fotos`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        },
-      );
+      const data = await api.subirFoto(pacienteId, formData);
 
-      if (res.data.success) {
+      if (data.success) {
         Swal.fire("¡Listo!", "Foto subida correctamente", "success");
-        onUploadSuccess?.(res.data.metadata);
+        onUploadSuccess?.(data.metadata);
         handleClose();
       }
     } catch (error) {
       console.error(error);
       Swal.fire(
         "Error",
-        error.response?.data?.error || "No se pudo subir el archivo",
+        error.message || "No se pudo subir el archivo",
         "error",
       );
     } finally {

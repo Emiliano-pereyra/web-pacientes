@@ -1,7 +1,6 @@
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { storage } from "@/lib/firebase";
 import { crearPaciente, respuestaError, ErrorNegocio } from "@/lib/server/pacientesService";
-import { profesionalDe } from "@/lib/server/http";
+import { subirArchivo } from "@/lib/server/archivos";
+import { usuarioDe } from "@/lib/server/http";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -18,6 +17,7 @@ const MAX_FOTO = 5 * 1024 * 1024;
  */
 export async function POST(request) {
   try {
+    const usuario = await usuarioDe(request);
     const contentType = request.headers.get("content-type") || "";
     let entrada = {};
     let file = null;
@@ -40,18 +40,20 @@ export async function POST(request) {
       ? async (pacienteId) => {
           const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
           const stamp = Date.now();
-          const storageRef = ref(storage, `pacientes/${pacienteId}/perfil_${stamp}.${ext}`);
-          await uploadBytes(storageRef, Buffer.from(await file.arrayBuffer()), {
-            contentType: file.type,
-            customMetadata: { pacienteId, tipo: "perfil", uploadedAt: new Date().toISOString() },
-          });
-          const url = await getDownloadURL(storageRef);
+          const { url, path } = await subirArchivo(
+            `pacientes/${pacienteId}/perfil_${stamp}.${ext}`,
+            Buffer.from(await file.arrayBuffer()),
+            {
+              contentType: file.type,
+              metadata: { pacienteId, tipo: "perfil", uploadedAt: new Date().toISOString() },
+            },
+          );
           return {
             url,
             metadata: {
               id: `perfil_${stamp}`,
               url,
-              path: storageRef.fullPath,
+              path,
               tipo: "perfil",
               descripcion: "Foto de perfil al crear paciente",
               nombreOriginal: file.name,
@@ -63,7 +65,7 @@ export async function POST(request) {
         }
       : undefined;
 
-    const { id } = await crearPaciente(entrada, { profesional: profesionalDe(request), subirFoto });
+    const { id } = await crearPaciente(entrada, { usuario, subirFoto });
     return Response.json({ id }, { status: 201 });
   } catch (error) {
     if (error instanceof SyntaxError) return Response.json({ error: "Datos mal formados" }, { status: 400 });

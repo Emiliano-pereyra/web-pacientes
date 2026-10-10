@@ -1,5 +1,5 @@
 import { actualizarSeccion, obtenerPaciente, respuestaError } from "@/lib/server/pacientesService";
-import { profesionalDe } from "@/lib/server/http";
+import { usuarioDe } from "@/lib/server/http";
 
 export const runtime = "nodejs";
 
@@ -10,11 +10,10 @@ export const runtime = "nodejs";
  */
 export async function PUT(request, { params }) {
   try {
+    const usuario = await usuarioDe(request);
     const { pacienteId, seccion } = await params;
     const entrada = await request.json();
-    const { cambios } = await actualizarSeccion(pacienteId, seccion, entrada, {
-      profesional: profesionalDe(request),
-    });
+    const { cambios } = await actualizarSeccion(pacienteId, seccion, entrada, { usuario });
     const paciente = await obtenerPaciente(pacienteId);
     return Response.json({ cambios, paciente });
   } catch (error) {

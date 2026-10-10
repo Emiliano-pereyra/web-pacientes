@@ -4,7 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import { Alert, Box, Button, CircularProgress, Divider, Paper, TextField, Typography } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { formatearFecha, formatearFechaHora, hoyISO } from "@/lib/paciente/logica";
-import { api, getProfesional } from "@/lib/cliente/api";
+import { api } from "@/lib/cliente/api";
+import { useSesion } from "../auth/Sesion";
 
 /**
  * Evoluciones del paciente: se agregan, nunca se editan ni se borran.
@@ -14,7 +15,8 @@ export default function Evoluciones({ pacienteId, onCambio }) {
   const [lista, setLista] = useState(null);
   const [error, setError] = useState("");
   const [abierto, setAbierto] = useState(false);
-  const [form, setForm] = useState({ texto: "", fecha: hoyISO(), profesional: "" });
+  const { usuario } = useSesion() || {};
+  const [form, setForm] = useState({ texto: "", fecha: hoyISO() });
   const [errores, setErrores] = useState({});
   const [guardando, setGuardando] = useState(false);
 
@@ -33,7 +35,7 @@ export default function Evoluciones({ pacienteId, onCambio }) {
   }, [cargar]);
 
   const abrir = () => {
-    setForm({ texto: "", fecha: hoyISO(), profesional: getProfesional() });
+    setForm({ texto: "", fecha: hoyISO() });
     setErrores({});
     setAbierto(true);
   };
@@ -78,12 +80,11 @@ export default function Evoluciones({ pacienteId, onCambio }) {
               slotProps={{ inputLabel: { shrink: true } }}
             />
             <TextField
-              label="Profesional *"
+              label="Profesional"
               size="small"
-              value={form.profesional}
-              onChange={(e) => setForm({ ...form, profesional: e.target.value })}
-              error={Boolean(errores.profesional)}
-              helperText={errores.profesional || " "}
+              value={usuario?.profesional || ""}
+              helperText="Se registra con tu usuario"
+              disabled
             />
           </Box>
           <TextField

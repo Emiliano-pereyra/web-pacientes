@@ -1,78 +1,61 @@
-import { NextResponse } from 'next/server';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '@/lib/firebase';
-import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { FieldValue } from 'firebase-admin/firestore';
+import { pacienteRef, respuestaError, ErrorNegocio } from '@/lib/server/pacientesService';
+import { subirArchivo } from '@/lib/server/archivos';
+import { usuarioDe } from '@/lib/server/http';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
 
+const TIPOS_PERMITIDOS = ['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'application/pdf'];
+const MAX_ARCHIVO = 50 * 1024 * 1024;
+
 export async function POST(request, { params }) {
   try {
+    const usuario = await usuarioDe(request);
     const { pacienteId } = await params;
     const formData = await request.formData();
     const file = formData.get('file');
-    const tipo = formData.get('tipo') || 'general';
+    const tipo = String(formData.get('tipo') || 'general').replace(/[^a-zA-Z0-9_-]/g, '') || 'general';
     const descripcion = formData.get('descripcion') || '';
 
-    if (!file) {
-      return NextResponse.json({ error: 'No se proporcionó ningún archivo' }, { status: 400 });
-    }
+    if (!file || typeof file !== 'object') throw new ErrorNegocio('No se proporcionó ningún archivo');
+    if (!TIPOS_PERMITIDOS.includes(file.type)) throw new ErrorNegocio('Tipo de archivo no permitido');
+    if (file.size > MAX_ARCHIVO) throw new ErrorNegocio('El archivo supera el límite de 50MB');
 
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'application/pdf'];
-    if (!allowedTypes.includes(file.type)) {
-      return NextResponse.json({ error: 'Tipo de archivo no permitido' }, { status: 400 });
-    }
-    if (file.size > 50 * 1024 * 1024) {
-      return NextResponse.json({ error: 'El archivo supera el límite de 50MB' }, { status: 400 });
-    }
+    const snap = await pacienteRef(pacienteId).get();
+    if (!snap.exists) throw new ErrorNegocio('Paciente no encontrado', 404);
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const fileExtension = file.name.split('.').pop();
-    const fileName = `${tipo}_${Date.now()}.${fileExtension}`;
-    
-    const storageRef = ref(storage, `pacientes/${pacienteId}/${fileName}`);
+    const stamp = Date.now();
+    const extension = (file.name.split('.').pop() || 'bin').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const uploadedAt = new Date().toISOString();
 
-    const snapshot = await uploadBytes(storageRef, buffer, {
-      contentType: file.type,
-      customMetadata: { pacienteId, tipo, uploadedAt: new Date().toISOString() }
-    });
-
-    const downloadURL = await getDownloadURL(snapshot.ref);
+    const { url, path } = await subirArchivo(
+      `pacientes/${pacienteId}/${tipo}_${stamp}.${extension}`,
+      Buffer.from(await file.arrayBuffer()),
+      { contentType: file.type, metadata: { pacienteId, tipo, uploadedAt } },
+    );
 
     const fotoMetadata = {
-      id: `${tipo}_${Date.now()}`,
-      url: downloadURL,
-      path: snapshot.ref.fullPath,
+      id: `${tipo}_${stamp}`,
+      url,
+      path,
       tipo,
       descripcion,
       nombreOriginal: file.name,
       mimeType: file.type,
       size: file.size,
-      uploadedAt: new Date().toISOString()
+      uploadedAt,
+      subidoPor: usuario.profesional,
+      subidoPorUid: usuario.uid,
     };
 
-    const pacienteRef = doc(db, 'pacientes/lista/nombresPacientes', pacienteId);
-    const updates = {};
-    
-    if (tipo === 'perfil') {
-      updates.urlFoto = downloadURL;
-    }
-    
-    await updateDoc(pacienteRef, {
-      ...updates,
-      galeriaFotos: arrayUnion(fotoMetadata)
+    await pacienteRef(pacienteId).update({
+      ...(tipo === 'perfil' ? { urlFoto: url } : {}),
+      galeriaFotos: FieldValue.arrayUnion(fotoMetadata),
     });
 
-    return NextResponse.json({ success: true, url: downloadURL, metadata: fotoMetadata });
-
+    return Response.json({ success: true, url, metadata: fotoMetadata });
   } catch (error) {
-    console.error('Error subiendo archivo:', {
-      message: error.message,
-      code: error.code,
-      status: error.status_,
-      bucket: storage.app?.options?.storageBucket
-    });
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return respuestaError(error);
   }
 }

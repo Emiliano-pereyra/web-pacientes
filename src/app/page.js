@@ -25,6 +25,8 @@ import ModalCrearPaciente from "./components/ModalCrearPaciente";
 import ModalSubirFotoPaciente from "./components/modalSubirFotos";
 import ModalGaleriaFotosPaciente from "./components/ModalGaleriaFotosPaciente";
 import ProfesionalActual from "./components/ProfesionalActual";
+import { SesionProvider, useSesion } from "./components/auth/Sesion";
+import { PantallaIngreso, PantallaSinAcceso } from "./components/auth/PantallaIngreso";
 import { PESTANAS } from "@/lib/paciente/schema";
 import { api } from "@/lib/cliente/api";
 
@@ -251,10 +253,23 @@ function Inicio() {
   );
 }
 
-export default function Home() {
+/** Muestra el panel solo a usuarios dados de alta; si no, la pantalla de ingreso. */
+function ConSesion() {
+  const { estado } = useSesion();
+  if (estado === "cargando") return <Cargando />;
+  if (estado === "sinSesion") return <PantallaIngreso />;
+  if (estado === "sinAcceso") return <PantallaSinAcceso />;
   return (
     <Suspense fallback={<Cargando />}>
       <Inicio />
     </Suspense>
+  );
+}
+
+export default function Home() {
+  return (
+    <SesionProvider>
+      <ConSesion />
+    </SesionProvider>
   );
 }
