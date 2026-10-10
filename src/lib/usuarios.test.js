@@ -7,6 +7,7 @@ import {
   requiereMatricula,
   requiereProfesional,
   responsableDe,
+  validarUsuario,
 } from "./usuarios";
 import { formatearTamano, plural } from "./cliente/formato";
 
@@ -83,6 +84,60 @@ describe("autor en historial y evoluciones", () => {
 
   it("un admin sin matrícula figura solo con su nombre", () => {
     expect(etiquetaAutor(admin, responsableDe(admin))).toBe("nicolas pereyra");
+  });
+});
+
+describe("validación de usuarios (pantalla de administración)", () => {
+  const profesionales = [
+    { uid: "p1", rol: "profesional", activo: true },
+    { uid: "p2", rol: "profesional", activo: false },
+  ];
+  const valida = (entrada, opciones = {}) => validarUsuario(entrada, { profesionales, ...opciones });
+
+  it("alta de profesional válida", () => {
+    const { valores, errores } = valida(
+      { email: " Doc@Mail.com ", nombre: "Juan Pérez", rol: "profesional", matricula: "MN 1" },
+      { esAlta: true },
+    );
+    expect(errores).toEqual({});
+    expect(valores).toMatchObject({ email: "doc@mail.com", rol: "profesional", matricula: "MN 1", profesionalUid: "" });
+  });
+
+  it("email inválido en el alta", () => {
+    expect(valida({ email: "x", nombre: "Juan Pérez", rol: "admin" }, { esAlta: true }).errores.email).toBe(
+      "Email inválido",
+    );
+  });
+
+  it("profesional sin matrícula", () => {
+    expect(valida({ nombre: "Juan Pérez", rol: "profesional" }).errores.matricula).toBeDefined();
+  });
+
+  it("admin sin matrícula es válido", () => {
+    expect(valida({ nombre: "Juan Pérez", rol: "admin" }).errores).toEqual({});
+  });
+
+  it("a una secretaria/o se le descarta la matrícula", () => {
+    const { valores } = valida({ nombre: "Ana López", rol: "secretaria", matricula: "MN 9", profesionalUid: "p1" });
+    expect(valores.matricula).toBe("");
+  });
+
+  it("secretaria/o sin profesional, con uno inexistente o desactivado", () => {
+    expect(valida({ nombre: "Ana López", rol: "secretaria" }).errores.profesionalUid).toBeDefined();
+    expect(valida({ nombre: "Ana López", rol: "secretaria", profesionalUid: "zz" }).errores.profesionalUid).toBeDefined();
+    expect(valida({ nombre: "Ana López", rol: "secretaria", profesionalUid: "p2" }).errores.profesionalUid).toBe(
+      "Ese profesional está desactivado",
+    );
+  });
+
+  it("al dejar de ser secretaria/o se borra el vínculo", () => {
+    expect(valida({ nombre: "Ana López", rol: "admin", profesionalUid: "p1" }).valores.profesionalUid).toBe("");
+  });
+
+  it("rol inexistente y nombre corto", () => {
+    const { errores } = valida({ nombre: "A", rol: "jefe" });
+    expect(errores.rol).toBeDefined();
+    expect(errores.nombre).toBeDefined();
   });
 });
 

@@ -2,6 +2,7 @@ import { listarEvoluciones, obtenerPaciente, respuestaError, ErrorNegocio } from
 import { generarPdf } from "@/lib/server/pdf/generarPdf";
 import { PESTANAS } from "@/lib/paciente/schema";
 import { usuarioDe } from "@/lib/server/http";
+import { registrar } from "@/lib/server/auditoria";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -24,6 +25,12 @@ export async function POST(request, { params }) {
     const evoluciones = pestana.conEvoluciones ? await listarEvoluciones(id) : [];
     // Sale a nombre del profesional responsable (el vinculado, si imprime una secretaria/o)
     const bytes = await generarPdf(tipo, paciente, evoluciones, { responsable: usuario.responsable });
+    await registrar(request, usuario, {
+      accion: "imprimir",
+      pacienteId: id,
+      pacienteNombre: paciente.datosPersonales?.nombreCompleto,
+      detalle: `${pestana.tituloPdf}${usuario.rol === "secretaria" ? ` · a nombre de ${usuario.responsable.nombre}` : ""}`,
+    });
 
     const nombre = String(paciente.datosPersonales?.nombreCompleto || "paciente")
       .normalize("NFD")

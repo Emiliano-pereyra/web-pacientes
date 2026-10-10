@@ -1,13 +1,14 @@
 import { pacienteRef, respuestaError, ErrorNegocio } from '@/lib/server/pacientesService';
 import { usuarioDe } from '@/lib/server/http';
 import { fotoParaCliente } from '@/lib/server/archivos';
+import { registrar } from '@/lib/server/auditoria';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request, { params }) {
   try {
-    await usuarioDe(request);
+    const usuario = await usuarioDe(request);
     const { pacienteId } = await params;
     const tipo = new URL(request.url).searchParams.get('tipo');
 
@@ -20,6 +21,11 @@ export async function GET(request, { params }) {
 
     // Enlaces firmados que vencen (MINUTOS_ENLACE): solo sirven mientras la galería está abierta
     const firmadas = await Promise.all(fotos.map(fotoParaCliente));
+    await registrar(request, usuario, {
+      accion: 'ver_archivos',
+      pacienteId,
+      pacienteNombre: snap.data().datosPersonales?.nombreCompleto || snap.data().nombreCompleto,
+    });
     return Response.json({ success: true, pacienteId, total: firmadas.length, fotos: firmadas });
   } catch (error) {
     return respuestaError(error);

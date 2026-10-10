@@ -3,6 +3,7 @@ import { ThemeProvider, CssBaseline } from "@mui/material";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter";
 import { Toaster } from "sonner";
 import theme from "../theme/theme";
+import Providers from "./Providers";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], display: "swap", variable: "--font-sans" });
@@ -25,7 +26,7 @@ export default function RootLayout({ children }) {
         <AppRouterCacheProvider>
           <ThemeProvider theme={theme}>
             <CssBaseline />
-            {children}
+            <Providers>{children}</Providers>
             <Toaster position="top-right" richColors closeButton />
           </ThemeProvider>
         </AppRouterCacheProvider>

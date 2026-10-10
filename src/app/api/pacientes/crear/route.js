@@ -1,6 +1,7 @@
 import { crearPaciente, respuestaError, ErrorNegocio } from "@/lib/server/pacientesService";
 import { subirArchivo } from "@/lib/server/archivos";
 import { usuarioDe } from "@/lib/server/http";
+import { registrar } from "@/lib/server/auditoria";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -67,6 +68,11 @@ export async function POST(request) {
       : undefined;
 
     const { id } = await crearPaciente(entrada, { usuario, subirFoto });
+    await registrar(request, usuario, {
+      accion: "crear_paciente",
+      pacienteId: id,
+      pacienteNombre: entrada["datosPersonales.nombreCompleto"],
+    });
     return Response.json({ id }, { status: 201 });
   } catch (error) {
     if (error instanceof SyntaxError) return Response.json({ error: "Datos mal formados" }, { status: 400 });

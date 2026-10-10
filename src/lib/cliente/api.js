@@ -56,6 +56,17 @@ export const api = {
   listarFotos: (id) => pedir(`${pac(id)}/fotos/listar`),
   subirFoto: (id, formData) => pedir(`${pac(id)}/fotos`, { method: "POST", body: formData }),
   eliminarFotos: (id, fotoIds) => pedir(`${pac(id)}/fotos/eliminar`, { method: "DELETE", json: { fotoIds } }),
+  // Administración (solo admins)
+  listarUsuarios: () => pedir("/api/usuarios"),
+  crearUsuario: (datos) => pedir("/api/usuarios", { method: "POST", json: datos }),
+  actualizarUsuario: (uid, datos) => pedir(`/api/usuarios/${encodeURIComponent(uid)}`, { method: "PATCH", json: datos }),
+  auditoria: ({ pacienteId, uid, antesDe } = {}) => {
+    const q = new URLSearchParams();
+    if (pacienteId) q.set("pacienteId", pacienteId);
+    if (uid) q.set("uid", uid);
+    if (antesDe) q.set("antesDe", antesDe);
+    return pedir(`/api/auditoria${q.size ? `?${q}` : ""}`);
+  },
   async descargarPdf(tipo, id) {
     const res = await pedir(`/api/exportador/${tipo}`, { method: "POST", json: { id }, raw: true });
     return res.blob();

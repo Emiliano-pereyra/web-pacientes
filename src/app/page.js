@@ -3,7 +3,6 @@
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
-  AppBar,
   Autocomplete,
   Box,
   Button,
@@ -12,7 +11,6 @@ import {
   Tab,
   Tabs,
   TextField,
-  Toolbar,
   Typography,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
@@ -20,7 +18,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import PrintIcon from "@mui/icons-material/Print";
 import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
-import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 import { toast } from "sonner";
 import { useSearchParams } from "next/navigation";
 
@@ -31,39 +29,14 @@ import ListaPacientes from "./components/ListaPacientes";
 import ModalCrearPaciente from "./components/ModalCrearPaciente";
 import ModalSubirFotoPaciente from "./components/modalSubirFotos";
 import ModalGaleriaFotosPaciente from "./components/ModalGaleriaFotosPaciente";
-import ProfesionalActual from "./components/ProfesionalActual";
-import { ConfirmacionProvider } from "./components/ui/Confirmacion";
-import { SesionProvider, useSesion } from "./components/auth/Sesion";
-import { PantallaIngreso, PantallaSinAcceso } from "./components/auth/PantallaIngreso";
+import ModalAccesosPaciente from "./components/admin/ModalAccesosPaciente";
+import Barra from "./components/Barra";
+import Protegido, { Cargando } from "./components/Protegido";
+import { useSesion } from "./components/auth/Sesion";
 import { PESTANAS } from "@/lib/paciente/schema";
 import { api } from "@/lib/cliente/api";
 
 const PESTANA_EVOLUCIONES = PESTANAS.findIndex((p) => p.conEvoluciones);
-
-function Barra() {
-  return (
-    <AppBar position="sticky">
-      <Toolbar sx={{ gap: 2, minHeight: { xs: 56, sm: 60 } }}>
-        <LocalHospitalIcon color="primary" aria-hidden />
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 700 }}>
-          Pacientes
-        </Typography>
-        <ProfesionalActual />
-      </Toolbar>
-    </AppBar>
-  );
-}
-
-function Cargando() {
-  return (
-    <Box sx={{ minHeight: "100dvh", bgcolor: "background.default" }}>
-      <Barra />
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
-        <CircularProgress aria-label="Cargando" />
-      </Box>
-    </Box>
-  );
-}
 
 /** Refleja en la URL el paciente y la pestaña abiertos (se pueden compartir y recargar). */
 function actualizarUrl(id, pestanaId) {
@@ -95,6 +68,7 @@ async function imprimir(pestana, paciente) {
 
 function Inicio() {
   const searchParams = useSearchParams();
+  const { usuario } = useSesion();
   const [pacientes, setPacientes] = useState([]);
   const [cargandoLista, setCargandoLista] = useState(true);
   const [errorLista, setErrorLista] = useState("");
@@ -212,6 +186,8 @@ function Inicio() {
     if (item && (item.nombreVisible !== nombre || item.dni !== p.datosPersonales?.dni)) cargarLista();
   };
 
+  const esAdmin = usuario?.rol === "admin";
+
   const nuevaEvolucion = () => {
     if (PESTANA_EVOLUCIONES >= 0) setTab(PESTANA_EVOLUCIONES);
     setPedidoEvolucion(true);
@@ -232,6 +208,11 @@ function Inicio() {
       <Button variant="outlined" startIcon={<PhotoLibraryIcon />} onClick={() => setModal("galeria")}>
         Fotos y archivos
       </Button>
+      {esAdmin && (
+        <Button color="inherit" startIcon={<VisibilityIcon />} onClick={() => setModal("accesos")}>
+          Accesos
+        </Button>
+      )}
     </>
   );
 
@@ -402,29 +383,25 @@ function Inicio() {
           onDeleted={(n) => n > 0 && cargarPaciente(paciente.id)}
         />
       )}
+
+      {modal === "accesos" && paciente && esAdmin && (
+        <ModalAccesosPaciente
+          pacienteId={paciente.id}
+          patientName={paciente.datosPersonales?.nombreCompleto}
+          onClose={() => setModal(null)}
+        />
+      )}
     </Box>
   );
 }
 
-/** Muestra el panel solo a usuarios dados de alta; si no, la pantalla de ingreso. */
-function ConSesion() {
-  const { estado } = useSesion();
-  if (estado === "cargando") return <Cargando />;
-  if (estado === "sinSesion") return <PantallaIngreso />;
-  if (estado === "sinAcceso") return <PantallaSinAcceso />;
-  return (
-    <Suspense fallback={<Cargando />}>
-      <Inicio />
-    </Suspense>
-  );
-}
-
+/** El panel solo para usuarios dados de alta (si no, ingreso o acceso denegado). */
 export default function Home() {
   return (
-    <SesionProvider>
-      <ConfirmacionProvider>
-        <ConSesion />
-      </ConfirmacionProvider>
-    </SesionProvider>
+    <Protegido>
+      <Suspense fallback={<Cargando />}>
+        <Inicio />
+      </Suspense>
+    </Protegido>
   );
 }

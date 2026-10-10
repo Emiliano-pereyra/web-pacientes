@@ -20,6 +20,47 @@ export const requiereMatricula = (rol) => rol === "profesional";
 export const admiteMatricula = (rol) => rol !== "secretaria";
 export const requiereProfesional = (rol) => rol === "secretaria";
 
+/**
+ * Valida los datos de un usuario según su rol. Devuelve { valores, errores }.
+ * `profesionales` = usuarios con rol profesional (para validar el vínculo de una secretaria/o).
+ */
+export function validarUsuario(entrada = {}, { esAlta = false, profesionales = [] } = {}) {
+  const errores = {};
+  const valores = {};
+
+  if (esAlta) {
+    const email = String(entrada.email || "").trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errores.email = "Email inválido";
+    valores.email = email;
+  }
+
+  const nombre = String(entrada.nombre || "").trim();
+  if (nombre.length < 3) errores.nombre = "Ingresá nombre y apellido";
+  valores.nombre = nombre;
+
+  const rol = entrada.rol;
+  if (!ROLES[rol]) {
+    errores.rol = "Elegí un rol";
+    return { valores, errores };
+  }
+  valores.rol = rol;
+
+  const matricula = String(entrada.matricula || "").trim();
+  if (requiereMatricula(rol) && !matricula) errores.matricula = "La matrícula es obligatoria para un profesional";
+  valores.matricula = admiteMatricula(rol) ? matricula : "";
+
+  if (requiereProfesional(rol)) {
+    const p = profesionales.find((x) => x.uid === entrada.profesionalUid);
+    if (!p) errores.profesionalUid = "Elegí el profesional de esta secretaria/o";
+    else if (p.activo === false) errores.profesionalUid = "Ese profesional está desactivado";
+    valores.profesionalUid = entrada.profesionalUid || "";
+  } else {
+    valores.profesionalUid = "";
+  }
+
+  return { valores, errores };
+}
+
 /** "Nombre (Mat. X)", o solo el nombre si no tiene matrícula. */
 export function etiquetaProfesional({ nombre, matricula }) {
   const n = String(nombre || "").trim();

@@ -2,6 +2,7 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { pacienteRef, respuestaError, ErrorNegocio } from '@/lib/server/pacientesService';
 import { fotoParaCliente, subirArchivo } from '@/lib/server/archivos';
 import { usuarioDe } from '@/lib/server/http';
+import { registrar } from '@/lib/server/auditoria';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -52,6 +53,13 @@ export async function POST(request, { params }) {
     await pacienteRef(pacienteId).update({
       ...(tipo === 'perfil' ? { fotoPerfilPath: path, urlFoto: '' } : {}),
       galeriaFotos: FieldValue.arrayUnion(fotoMetadata),
+    });
+
+    await registrar(request, usuario, {
+      accion: 'subir_archivo',
+      pacienteId,
+      pacienteNombre: snap.data().datosPersonales?.nombreCompleto || snap.data().nombreCompleto,
+      detalle: `${file.name} (${tipo})`,
     });
 
     const metadata = await fotoParaCliente(fotoMetadata);

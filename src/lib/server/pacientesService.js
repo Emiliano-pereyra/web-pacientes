@@ -270,11 +270,13 @@ export async function agregarEvolucion(id, { texto, fecha }, { usuario } = {}) {
   const ref = pacienteRef(id);
   const ahora = new Date().toISOString();
   const evolRef = subRef(id, "evoluciones").doc();
+  let pacienteNombre = "";
 
   await adminDb.runTransaction(async (tx) => {
     const snap = await tx.get(ref);
     if (!snap.exists) throw new ErrorNegocio("Paciente no encontrado", 404);
     const raw = snap.data();
+    pacienteNombre = getPath(raw, "datosPersonales.nombreCompleto") || raw.nombreCompleto || "";
     if (esDocumentoLegacy(raw)) {
       const { doc: canonico, evoluciones, historial } = migrarDocumento(raw);
       canonico.migradoEn = ahora;
@@ -288,5 +290,5 @@ export async function agregarEvolucion(id, { texto, fecha }, { usuario } = {}) {
     tx.set(evolRef, { texto: t, fecha: f, ...autor, creadoEn: ahora });
   });
 
-  return { id: evolRef.id };
+  return { id: evolRef.id, pacienteNombre };
 }

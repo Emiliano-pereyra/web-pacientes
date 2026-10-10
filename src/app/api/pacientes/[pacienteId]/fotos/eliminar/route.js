@@ -3,6 +3,7 @@ import { pacienteRef, respuestaError, ErrorNegocio } from '@/lib/server/paciente
 import { eliminarArchivo } from '@/lib/server/archivos';
 import { pathDeUrlFirebase, rutaFotoPerfil } from '@/lib/paciente/fotos';
 import { usuarioDe } from '@/lib/server/http';
+import { registrar } from '@/lib/server/auditoria';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -14,7 +15,7 @@ export const maxDuration = 30;
  */
 export async function DELETE(request, { params }) {
   try {
-    await usuarioDe(request);
+    const usuario = await usuarioDe(request);
     const { pacienteId } = await params;
     const { fotoIds } = await request.json();
 
@@ -56,6 +57,15 @@ export async function DELETE(request, { params }) {
           cambios.urlFoto = '';
         }
         tx.update(ref, cambios);
+      });
+      await registrar(request, usuario, {
+        accion: 'eliminar_archivo',
+        pacienteId,
+        pacienteNombre: snap.data().datosPersonales?.nombreCompleto || snap.data().nombreCompleto,
+        detalle: aEliminar
+          .filter((f) => eliminadas.includes(f.id))
+          .map((f) => f.nombreOriginal || f.id)
+          .join(', '),
       });
     }
 

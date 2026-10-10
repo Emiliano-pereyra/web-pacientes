@@ -103,6 +103,10 @@ Todas las rutas exigen `Authorization: Bearer <token de Firebase Auth>` de un us
 | `profesional` | Obligatoria | Ver y editar pacientes, evoluciones, fotos, PDF | Él mismo |
 | `secretaria` | No lleva | Los mismos que profesional | Su profesional vinculado (nombre y matrícula) |
 
+- Los admins gestionan usuarios desde la web en **/usuarios** (alta, rol, matrícula, profesional
+  vinculado, activar/desactivar). Protecciones: nadie puede desactivarse ni quitarse el rol de admin
+  a sí mismo, siempre queda al menos un admin activo y no se desactiva a un profesional con
+  secretarias/os activas vinculadas.
 - Una secretaria/o está vinculada a un profesional activo. Si no lo tiene (o está desactivado), no puede entrar.
 - Historial y evoluciones registran siempre a la persona que hizo el cambio; si es secretaria/o,
   con la aclaración "secretaria/o de …".
@@ -117,6 +121,18 @@ npm run usuarios -- matricula <email> "MN 1234"     # "-" para quitarla
 npm run usuarios -- rol <email> profesional --matricula "MN 1234"
 npm run usuarios -- desactivar <email>
 ```
+
+## Registro de accesos
+
+Colección `auditoria` (solo la escribe la API; nadie puede editarla ni borrarla desde la app).
+Registra quién, cuándo, qué paciente, IP y navegador de: abrir la ficha, imprimir, ver archivos,
+crear/editar paciente, evoluciones, subir/eliminar archivos y cambios de usuarios.
+
+- Las lecturas repetidas (misma persona, mismo paciente, misma acción) dentro de 10 minutos se
+  agrupan en un registro con `veces`; las modificaciones se registran una por una.
+- Los admins lo consultan en **/usuarios → Registro de accesos** (filtrable por usuario) y en la
+  ficha de cada paciente con el botón **Accesos**.
+- Las consultas no requieren índices compuestos de Firestore.
 
 Credenciales: en local, `GOOGLE_APPLICATION_CREDENTIALS=./service-account.json` en `.env.local`;
 en Vercel, la variable `FIREBASE_SERVICE_ACCOUNT` con el JSON completo de la cuenta de servicio.
