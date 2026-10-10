@@ -1,6 +1,7 @@
 import { adminDb } from '@/lib/server/firebaseAdmin';
 import { pacienteRef, respuestaError, ErrorNegocio } from '@/lib/server/pacientesService';
 import { eliminarArchivo } from '@/lib/server/archivos';
+import { pathDeUrlFirebase, rutaFotoPerfil } from '@/lib/paciente/fotos';
 import { usuarioDe } from '@/lib/server/http';
 
 export const runtime = 'nodejs';
@@ -29,11 +30,14 @@ export async function DELETE(request, { params }) {
     const aEliminar = galeria.filter((foto) => fotoIds.includes(foto.id));
 
     const eliminadas = [];
+    const rutasEliminadas = [];
     const errors = [];
     for (const foto of aEliminar) {
+      const ruta = foto.path || pathDeUrlFirebase(foto.url);
       try {
-        if (foto.path) await eliminarArchivo(foto.path);
+        if (ruta) await eliminarArchivo(ruta);
         eliminadas.push(foto.id);
+        if (ruta) rutasEliminadas.push(ruta);
       } catch (storageError) {
         console.error(`Error eliminando ${foto.path}:`, storageError?.message);
         errors.push({ path: foto.path, error: 'No se pudo eliminar el archivo' });
@@ -42,9 +46,16 @@ export async function DELETE(request, { params }) {
 
     if (eliminadas.length > 0) {
       await adminDb.runTransaction(async (tx) => {
-        const actual = await tx.get(ref);
-        const galeriaActual = actual.data()?.galeriaFotos || [];
-        tx.update(ref, { galeriaFotos: galeriaActual.filter((foto) => !eliminadas.includes(foto.id)) });
+        const actual = (await tx.get(ref)).data() || {};
+        const cambios = {
+          galeriaFotos: (actual.galeriaFotos || []).filter((foto) => !eliminadas.includes(foto.id)),
+        };
+        // Si se borró la foto de perfil, el paciente queda sin foto
+        if (rutasEliminadas.includes(rutaFotoPerfil(actual))) {
+          cambios.fotoPerfilPath = '';
+          cambios.urlFoto = '';
+        }
+        tx.update(ref, cambios);
       });
     }
 

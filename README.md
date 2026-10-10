@@ -37,8 +37,22 @@ tratamiento      { tratamientoBase, fechaTratamientoBase, tratamientoActual }
 valoracionSocial / valoracionMental (MMSE: respuesta + puntaje por ítem) / valoracionFuncional
 familia          { apoderadoNombre, apoderadoDni, apoderadoParentesco, residenteNombre, consentimientoTexto }
 interconsulta    { fecha, especialidad, motivo, informe }
-urlFoto, galeriaFotos, ultimaModificacion, creadoEn, actualizadoEn, schemaVersion
+fotoPerfilPath, galeriaFotos [{ id, path, tipo, ... }], ultimaModificacion, creadoEn, actualizadoEn, schemaVersion
 ```
+
+### Fotos y archivos
+
+En la base se guarda solo la **ruta** del archivo en Storage, nunca un enlace. Cuando
+un usuario con sesión pide la ficha o la galería, la API genera **enlaces firmados que
+vencen a los 30 minutos** (`src/lib/server/archivos.js`). No se crean tokens de descarga
+permanentes. Para revocar los de archivos subidos antes de este cambio:
+
+```bash
+npm run revocar-enlaces              # simulación
+npm run revocar-enlaces -- --aplicar
+```
+
+> Firebase Storage requiere el plan Blaze (facturación activa) en el proyecto.
 
 Subcolecciones (solo se agregan, nunca se editan ni borran):
 

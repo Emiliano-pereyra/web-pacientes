@@ -38,9 +38,9 @@ export async function POST(request) {
 
     const subirFoto = file
       ? async (pacienteId) => {
-          const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+          const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
           const stamp = Date.now();
-          const { url, path } = await subirArchivo(
+          const { path } = await subirArchivo(
             `pacientes/${pacienteId}/perfil_${stamp}.${ext}`,
             Buffer.from(await file.arrayBuffer()),
             {
@@ -49,10 +49,9 @@ export async function POST(request) {
             },
           );
           return {
-            url,
+            path,
             metadata: {
               id: `perfil_${stamp}`,
-              url,
               path,
               tipo: "perfil",
               descripcion: "Foto de perfil al crear paciente",
@@ -60,6 +59,8 @@ export async function POST(request) {
               mimeType: file.type,
               size: file.size,
               uploadedAt: new Date().toISOString(),
+              subidoPor: usuario.profesional,
+              subidoPorUid: usuario.uid,
             },
           };
         }

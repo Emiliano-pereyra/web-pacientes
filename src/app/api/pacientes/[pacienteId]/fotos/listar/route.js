@@ -1,5 +1,6 @@
 import { pacienteRef, respuestaError, ErrorNegocio } from '@/lib/server/pacientesService';
 import { usuarioDe } from '@/lib/server/http';
+import { fotoParaCliente } from '@/lib/server/archivos';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -17,7 +18,9 @@ export async function GET(request, { params }) {
     if (tipo) fotos = fotos.filter((foto) => foto.tipo === tipo);
     fotos.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
 
-    return Response.json({ success: true, pacienteId, total: fotos.length, fotos });
+    // Enlaces firmados que vencen (MINUTOS_ENLACE): solo sirven mientras la galería está abierta
+    const firmadas = await Promise.all(fotos.map(fotoParaCliente));
+    return Response.json({ success: true, pacienteId, total: firmadas.length, fotos: firmadas });
   } catch (error) {
     return respuestaError(error);
   }

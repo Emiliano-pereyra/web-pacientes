@@ -1,6 +1,6 @@
 import { FieldValue } from 'firebase-admin/firestore';
 import { pacienteRef, respuestaError, ErrorNegocio } from '@/lib/server/pacientesService';
-import { subirArchivo } from '@/lib/server/archivos';
+import { fotoParaCliente, subirArchivo } from '@/lib/server/archivos';
 import { usuarioDe } from '@/lib/server/http';
 
 export const runtime = 'nodejs';
@@ -29,15 +29,15 @@ export async function POST(request, { params }) {
     const extension = (file.name.split('.').pop() || 'bin').toLowerCase().replace(/[^a-z0-9]/g, '');
     const uploadedAt = new Date().toISOString();
 
-    const { url, path } = await subirArchivo(
+    const { path } = await subirArchivo(
       `pacientes/${pacienteId}/${tipo}_${stamp}.${extension}`,
       Buffer.from(await file.arrayBuffer()),
       { contentType: file.type, metadata: { pacienteId, tipo, uploadedAt } },
     );
 
+    // En la base va solo la ruta; el enlace se firma al mostrarlo
     const fotoMetadata = {
       id: `${tipo}_${stamp}`,
-      url,
       path,
       tipo,
       descripcion,
@@ -50,11 +50,12 @@ export async function POST(request, { params }) {
     };
 
     await pacienteRef(pacienteId).update({
-      ...(tipo === 'perfil' ? { urlFoto: url } : {}),
+      ...(tipo === 'perfil' ? { fotoPerfilPath: path, urlFoto: '' } : {}),
       galeriaFotos: FieldValue.arrayUnion(fotoMetadata),
     });
 
-    return Response.json({ success: true, url, metadata: fotoMetadata });
+    const metadata = await fotoParaCliente(fotoMetadata);
+    return Response.json({ success: true, url: metadata.url, metadata });
   } catch (error) {
     return respuestaError(error);
   }

@@ -23,6 +23,8 @@ import {
   validarSeccion,
 } from "@/lib/paciente/logica";
 import { esDocumentoLegacy, migrarDocumento } from "@/lib/paciente/migracion";
+import { rutaFotoPerfil } from "@/lib/paciente/fotos";
+import { urlFirmada } from "@/lib/server/archivos";
 
 export { ErrorNegocio, respuestaError } from "@/lib/server/errores";
 
@@ -66,12 +68,21 @@ export async function listarPacientes() {
     .sort((a, b) => a.nombreVisible.localeCompare(b.nombreVisible, "es"));
 }
 
+/**
+ * Paciente para el navegador. La foto de perfil va como enlace firmado que vence;
+ * la galería va sin enlaces (se piden aparte, firmados, a /fotos/listar).
+ */
 export async function obtenerPaciente(id) {
   if (!id) throw new ErrorNegocio("Falta el id del paciente");
   const snap = await pacienteRef(id).get();
   if (!snap.exists) throw new ErrorNegocio("Paciente no encontrado", 404);
   const { doc: canonico } = migrarDocumento(snap.data());
-  return conDerivados(id, canonico);
+  const ruta = rutaFotoPerfil(canonico);
+  return conDerivados(id, {
+    ...canonico,
+    urlFoto: ruta ? (await urlFirmada(ruta)) || "" : "",
+    galeriaFotos: (canonico.galeriaFotos || []).map(({ url: _url, ...resto }) => resto),
+  });
 }
 
 export async function listarEvoluciones(id) {
@@ -119,7 +130,7 @@ async function existeDni(dni, excluirId = null) {
 /**
  * Alta de paciente.
  * @param {object} entrada   objeto plano { path: valor } con cualquiera de las SECCIONES_ALTA
- * @param {object} opciones  { usuario, subirFoto: async (pacienteId) => ({ url, metadata }) }
+ * @param {object} opciones  { usuario, subirFoto: async (pacienteId) => ({ path, metadata }) }
  *                           La foto se sube recién después de validar, para no dejar archivos huérfanos.
  */
 export async function crearPaciente(entrada, { usuario, subirFoto } = {}) {
@@ -156,8 +167,8 @@ export async function crearPaciente(entrada, { usuario, subirFoto } = {}) {
 
   if (subirFoto) {
     const foto = await subirFoto(ref.id);
-    if (foto?.url) {
-      nuevo.urlFoto = foto.url;
+    if (foto?.path) {
+      nuevo.fotoPerfilPath = foto.path;
       nuevo.galeriaFotos = foto.metadata ? [foto.metadata] : [];
     }
   }

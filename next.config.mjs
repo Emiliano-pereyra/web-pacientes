@@ -4,7 +4,7 @@ const esDev = process.env.NODE_ENV !== "production";
  * Política de contenido (CSP). Solo se permite lo que la app usa:
  *  - Firebase Auth: login con Google en ventana emergente (apis.google.com,
  *    el dominio de auth del proyecto) y las APIs de tokens (*.googleapis.com).
- *  - Fotos y archivos de Firebase Storage y fotos de perfil de Google.
+ *  - Fotos y archivos de Storage (enlaces firmados) y fotos de perfil de Google.
  *  - blob: para la vista previa de archivos y los PDF generados.
  *  - 'unsafe-inline' en estilos: MUI (Emotion) inyecta <style> en tiempo de ejecución.
  *  - 'unsafe-inline' en scripts: Next.js usa scripts inline para hidratar la página.
@@ -14,8 +14,9 @@ const csp = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline' https://apis.google.com${esDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https://firebasestorage.googleapis.com https://lh3.googleusercontent.com",
-  "media-src 'self' blob: https://firebasestorage.googleapis.com",
+  // storage.googleapis.com: enlaces firmados (vencen) que genera la API para fotos y archivos
+  "img-src 'self' data: blob: https://storage.googleapis.com https://firebasestorage.googleapis.com https://lh3.googleusercontent.com",
+  "media-src 'self' blob: https://storage.googleapis.com https://firebasestorage.googleapis.com",
   "font-src 'self'",
   `connect-src 'self' https://*.googleapis.com https://apis.google.com${esDev ? " ws: wss:" : ""}`,
   "frame-src https://pacientes-2c28e.firebaseapp.com https://accounts.google.com",
@@ -46,6 +47,7 @@ const nextConfig = {
 
   images: {
     remotePatterns: [
+      { protocol: "https", hostname: "storage.googleapis.com" },
       { protocol: "https", hostname: "firebasestorage.googleapis.com" },
       { protocol: "https", hostname: "lh3.googleusercontent.com" },
     ],

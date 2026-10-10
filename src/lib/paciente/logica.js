@@ -238,7 +238,8 @@ export function pacienteVacio() {
   Object.keys(SECCIONES).forEach((key) => {
     camposDeSeccion(key).forEach((c) => setPath(doc, c.path, c.tipo === "puntaje" ? null : ""));
   });
-  doc.urlFoto = "";
+  doc.urlFoto = ""; // solo pacientes viejos (enlace); los nuevos usan fotoPerfilPath
+  doc.fotoPerfilPath = ""; // ruta en Storage; el enlace firmado lo arma la API
   doc.galeriaFotos = [];
   doc.ultimaModificacion = {};
   return doc;

@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "migrar": "tsx scripts/migrar-modelo.ts",
-    "usuarios": "tsx scripts/usuarios.ts"
+    "usuarios": "tsx scripts/usuarios.ts",
+    "revocar-enlaces": "tsx scripts/revocar-enlaces-fotos.ts"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
