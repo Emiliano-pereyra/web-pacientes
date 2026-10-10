@@ -83,7 +83,7 @@ export const SECCIONES = {
           }),
           fecha("datosPersonales.fechaNacimiento", "Fecha de nacimiento", { noFutura: true }),
           campo("datosPersonales.obraSocial", "Obra social"),
-          campo("datosPersonales.afiliadoNumero", "N° de afiliado"),
+          campo("datosPersonales.afiliadoNumero", "N.º de afiliado"),
           fecha("datosPersonales.fechaIngreso", "Fecha de ingreso", { noFutura: true }),
         ],
       },

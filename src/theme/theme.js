@@ -1,6 +1,9 @@
 "use client";
 import { createTheme } from "@mui/material/styles";
 
+/** Pantallas táctiles (iPad, celulares): objetivos de al menos 44 px, como pide Apple. */
+const TACTIL = "@media (pointer: coarse)";
+
 /**
  * Tema clínico: azul petróleo sobrio, fondo gris muy claro y superficies blancas.
  * La fuente (Inter) se carga con next/font en layout.js y llega por --font-sans.
@@ -29,8 +32,29 @@ const theme = createTheme({
         root: {
           transition: "background-color 150ms ease, border-color 150ms ease, transform 120ms ease-out",
           "&:active": { transform: "scale(0.97)" },
+          [TACTIL]: { minHeight: 44 },
         },
       },
+    },
+    MuiIconButton: {
+      styleOverrides: { root: { [TACTIL]: { minWidth: 44, minHeight: 44 } } },
+    },
+    MuiCheckbox: {
+      styleOverrides: { root: { [TACTIL]: { padding: 10 } } },
+    },
+    MuiAutocomplete: {
+      styleOverrides: {
+        inputRoot: { [TACTIL]: { minHeight: 44 } },
+        // En pantallas táctiles la "x" para borrar se ve siempre (no hay hover)
+        clearIndicator: { [TACTIL]: { visibility: "visible" } },
+      },
+    },
+    MuiInputBase: {
+      // 16 px evita que Safari en iPhone/iPad haga zoom al tocar un campo
+      styleOverrides: { input: { [TACTIL]: { fontSize: 16 } } },
+    },
+    MuiListItemButton: {
+      styleOverrides: { root: { [TACTIL]: { minHeight: 56 } } },
     },
     MuiPaper: {
       defaultProps: { elevation: 0 },

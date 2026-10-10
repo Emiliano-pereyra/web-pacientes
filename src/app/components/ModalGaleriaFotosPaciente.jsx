@@ -25,6 +25,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
 import { toast } from "sonner";
 import { api } from "@/lib/cliente/api";
 import { formatearFechaHora } from "@/lib/paciente/logica";
@@ -41,7 +42,7 @@ const TIPOS_LABELS = {
   otros: "Otros",
 };
 
-export default function ModalGaleriaFotosPaciente({ open, onClose, pacienteId, patientName, onDeleted }) {
+export default function ModalGaleriaFotosPaciente({ open, onClose, pacienteId, patientName, onDeleted, onSubir }) {
   const confirmar = useConfirmar();
   const [fotos, setFotos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -222,9 +223,16 @@ export default function ModalGaleriaFotosPaciente({ open, onClose, pacienteId, p
             {loading ? "Cargando…" : plural(fotos.length, "archivo")}
           </Typography>
         </Box>
-        <IconButton onClick={onClose} aria-label="Cerrar galería">
-          <CloseIcon />
-        </IconButton>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexShrink: 0 }}>
+          {onSubir && (
+            <Button variant="contained" size="small" startIcon={<UploadFileIcon />} onClick={onSubir}>
+              Subir archivo
+            </Button>
+          )}
+          <IconButton onClick={onClose} aria-label="Cerrar galería">
+            <CloseIcon />
+          </IconButton>
+        </Box>
       </DialogTitle>
 
       <DialogContent dividers sx={{ overscrollBehavior: "contain" }}>
@@ -251,8 +259,12 @@ export default function ModalGaleriaFotosPaciente({ open, onClose, pacienteId, p
         {!loading && !error && fotos.length === 0 && (
           <Box textAlign="center" py={6} color="text.secondary">
             <PhotoLibraryIcon sx={{ fontSize: 48, mb: 2, opacity: 0.5 }} aria-hidden />
-            <Typography>Este paciente todavía no tiene fotos ni archivos.</Typography>
-            <Typography variant="caption">Usá “Subir archivo” para agregar el primero.</Typography>
+            <Typography sx={{ mb: 2 }}>Este paciente todavía no tiene fotos ni archivos.</Typography>
+            {onSubir && (
+              <Button variant="outlined" startIcon={<UploadFileIcon />} onClick={onSubir}>
+                Subir el primero
+              </Button>
+            )}
           </Box>
         )}
 

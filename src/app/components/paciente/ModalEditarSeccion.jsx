@@ -1,13 +1,42 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Alert, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Typography,
+} from "@mui/material";
 import { toast } from "sonner";
 import FormularioSeccion from "./FormularioSeccion";
-import { SECCIONES } from "@/lib/paciente/schema";
-import { valoresDeSeccion } from "@/lib/paciente/logica";
+import { SECCIONES, setPath } from "@/lib/paciente/schema";
+import { resultadoMMSE, valoresDeSeccion } from "@/lib/paciente/logica";
 import { api } from "@/lib/cliente/api";
 import { enfocarPrimerError, useCambiosSinGuardar } from "@/lib/cliente/formularios";
+
+/** Puntaje total del MMSE calculado con lo que se está cargando (antes de guardar). */
+function TotalMMSE({ valores }) {
+  const borrador = {};
+  Object.entries(valores).forEach(([path, v]) => {
+    if (path.endsWith(".puntaje") && v !== "" && v !== null && v !== undefined) setPath(borrador, path, Number(v));
+  });
+  const r = resultadoMMSE(borrador);
+  return (
+    <Typography variant="body2" sx={{ mr: "auto", fontVariantNumeric: "tabular-nums" }} aria-live="polite">
+      <strong>
+        Total: {r.total} / {r.max}
+      </strong>{" "}
+      <Box component="span" sx={{ color: "text.secondary" }}>
+        · {r.completo ? r.interpretacion : `${r.completados} de ${r.itemsTotales} ítems`}
+      </Box>
+    </Typography>
+  );
+}
 
 /**
  * Edita una sección del paciente. Se monta con los datos actuales del paciente
@@ -52,7 +81,7 @@ export default function ModalEditarSeccion({ paciente, seccionKey, onClose, onSa
 
   return (
     <Dialog open onClose={guardando ? undefined : () => pedirCierre(onClose)} maxWidth="md" fullWidth>
-      <DialogTitle>Editar {seccion.titulo.toLowerCase()}</DialogTitle>
+      <DialogTitle>Editar · {seccion.titulo}</DialogTitle>
       <DialogContent dividers>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }} role="alert">
@@ -68,6 +97,7 @@ export default function ModalEditarSeccion({ paciente, seccionKey, onClose, onSa
         />
       </DialogContent>
       <DialogActions sx={{ px: 3, py: 1.5 }}>
+        {seccion.esMMSE && <TotalMMSE valores={valores} />}
         <Button onClick={() => pedirCierre(onClose)} disabled={guardando}>
           Cancelar
         </Button>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Box,
   Button,
@@ -17,7 +18,7 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import HistoryIcon from "@mui/icons-material/History";
 import { MMSE_ITEMS, SECCIONES, claveModificacion, getPath } from "@/lib/paciente/schema";
-import { formatearFecha, formatearFechaHora, mostrar } from "@/lib/paciente/logica";
+import { esVacio, formatearFecha, formatearFechaHora, mostrar } from "@/lib/paciente/logica";
 
 function valorVisible(paciente, c) {
   const v = getPath(paciente, c.path);
@@ -109,12 +110,31 @@ function VistaMMSE({ paciente }) {
   );
 }
 
+/** Un campo se muestra si tiene valor, o si tiene historial (aunque lo hayan vaciado). */
+function tieneContenido(paciente, c) {
+  if (c.tipo === "puntaje") return typeof getPath(paciente, c.path) === "number";
+  if (!esVacio(getPath(paciente, c.path))) return true;
+  return Boolean(c.conHistorial && paciente.ultimaModificacion?.[claveModificacion(c.path)]);
+}
+
+/**
+ * Una sección del paciente. Por defecto oculta los campos vacíos para que se vea
+ * lo que está cargado; "Mostrar campos vacíos" los muestra todos.
+ */
 export default function SeccionVista({ paciente, seccionKey, onEditar, onVerHistorial }) {
+  const [verVacios, setVerVacios] = useState(false);
   const seccion = SECCIONES[seccionKey];
   const variosGrupos = seccion.grupos.length > 1;
 
+  const grupos = seccion.grupos
+    .map((g) => ({ ...g, visibles: verVacios ? g.campos : g.campos.filter((c) => tieneContenido(paciente, c)) }))
+    .filter((g) => g.visibles.length > 0);
+  const totalCampos = seccion.grupos.reduce((n, g) => n + g.campos.length, 0);
+  const cargados = seccion.grupos.reduce((n, g) => n + g.campos.filter((c) => tieneContenido(paciente, c)).length, 0);
+  const hayVacios = cargados < totalCampos;
+
   return (
-    <Paper variant="outlined" sx={{ p: { xs: 2, sm: 2.5 }, mb: 2 }}>
+    <Paper component="section" variant="outlined" sx={{ p: { xs: 2, sm: 2.5 }, mb: 2 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5} gap={1}>
         <Typography variant="h6" component="h2">
           {seccion.titulo}
@@ -123,7 +143,7 @@ export default function SeccionVista({ paciente, seccionKey, onEditar, onVerHist
           size="small"
           startIcon={<EditIcon />}
           onClick={() => onEditar(seccionKey)}
-          aria-label={`Editar ${seccion.titulo.toLowerCase()}`}
+          aria-label={`Editar ${seccion.titulo}`}
         >
           Editar
         </Button>
@@ -132,26 +152,46 @@ export default function SeccionVista({ paciente, seccionKey, onEditar, onVerHist
       {seccion.esMMSE ? (
         <VistaMMSE paciente={paciente} />
       ) : (
-        seccion.grupos.map((g) => (
-          <Box key={g.id} sx={{ mb: variosGrupos ? 2 : 0 }}>
-            {g.titulo && variosGrupos && g.campos.length > 1 && (
-              <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                {g.titulo}
-              </Typography>
-            )}
-            <Box
-              sx={{
-                display: "grid",
-                gap: 1.5,
-                gridTemplateColumns: { xs: "1fr 1fr", md: "repeat(4, 1fr)" },
-              }}
-            >
-              {g.campos.map((c) => (
-                <Campo key={c.path} paciente={paciente} campo={c} onVerHistorial={onVerHistorial} />
-              ))}
+        <>
+          {cargados === 0 && !verVacios && (
+            <Typography variant="body2" color="text.secondary">
+              Sin datos cargados.
+            </Typography>
+          )}
+          {grupos.map((g) => (
+            <Box key={g.id} sx={{ mb: variosGrupos ? 2 : 0, "&:last-of-type": { mb: 0 } }}>
+              {g.titulo && variosGrupos && g.campos.length > 1 && (
+                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                  {g.titulo}
+                </Typography>
+              )}
+              <Box
+                sx={{
+                  display: "grid",
+                  gap: 1.5,
+                  gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", md: "repeat(4, 1fr)" },
+                }}
+              >
+                {g.visibles.map((c) => (
+                  <Campo key={c.path} paciente={paciente} campo={c} onVerHistorial={onVerHistorial} />
+                ))}
+              </Box>
             </Box>
-          </Box>
-        ))
+          ))}
+          {hayVacios && (
+            <Button
+              size="small"
+              color="inherit"
+              onClick={() => setVerVacios((v) => !v)}
+              aria-expanded={verVacios}
+              sx={{ mt: 1, px: 0, minWidth: 0, color: "text.secondary", fontWeight: 500 }}
+            >
+              {verVacios
+                ? "Ocultar campos vacíos"
+                : `Mostrar campos vacíos (${totalCampos - cargados})`}
+            </Button>
+          )}
+        </>
       )}
     </Paper>
   );

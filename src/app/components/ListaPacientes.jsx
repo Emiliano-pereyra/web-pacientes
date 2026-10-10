@@ -44,7 +44,7 @@ export default function ListaPacientes({ pacientes, cargando, error, onReintenta
   return (
     <Paper variant="outlined" sx={{ overflow: "hidden" }}>
       <Box sx={{ p: { xs: 2, sm: 2.5 }, display: "flex", gap: 2, alignItems: "center", flexWrap: "wrap" }}>
-        <Box sx={{ flex: 1, minWidth: 200 }}>
+        <Box sx={{ flex: "1 1 auto", minWidth: 120 }}>
           <Typography variant="h6" component="h1">
             Pacientes
           </Typography>
@@ -61,7 +61,7 @@ export default function ListaPacientes({ pacientes, cargando, error, onReintenta
           placeholder="Buscar por nombre o DNI…"
           value={filtro}
           onChange={(e) => setFiltro(e.target.value)}
-          sx={{ width: { xs: "100%", sm: 320 } }}
+          sx={{ flex: { xs: "1 1 100%", sm: "1 1 220px" }, maxWidth: { sm: 360 } }}
           slotProps={{
             htmlInput: { "aria-label": "Buscar paciente por nombre o DNI", spellCheck: false },
             input: {
@@ -73,6 +73,14 @@ export default function ListaPacientes({ pacientes, cargando, error, onReintenta
             },
           }}
         />
+        <Button
+          variant="contained"
+          startIcon={<PersonAddIcon />}
+          onClick={onCrear}
+          sx={{ flex: { xs: "1 1 100%", sm: "0 0 auto" } }}
+        >
+          Nuevo paciente
+        </Button>
       </Box>
 
       {error && (

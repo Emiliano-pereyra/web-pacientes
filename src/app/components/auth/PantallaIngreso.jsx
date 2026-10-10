@@ -26,7 +26,7 @@ const mensajeDe = (e) => (e?.code in MENSAJES ? MENSAJES[e.code] : "No se pudo i
 
 function Marco({ children }) {
   return (
-    <Box sx={{ minHeight: "100vh", display: "grid", placeItems: "center", p: 2, bgcolor: "background.default" }}>
+    <Box sx={{ minHeight: "100dvh", display: "grid", placeItems: "center", p: 2, bgcolor: "background.default" }}>
       <Paper variant="outlined" sx={{ p: { xs: 3, sm: 4 }, width: "100%", maxWidth: 400 }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
           <LocalHospitalIcon color="primary" aria-hidden />

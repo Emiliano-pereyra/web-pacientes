@@ -20,13 +20,13 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import PrintIcon from "@mui/icons-material/Print";
 import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
-import UploadFileIcon from "@mui/icons-material/UploadFile";
 import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
 import { toast } from "sonner";
 import { useSearchParams } from "next/navigation";
 
 import PestanaPaciente from "./components/paciente/PestanaPaciente";
 import EncabezadoPaciente from "./components/paciente/EncabezadoPaciente";
+import ModalEditarSeccion from "./components/paciente/ModalEditarSeccion";
 import ListaPacientes from "./components/ListaPacientes";
 import ModalCrearPaciente from "./components/ModalCrearPaciente";
 import ModalSubirFotoPaciente from "./components/modalSubirFotos";
@@ -56,7 +56,7 @@ function Barra() {
 
 function Cargando() {
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
+    <Box sx={{ minHeight: "100dvh", bgcolor: "background.default" }}>
       <Barra />
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
         <CircularProgress aria-label="Cargando" />
@@ -218,74 +218,83 @@ function Inicio() {
   };
   const atenderPedidoEvolucion = useCallback(() => setPedidoEvolucion(false), []);
 
+  // En la pestaña de evoluciones el botón ya está en la propia sección
   const acciones = paciente && (
     <>
-      {PESTANA_EVOLUCIONES >= 0 && (
+      {PESTANA_EVOLUCIONES >= 0 && tab !== PESTANA_EVOLUCIONES && (
         <Button variant="contained" startIcon={<AddIcon />} onClick={nuevaEvolucion}>
           Nueva evolución
         </Button>
       )}
       <Button variant="outlined" startIcon={<PrintIcon />} onClick={() => imprimir(pestana, paciente)}>
-        Imprimir {pestana.titulo.toLowerCase()}
+        Imprimir {pestana.titulo}
       </Button>
       <Button variant="outlined" startIcon={<PhotoLibraryIcon />} onClick={() => setModal("galeria")}>
-        Fotos
-      </Button>
-      <Button variant="outlined" startIcon={<UploadFileIcon />} onClick={() => setModal("foto")}>
-        Subir archivo
+        Fotos y archivos
       </Button>
     </>
   );
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
+    <Box sx={{ minHeight: "100dvh", bgcolor: "background.default" }}>
       <Barra />
 
       <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 3 } }}>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 2, flexWrap: "wrap", gap: 1.5 }}>
-          {pacienteId && (
-            <>
-              <Button startIcon={<ArrowBackIcon />} onClick={() => elegir(null)}>
+        {/* Con un paciente abierto: volver, cambiar de paciente y (en pantallas grandes) crear otro */}
+        {pacienteId && (
+          <Box sx={{ display: "flex", alignItems: "center", mb: 2, gap: { xs: 1, sm: 1.5 } }}>
+            <Button
+              startIcon={<ArrowBackIcon />}
+              onClick={() => elegir(null)}
+              aria-label="Todos los pacientes"
+              sx={{ flexShrink: 0, minWidth: { xs: 44, sm: 0 }, "& .MuiButton-startIcon": { mr: { xs: 0, sm: 1 } } }}
+            >
+              <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
                 Todos los pacientes
-              </Button>
-              <Autocomplete
-                options={pacientes}
-                loading={cargandoLista}
-                value={seleccionado}
-                onChange={(_, nuevo) => nuevo && elegir(nuevo.id)}
-                getOptionLabel={(o) => o?.nombreVisible || ""}
-                isOptionEqualToValue={(o, v) => o.id === v.id}
-                filterOptions={(opts, { inputValue }) => {
-                  const q = inputValue.trim().toLowerCase();
-                  return q ? opts.filter((o) => o.nombreVisible.toLowerCase().includes(q) || o.dni.includes(q)) : opts;
-                }}
-                renderOption={(props, o) => {
-                  const { key, ...rest } = props;
-                  return (
-                    <li key={o.id} {...rest}>
-                      <Box>
-                        <Typography variant="body2">{o.nombreVisible}</Typography>
-                        {o.dni && (
-                          <Typography variant="caption" color="text.secondary">
-                            DNI {o.dni}
-                          </Typography>
-                        )}
-                      </Box>
-                    </li>
-                  );
-                }}
-                renderInput={(params) => (
-                  <TextField {...params} size="small" placeholder="Cambiar de paciente…" aria-label="Cambiar de paciente" />
-                )}
-                sx={{ flex: 1, minWidth: 220, maxWidth: 380 }}
-              />
-            </>
-          )}
-          <Box sx={{ flex: 1 }} />
-          <Button variant={pacienteId ? "outlined" : "contained"} startIcon={<PersonAddIcon />} onClick={() => setModal("crear")}>
-            Nuevo paciente
-          </Button>
-        </Box>
+              </Box>
+            </Button>
+            <Autocomplete
+              options={pacientes}
+              loading={cargandoLista}
+              value={seleccionado}
+              onChange={(_, nuevo) => nuevo && elegir(nuevo.id)}
+              getOptionLabel={(o) => o?.nombreVisible || ""}
+              isOptionEqualToValue={(o, v) => o.id === v.id}
+              filterOptions={(opts, { inputValue }) => {
+                const q = inputValue.trim().toLowerCase();
+                return q ? opts.filter((o) => o.nombreVisible.toLowerCase().includes(q) || o.dni.includes(q)) : opts;
+              }}
+              renderOption={(props, o) => {
+                const { key, ...rest } = props;
+                return (
+                  <li key={o.id} {...rest}>
+                    <Box>
+                      <Typography variant="body2">{o.nombreVisible}</Typography>
+                      {o.dni && (
+                        <Typography variant="caption" color="text.secondary">
+                          DNI {o.dni}
+                        </Typography>
+                      )}
+                    </Box>
+                  </li>
+                );
+              }}
+              renderInput={(params) => (
+                <TextField {...params} size="small" placeholder="Cambiar de paciente…" aria-label="Cambiar de paciente" />
+              )}
+              sx={{ flex: { xs: "1 1 auto", sm: "0 1 380px" }, minWidth: 0 }}
+            />
+            <Box sx={{ flex: 1, display: { xs: "none", sm: "block" } }} />
+            <Button
+              variant="outlined"
+              startIcon={<PersonAddIcon />}
+              onClick={() => setModal("crear")}
+              sx={{ display: { xs: "none", sm: "inline-flex" }, flexShrink: 0 }}
+            >
+              Nuevo paciente
+            </Button>
+          </Box>
+        )}
 
         {!pacienteId && (
           <ListaPacientes
@@ -320,7 +329,12 @@ function Inicio() {
 
         {paciente && (
           <>
-            <EncabezadoPaciente paciente={paciente} acciones={acciones} onAbrirGaleria={() => setModal("galeria")} />
+            <EncabezadoPaciente
+              paciente={paciente}
+              acciones={acciones}
+              onAbrirGaleria={() => setModal("galeria")}
+              onEditarDatos={() => setModal("datos")}
+            />
 
             <Box
               sx={{
@@ -346,7 +360,6 @@ function Inicio() {
                 pestana={pestana}
                 paciente={paciente}
                 onActualizado={alActualizar}
-                conEncabezadoEditable={tab === 0}
                 pedidoNuevaEvolucion={pedidoEvolucion}
                 onPedidoAtendido={atenderPedidoEvolucion}
               />
@@ -359,10 +372,20 @@ function Inicio() {
         <ModalCrearPaciente open onClose={() => setModal(null)} onCreateSuccess={alCrear} />
       )}
 
-      {modal === "foto" && paciente && (
+      {modal === "datos" && paciente && (
+        <ModalEditarSeccion
+          paciente={paciente}
+          seccionKey="datosPersonales"
+          onClose={() => setModal(null)}
+          onSaved={alActualizar}
+        />
+      )}
+
+      {/* Se sube desde la galería y, al terminar o cancelar, se vuelve a ella */}
+      {modal === "subir" && paciente && (
         <ModalSubirFotoPaciente
           open
-          onClose={() => setModal(null)}
+          onClose={() => setModal("galeria")}
           pacienteId={paciente.id}
           patientName={paciente.datosPersonales?.nombreCompleto}
           onUploadSuccess={() => cargarPaciente(paciente.id)}
@@ -373,6 +396,7 @@ function Inicio() {
         <ModalGaleriaFotosPaciente
           open
           onClose={() => setModal(null)}
+          onSubir={() => setModal("subir")}
           pacienteId={paciente.id}
           patientName={paciente.datosPersonales?.nombreCompleto}
           onDeleted={(n) => n > 0 && cargarPaciente(paciente.id)}

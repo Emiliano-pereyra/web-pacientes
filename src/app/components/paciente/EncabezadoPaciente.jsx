@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Avatar, Box, ButtonBase, Paper, Tooltip, Typography } from "@mui/material";
+import { Avatar, Box, Button, ButtonBase, Paper, Tooltip, Typography } from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
 import { formatearFecha, mostrar } from "@/lib/paciente/logica";
 
 function iniciales(nombre) {
@@ -11,23 +12,24 @@ function iniciales(nombre) {
 }
 
 /**
- * Datos personales resumidos y acciones del paciente (iguales en todas las pestañas).
+ * Datos personales y acciones del paciente (iguales en todas las pestañas).
+ * Es la única vista de los datos personales: se editan con "Editar datos".
  * Tocar la foto abre la galería.
  */
-export default function EncabezadoPaciente({ paciente, acciones, onAbrirGaleria }) {
+export default function EncabezadoPaciente({ paciente, acciones, onAbrirGaleria, onEditarDatos }) {
   const [fotoError, setFotoError] = useState(false);
   const dp = paciente.datosPersonales || {};
   const conFoto = paciente.urlFoto && !fotoError;
   const nombre = mostrar(dp.nombreCompleto, "Sin nombre");
-
   const edad = paciente.derivados?.edad;
+
   const datos = [
     ["DNI", mostrar(dp.dni)],
     ["Edad", /^\d+$/.test(edad || "") ? `${edad} años` : mostrar(edad)],
     ["Nacimiento", mostrar(formatearFecha(dp.fechaNacimiento))],
     ["Género", mostrar(dp.genero)],
     ["Obra social", mostrar(dp.obraSocial)],
-    ["N.º afiliado", mostrar(dp.afiliadoNumero)],
+    ["N.º de afiliado", mostrar(dp.afiliadoNumero)],
     ["Ingreso", mostrar(formatearFecha(dp.fechaIngreso))],
   ];
 
@@ -36,7 +38,12 @@ export default function EncabezadoPaciente({ paciente, acciones, onAbrirGaleria 
       src={conFoto ? paciente.urlFoto : undefined}
       alt={dp.nombreCompleto || "Paciente"}
       onError={() => setFotoError(true)}
-      sx={{ width: 64, height: 64, fontSize: 24, bgcolor: conFoto ? undefined : "primary.main" }}
+      sx={{
+        width: { xs: 52, sm: 64 },
+        height: { xs: 52, sm: 64 },
+        fontSize: { xs: 20, sm: 24 },
+        bgcolor: conFoto ? undefined : "primary.main",
+      }}
     >
       {!conFoto && iniciales(dp.nombreCompleto)}
     </Avatar>
@@ -44,13 +51,18 @@ export default function EncabezadoPaciente({ paciente, acciones, onAbrirGaleria 
 
   return (
     <Paper variant="outlined" sx={{ p: { xs: 2, sm: 2.5 }, mb: 2 }}>
-      <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start", flexWrap: { xs: "wrap", md: "nowrap" } }}>
+      {/* Foto + nombre (+ editar) */}
+      <Box sx={{ display: "flex", gap: 2, alignItems: "center", mb: 2 }}>
         {onAbrirGaleria ? (
-          <Tooltip title="Ver galería de fotos">
+          <Tooltip title="Ver fotos y archivos">
             <ButtonBase
               onClick={onAbrirGaleria}
-              aria-label={`Ver galería de fotos de ${nombre}`}
-              sx={{ borderRadius: "50%", flexShrink: 0, "&:focus-visible": { outline: 2, outlineColor: "primary.main", outlineOffset: 2 } }}
+              aria-label={`Ver fotos y archivos de ${nombre}`}
+              sx={{
+                borderRadius: "50%",
+                flexShrink: 0,
+                "&:focus-visible": { outline: 2, outlineColor: "primary.main", outlineOffset: 2 },
+              }}
             >
               {avatar}
             </ButtonBase>
@@ -58,53 +70,68 @@ export default function EncabezadoPaciente({ paciente, acciones, onAbrirGaleria 
         ) : (
           avatar
         )}
-
-        <Box sx={{ minWidth: 0, flex: 1 }}>
-          <Typography variant="h5" component="h1" sx={{ mb: 1, overflowWrap: "anywhere" }}>
-            {nombre}
-          </Typography>
-          <Box
-            component="dl"
-            sx={{
-              m: 0,
-              display: "grid",
-              gridTemplateColumns: { xs: "repeat(2, minmax(0, 1fr))", sm: "repeat(4, minmax(0, 1fr))" },
-              columnGap: 3,
-              rowGap: 1,
-            }}
+        <Typography variant="h5" component="h1" sx={{ flex: 1, minWidth: 0, overflowWrap: "anywhere" }}>
+          {nombre}
+        </Typography>
+        {onEditarDatos && (
+          <Button
+            size="small"
+            startIcon={<EditIcon />}
+            onClick={onEditarDatos}
+            aria-label="Editar datos personales"
+            sx={{ flexShrink: 0, minWidth: { xs: 44, sm: 0 }, "& .MuiButton-startIcon": { mr: { xs: 0, sm: 1 } } }}
           >
-            {datos.map(([k, v]) => (
-              <Box key={k} sx={{ minWidth: 0 }}>
-                <Typography component="dt" variant="caption" color="text.secondary">
-                  {k}
-                </Typography>
-                <Typography
-                  component="dd"
-                  variant="body2"
-                  sx={{ m: 0, fontWeight: 500, fontVariantNumeric: "tabular-nums", overflowWrap: "anywhere" }}
-                >
-                  {v}
-                </Typography>
-              </Box>
-            ))}
-          </Box>
-        </Box>
-
-        {acciones && (
-          <Box
-            sx={{
-              display: "flex",
-              gap: 1,
-              flexWrap: "wrap",
-              justifyContent: { xs: "flex-start", md: "flex-end" },
-              width: { xs: "100%", md: "auto" },
-              flexShrink: 0,
-            }}
-          >
-            {acciones}
-          </Box>
+            {/* En el celular queda solo el ícono para dejarle lugar al nombre */}
+            <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
+              Editar datos
+            </Box>
+          </Button>
         )}
       </Box>
+
+      {/* Datos personales: usan todo el ancho, también en el celular */}
+      <Box
+        component="dl"
+        sx={{
+          m: 0,
+          display: "grid",
+          gridTemplateColumns: { xs: "repeat(2, minmax(0, 1fr))", sm: "repeat(4, minmax(0, 1fr))" },
+          columnGap: 3,
+          rowGap: 1.25,
+        }}
+      >
+        {datos.map(([k, v]) => (
+          <Box key={k} sx={{ minWidth: 0 }}>
+            <Typography component="dt" variant="caption" color="text.secondary">
+              {k}
+            </Typography>
+            <Typography
+              component="dd"
+              variant="body2"
+              sx={{ m: 0, fontWeight: 500, fontVariantNumeric: "tabular-nums", overflowWrap: "anywhere" }}
+            >
+              {v}
+            </Typography>
+          </Box>
+        ))}
+      </Box>
+
+      {acciones && (
+        <Box
+          sx={{
+            display: "flex",
+            gap: 1,
+            flexWrap: "wrap",
+            mt: 2,
+            pt: 2,
+            borderTop: 1,
+            borderColor: "divider",
+            "& > .MuiButton-root": { flex: { xs: "1 1 auto", sm: "0 0 auto" } },
+          }}
+        >
+          {acciones}
+        </Box>
+      )}
     </Paper>
   );
 }
