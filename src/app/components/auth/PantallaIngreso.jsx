@@ -42,7 +42,7 @@ function Marco({ children }) {
 
 /** Pantalla de ingreso: Google o email y contraseña. */
 export function PantallaIngreso() {
-  const { error: errorSesion } = useSesion();
+  const { error: errorSesion, aviso: avisoSesion } = useSesion();
   const [email, setEmail] = useState("");
   const [clave, setClave] = useState("");
   const [ocupado, setOcupado] = useState(false);
@@ -86,6 +86,11 @@ export function PantallaIngreso() {
         Iniciá sesión para continuar.
       </Typography>
 
+      {avisoSesion && !error && !errorSesion && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          {avisoSesion}
+        </Alert>
+      )}
       {(error || errorSesion) && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error || errorSesion}
