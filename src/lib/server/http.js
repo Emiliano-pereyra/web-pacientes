@@ -1,15 +1,18 @@
 /** Utilidades HTTP para las rutas de la API. */
 import { adminAuth, adminDb } from "@/lib/server/firebaseAdmin";
 import { ErrorNegocio } from "@/lib/server/errores";
-import { ROLES, etiquetaProfesional } from "@/lib/usuarios";
+import { ROLES, etiquetaAutor, requiereProfesional, responsableDe } from "@/lib/usuarios";
 
 /**
  * Usuario que hace el pedido.
  * Verifica el token de Firebase Auth (header Authorization: Bearer <token>) y
  * busca el usuario en la colección `usuarios`. Solo pasan los usuarios dados de
- * alta y activos; con `rol` se exige además ese rol (admin pasa siempre).
+ * alta y activos; con `rol` se exige además ese rol (admin pasa siempre, y una
+ * secretaria/o tiene los mismos permisos que un profesional).
  *
- * @returns {Promise<{ uid, email, nombre, matricula, rol, profesional }>}
+ * @returns {Promise<{ uid, email, nombre, matricula, rol, responsable, profesional }>}
+ *   responsable → profesional que figura en los PDF ({ uid, nombre, matricula })
+ *   profesional → cómo figura el autor en historial y evoluciones
  */
 export async function usuarioDe(request, { rol } = {}) {
   const header = request.headers.get("authorization") || "";
@@ -28,7 +31,8 @@ export async function usuarioDe(request, { rol } = {}) {
   if (!datos || datos.activo === false || !ROLES[datos.rol]) {
     throw new ErrorNegocio("Tu cuenta no tiene acceso al sistema", 403);
   }
-  if (rol && datos.rol !== rol && datos.rol !== "admin") {
+  const rolEfectivo = datos.rol === "secretaria" ? "profesional" : datos.rol;
+  if (rol && rolEfectivo !== rol && datos.rol !== "admin") {
     throw new ErrorNegocio("No tenés permiso para esta acción", 403);
   }
 
@@ -39,5 +43,19 @@ export async function usuarioDe(request, { rol } = {}) {
     matricula: datos.matricula || "",
     rol: datos.rol,
   };
-  return { ...usuario, profesional: etiquetaProfesional(usuario) };
+
+  let vinculado = null;
+  if (requiereProfesional(datos.rol) && datos.profesionalUid) {
+    const p = await adminDb.collection("usuarios").doc(datos.profesionalUid).get();
+    if (p.exists) vinculado = { uid: p.id, ...p.data() };
+  }
+  const responsable = responsableDe(usuario, vinculado);
+  if (!responsable) {
+    throw new ErrorNegocio(
+      "Tu usuario no tiene un profesional activo asignado. Pedile a un administrador que lo configure.",
+      403,
+    );
+  }
+
+  return { ...usuario, responsable, profesional: etiquetaAutor(usuario, responsable) };
 }

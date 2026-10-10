@@ -16,7 +16,7 @@ import { formatearFecha, formatearFechaHora, mostrar } from "@/lib/paciente/logi
 
 const VACIO = "—";
 
-function encabezadoPaciente(doc, p) {
+function encabezadoPaciente(doc, p, responsable) {
   const dp = p.datosPersonales || {};
   doc.camposEnLinea([
     ["Paciente", mostrar(dp.nombreCompleto, VACIO)],
@@ -24,10 +24,22 @@ function encabezadoPaciente(doc, p) {
     ["Edad", mostrar(p.derivados?.edad, VACIO)],
     ["Fecha de nacimiento", mostrar(formatearFecha(dp.fechaNacimiento), VACIO)],
     ["Obra social", mostrar(dp.obraSocial, VACIO)],
-    ["N° afiliado", mostrar(dp.afiliadoNumero, VACIO)],
+    ["N.º de afiliado", mostrar(dp.afiliadoNumero, VACIO)],
     ["Ingreso", mostrar(formatearFecha(dp.fechaIngreso), VACIO)],
   ]);
+  if (responsable) {
+    doc.camposEnLinea([
+      ["Profesional", mostrar(responsable.nombre, VACIO)],
+      ...(responsable.matricula ? [["Matrícula", responsable.matricula]] : []),
+    ]);
+  }
   doc.linea();
+}
+
+/** Nombre y matrícula que van debajo de la línea de firma del profesional. */
+function lineasResponsable(responsable) {
+  if (!responsable) return [];
+  return [responsable.nombre, ...(responsable.matricula ? [`Mat. ${responsable.matricula}`] : [])].filter(Boolean);
 }
 
 function valorCampo(p, c) {
@@ -108,9 +120,11 @@ function renderEvoluciones(doc, evoluciones) {
  * @param {string} tipo id de la pestaña (antecedentes | clinico | resumenHc | fliaYApod | interconsulta)
  * @param {object} paciente paciente ya normalizado (obtenerPaciente)
  * @param {Array}  evoluciones
+ * @param {object} opciones { responsable: { nombre, matricula } } profesional que firma el documento
+ *                          (para una secretaria/o, su profesional vinculado; ver usuarioDe)
  * @returns {Promise<Uint8Array>}
  */
-export async function generarPdf(tipo, paciente, evoluciones = []) {
+export async function generarPdf(tipo, paciente, evoluciones = [], { responsable = null } = {}) {
   const pestana = PESTANAS.find((t) => t.id === tipo);
   if (!pestana) throw new Error(`Tipo de PDF no soportado: ${tipo}`);
 
@@ -118,13 +132,15 @@ export async function generarPdf(tipo, paciente, evoluciones = []) {
   const doc = await PdfDocumento.crear({ titulo: `${pestana.tituloPdf} - ${nombre}`, pieIzquierda: nombre });
 
   doc.titulo(pestana.tituloPdf);
-  encabezadoPaciente(doc, paciente);
+  encabezadoPaciente(doc, paciente, responsable);
 
   pestana.secciones.forEach((key) => renderSeccion(doc, paciente, key));
   if (pestana.conEvoluciones) renderEvoluciones(doc, evoluciones);
 
   if (pestana.id === "fliaYApod") doc.firmas(["Firma del apoderado", "Aclaración y DNI"]);
-  else if (pestana.conFirmas) doc.firmas(["Firma y sello del profesional"]);
+  else if (pestana.conFirmas) {
+    doc.firmas([{ etiqueta: "Firma y sello del profesional", lineas: lineasResponsable(responsable) }]);
+  }
 
   return doc.terminar();
 }

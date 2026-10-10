@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
  */
 export async function POST(request, { params }) {
   try {
-    await usuarioDe(request);
+    const usuario = await usuarioDe(request);
     const { tipo } = await params;
     if (!PESTANAS.some((p) => p.id === tipo)) throw new ErrorNegocio("Tipo de PDF no soportado", 404);
     const { id } = await request.json();
@@ -22,7 +22,8 @@ export async function POST(request, { params }) {
     const paciente = await obtenerPaciente(id);
     const pestana = PESTANAS.find((p) => p.id === tipo);
     const evoluciones = pestana.conEvoluciones ? await listarEvoluciones(id) : [];
-    const bytes = await generarPdf(tipo, paciente, evoluciones);
+    // Sale a nombre del profesional responsable (el vinculado, si imprime una secretaria/o)
+    const bytes = await generarPdf(tipo, paciente, evoluciones, { responsable: usuario.responsable });
 
     const nombre = String(paciente.datosPersonales?.nombreCompleto || "paciente")
       .normalize("NFD")

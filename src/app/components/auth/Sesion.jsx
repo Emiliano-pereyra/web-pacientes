@@ -26,6 +26,7 @@ export function SesionProvider({ children }) {
       onAuthStateChanged(auth, async (u) => {
         if (!u) {
           setUsuario(null);
+          setError("");
           setEstado("sinSesion");
           return;
         }
@@ -36,7 +37,7 @@ export function SesionProvider({ children }) {
           setEstado("lista");
         } catch (e) {
           setUsuario(null);
-          setError(e.status === 403 ? "" : e.message);
+          setError(e.message); // en 403 explica el motivo (sin alta, inactivo, sin profesional asignado)
           setEstado(e.status === 403 ? "sinAcceso" : "sinSesion");
         }
       }),

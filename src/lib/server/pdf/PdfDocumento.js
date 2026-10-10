@@ -244,16 +244,25 @@ export class PdfDocumento {
     this.espacio(4);
   }
 
-  firmas(etiquetas) {
-    this.asegurarEspacio(80);
+  /**
+   * Líneas de firma. Cada una es un texto ("Firma del apoderado") o
+   * { etiqueta, lineas: ["Nombre", "Mat. 1234"] } para imprimir quién firma debajo.
+   */
+  firmas(items) {
+    const firmas = items.map((f) => (typeof f === "string" ? { etiqueta: f, lineas: [] } : f));
+    const maxLineas = Math.max(0, ...firmas.map((f) => f.lineas.length));
+    this.asegurarEspacio(80 + maxLineas * 12);
     this.espacio(50);
-    const ancho = (this.ancho - 30 * (etiquetas.length - 1)) / etiquetas.length;
-    etiquetas.forEach((e, i) => {
+    const ancho = (this.ancho - 30 * (firmas.length - 1)) / firmas.length;
+    firmas.forEach((f, i) => {
       const x = MARGEN + i * (ancho + 30);
       this.page.drawLine({ start: { x, y: this.y }, end: { x: x + ancho, y: this.y }, thickness: 0.8, color: NEGRO });
-      this.page.drawText(e, { x, y: this.y - 12, size: 9, font: this.font, color: GRIS });
+      this.page.drawText(f.etiqueta, { x, y: this.y - 12, size: 9, font: this.font, color: GRIS });
+      f.lineas.forEach((l, j) => {
+        this.page.drawText(l, { x, y: this.y - 25 - j * 12, size: 9, font: j === 0 ? this.bold : this.font, color: NEGRO });
+      });
     });
-    this.y -= 20;
+    this.y -= 20 + maxLineas * 12;
   }
 
   async terminar() {

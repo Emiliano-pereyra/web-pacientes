@@ -93,15 +93,28 @@ Todas las rutas exigen `Authorization: Bearer <token de Firebase Auth>` de un us
 
 - Login con Google o con email y contraseña (Firebase Auth). La contraseña se elige con
   "Crear o recuperar mi contraseña" en la pantalla de ingreso.
-- Solo entran los usuarios de la colección `usuarios/{uid}` (`email, nombre, matricula, rol, activo`).
-  Roles: `admin` y `profesional`.
-- Historial, evoluciones y fotos registran al usuario autenticado (nombre + matrícula).
+- Solo entran los usuarios de la colección `usuarios/{uid}`
+  (`email, nombre, matricula, rol, profesionalUid, activo`).
 - El servidor usa Firebase Admin; las reglas de Firestore y Storage niegan todo acceso directo.
 
+| Rol | Matrícula | Permisos | En los PDF figura |
+|---|---|---|---|
+| `admin` | Opcional | Todo, incluida la gestión de usuarios | Él mismo |
+| `profesional` | Obligatoria | Ver y editar pacientes, evoluciones, fotos, PDF | Él mismo |
+| `secretaria` | No lleva | Los mismos que profesional | Su profesional vinculado (nombre y matrícula) |
+
+- Una secretaria/o está vinculada a un profesional activo. Si no lo tiene (o está desactivado), no puede entrar.
+- Historial y evoluciones registran siempre a la persona que hizo el cambio; si es secretaria/o,
+  con la aclaración "secretaria/o de …".
+
 ```bash
-npm run usuarios -- crear <email> --nombre "Nombre" --matricula "MN 1234" --rol admin|profesional
+npm run usuarios -- crear <email> --nombre "Nombre" --rol profesional --matricula "MN 1234"
+npm run usuarios -- crear <email> --nombre "Nombre" --rol admin
+npm run usuarios -- crear <email> --nombre "Nombre" --rol secretaria --profesional <email del profesional>
 npm run usuarios -- listar
-npm run usuarios -- rol <email> profesional
+npm run usuarios -- asignar <email secretaria/o> <email profesional>
+npm run usuarios -- matricula <email> "MN 1234"     # "-" para quitarla
+npm run usuarios -- rol <email> profesional --matricula "MN 1234"
 npm run usuarios -- desactivar <email>
 ```
 

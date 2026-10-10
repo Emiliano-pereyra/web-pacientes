@@ -137,13 +137,16 @@ export function PantallaIngreso() {
 
 /** Inició sesión pero su cuenta no está dada de alta en el sistema. */
 export function PantallaSinAcceso() {
-  const { salir } = useSesion();
+  const { salir, error } = useSesion();
   const email = auth.currentUser?.email;
+  // Sin profesional asignado (secretaria/o) el servidor explica el motivo; si no, falta el alta
+  const sinProfesional = /profesional/i.test(error || "");
   return (
     <Marco>
       <Alert severity="warning" sx={{ my: 2 }}>
-        {email ? `La cuenta ${email}` : "Esta cuenta"} no tiene acceso al sistema. Pedile a un administrador que te dé de
-        alta.
+        {sinProfesional
+          ? error
+          : `${email ? `La cuenta ${email}` : "Esta cuenta"} no tiene acceso al sistema. Pedile a un administrador que te dé de alta.`}
       </Alert>
       <Button fullWidth variant="outlined" onClick={salir}>
         Usar otra cuenta
