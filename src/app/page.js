@@ -1,413 +1,189 @@
 "use client";
 
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  Suspense,
-  useRef,
-} from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import {
-  Container,
+  Alert,
   AppBar,
-  Toolbar,
-  Typography,
+  Autocomplete,
   Box,
-  Menu,
-  IconButton,
   Button,
   CircularProgress,
-  Tabs,
+  Container,
   Tab,
-  Alert,
-  MenuItem,
-  Autocomplete,
+  Tabs,
   TextField,
+  Toolbar,
+  Typography,
 } from "@mui/material";
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
-import axios from "axios";
 import Swal from "sweetalert2";
+import { useSearchParams } from "next/navigation";
 
-import HistoriaClinicaTab from "./components/HistoriaClinicaTab";
-import FliaYApodTab from "./components/FliaYApodTab";
-import InterconsultaTab from "./components/InterconsultaTab";
-import ResumenHCTab from "./components/ResumenHCTab";
-import ClinicoTab from "./components/ClinicoTab";
-import CrearPacienteModal from "./components/ModalCrearPaciente";
+import PestanaPaciente from "./components/paciente/PestanaPaciente";
+import ModalCrearPaciente from "./components/ModalCrearPaciente";
 import ModalSubirFotoPaciente from "./components/modalSubirFotos";
-import { useRouter, useSearchParams } from "next/navigation";
 import ModalGaleriaFotosPaciente from "./components/ModalGaleriaFotosPaciente";
+import ProfesionalActual from "./components/ProfesionalActual";
+import { PESTANAS } from "@/lib/paciente/schema";
+import { api } from "@/lib/cliente/api";
 
-function PageLoading() {
+function Barra() {
   return (
-    <Container maxWidth={false} sx={{ maxWidth: "100vw", padding: 0 }}>
-      <AppBar position="static" color="default" elevation={1}>
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Panel — Pacientes
-          </Typography>
-        </Toolbar>
-      </AppBar>
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="60vh"
-      >
+    <AppBar position="static" color="default" elevation={1}>
+      <Toolbar sx={{ gap: 2 }}>
+        <Typography variant="h6" sx={{ flexGrow: 1 }}>
+          Panel — Pacientes
+        </Typography>
+        <ProfesionalActual />
+      </Toolbar>
+    </AppBar>
+  );
+}
+
+function Cargando() {
+  return (
+    <Container maxWidth={false} disableGutters>
+      <Barra />
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
         <CircularProgress />
       </Box>
     </Container>
   );
 }
 
-function HomeContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const [cliente, setCliente] = useState(null);
-  const [pacientes, setPacientes] = useState([]);
-  const [selectedPaciente, setSelectedPaciente] = useState(null);
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [tabIndex, setTabIndex] = useState(0);
-  const [tabData, setTabData] = useState({});
-  const [openCrearModal, setOpenCrearModal] = useState(false);
-  const [openFotoModal, setOpenFotoModal] = useState(false);
-  const [openGaleriaModal, setOpenGaleriaModal] = useState(false);
-  const [sincronizando, setSincronizando] = useState(false);
-  const lastFetchedPatientId = React.useRef(null);
-  const isUrlSyncRef = React.useRef(false);
+function actualizarUrl(id) {
+  const params = new URLSearchParams(window.location.search);
+  if (id) params.set("paciente", id);
+  else params.delete("paciente");
+  const qs = params.toString();
+  window.history.replaceState({}, "", `${window.location.pathname}${qs ? `?${qs}` : ""}`);
+}
 
-  useEffect(() => {
-    const fetchPacientes = async () => {
-      try {
-        setLoading(true);
-        const res = await axios.get("/api/pacientes");
-        console.log("Pacientes cargados:", res.data);
-        setPacientes(res.data);
-      } catch (err) {
-        console.error("Error al cargar pacientes:", err);
-        setError("No se pudieron cargar los pacientes");
-        Swal.fire("Error", "No se pudieron cargar los pacientes", "error");
-      } finally {
-        setLoading(false);
+function Inicio() {
+  const searchParams = useSearchParams();
+  const [pacientes, setPacientes] = useState([]);
+  const [cargandoLista, setCargandoLista] = useState(true);
+  const [pacienteId, setPacienteId] = useState(() => searchParams?.get("paciente") || null);
+  const [paciente, setPaciente] = useState(null);
+  const [cargandoPaciente, setCargandoPaciente] = useState(false);
+  const [error, setError] = useState(null);
+  const [tab, setTab] = useState(0);
+  const [modal, setModal] = useState(null); // "crear" | "foto" | "galeria"
+  const pedidoActual = useRef(0);
+
+  const cargarLista = useCallback(async () => {
+    setCargandoLista(true);
+    try {
+      const lista = await api.listarPacientes();
+      setPacientes(lista);
+      return lista;
+    } catch {
+      Swal.fire("Error", "No se pudieron cargar los pacientes", "error");
+      return [];
+    } finally {
+      setCargandoLista(false);
+    }
+  }, []);
+
+  /** Trae el paciente desde la base. Ignora respuestas viejas si el usuario cambió de paciente. */
+  const cargarPaciente = useCallback(async (id) => {
+    const nro = ++pedidoActual.current;
+    if (!id) {
+      setPaciente(null);
+      return;
+    }
+    setCargandoPaciente(true);
+    setError(null);
+    try {
+      const p = await api.obtenerPaciente(id);
+      if (nro === pedidoActual.current) setPaciente(p);
+    } catch (e) {
+      if (nro === pedidoActual.current) {
+        setPaciente(null);
+        setError(e.status === 404 ? "El paciente no existe" : "No se pudieron cargar los datos del paciente");
       }
-    };
-    fetchPacientes();
+    } finally {
+      if (nro === pedidoActual.current) setCargandoPaciente(false);
+    }
   }, []);
 
   useEffect(() => {
-    const pacienteIdUrl = searchParams?.get("paciente");
-
-    if (pacienteIdUrl && pacientes.length > 0) {
-      const pacienteEncontrado = pacientes.find((p) => p.id === pacienteIdUrl);
-
-      if (pacienteEncontrado) {
-        isUrlSyncRef.current = true;
-
-        setSelectedPaciente((prev) => {
-          if (prev?.id === pacienteEncontrado.id) return prev;
-          return {
-            id: pacienteEncontrado.id,
-            nombreVisible: pacienteEncontrado.nombre,
-          };
-        });
-      }
-    }
-  }, [pacientes, searchParams]);
+    cargarLista();
+  }, [cargarLista]);
 
   useEffect(() => {
-    if (!selectedPaciente?.id) {
-      lastFetchedPatientId.current = null;
-      return;
-    }
+    actualizarUrl(pacienteId);
+    cargarPaciente(pacienteId);
+  }, [pacienteId, cargarPaciente]);
 
-    if (lastFetchedPatientId.current === selectedPaciente.id) {
-      return;
-    }
+  const seleccionado = pacientes.find((p) => p.id === pacienteId) || null;
 
-    if (!isUrlSyncRef.current) {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get("paciente") !== selectedPaciente.id) {
-        params.set("paciente", selectedPaciente.id);
-        window.history.replaceState(
-          {},
-          "",
-          `${window.location.pathname}?${params}`,
-        );
-      }
-    }
-    isUrlSyncRef.current = false;
-
-    const fetchDatosPaciente = async () => {
-      try {
-        console.log(" Cargando datos para paciente:", selectedPaciente.id);
-        setLoading(true);
-        setError(null);
-
-        const res = await axios.get(
-          `/api/pacientes/datos?id=${selectedPaciente.id}`,
-        );
-
-        console.log(" Datos cargados:", res.data);
-        setTabData({ general: res.data });
-
-        lastFetchedPatientId.current = selectedPaciente.id;
-      } catch (err) {
-        console.error(" Error cargando datos:", err);
-        setError("No se pudieron cargar los datos del paciente");
-        Swal.fire(
-          "Error",
-          "No se pudieron cargar los datos del paciente",
-          "error",
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDatosPaciente();
-  }, [selectedPaciente?.id]);
-
-  const refreshPacienteData = useCallback(async () => {
-    if (!selectedPaciente?.id) return;
-
-    try {
-      setLoading(true);
-      const res = await axios.get(
-        `/api/pacientes/datos?id=${selectedPaciente.id}`,
-      );
-      setTabData({ general: res.data });
-      return true;
-    } catch (err) {
-      console.error("Error refrescando datos:", err);
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedPaciente]);
-
-  const handleUserMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
+  const alCrear = async (nuevoId) => {
+    setModal(null);
+    await cargarLista();
+    setTab(0);
+    if (nuevoId === pacienteId) cargarPaciente(nuevoId);
+    else setPacienteId(nuevoId); // queda seleccionado el paciente recién creado
+    Swal.fire({ icon: "success", title: "Paciente creado", timer: 1500, showConfirmButton: false });
   };
 
-  const handleUserMenuClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleLogout = () => {
-    Swal.fire({
-      title: "¿Cerrar sesión?",
-      text: "¿Estás seguro de que deseas salir?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Sí, salir",
-      cancelButtonText: "Cancelar",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        Swal.fire("Sesión cerrada", "", "success");
-      }
-    });
-    handleUserMenuClose();
-  };
-
-  const handleTabChange = (event, newValue) => {
-    setTabIndex(newValue);
-  };
-
-  const handleOpenCrearModal = () => {
-    setOpenCrearModal(true);
-  };
-
-  const handleCloseCrearModal = () => {
-    setOpenCrearModal(false);
-  };
-
-  const handleOpenFotoModal = () => {
-    setOpenFotoModal(true);
-  };
-  const handleCloseFotoModal = () => setOpenFotoModal(false);
-
-  const handleCrearSuccess = async (nuevoId) => {
-    try {
-      setSincronizando(true);
-
-      const res = await axios.get("/api/pacientes");
-      setPacientes(res.data);
-
-      const nuevoPaciente = res.data.find((p) => p.id === nuevoId);
-      if (nuevoPaciente) {
-        setSelectedPaciente((prev) => {
-          if (prev?.id === nuevoPaciente.id) return prev;
-          return {
-            id: nuevoPaciente.id,
-            nombreVisible: nuevoPaciente.nombre,
-          };
-        });
-      }
-
-      Swal.fire("Éxito", "Paciente creado correctamente", "success");
-      handleCloseCrearModal();
-    } catch (err) {
-      console.error("Error post-creación:", err);
-      Swal.fire(
-        "Éxito",
-        "Paciente creado (error al refrescar lista)",
-        "success",
-      );
-    } finally {
-      setSincronizando(false);
-    }
-  };
-
-  const handleFotoUploadSuccess = async (metadata) => {
-    setSincronizando(true);
-    try {
-      const exito = await refreshPacienteData();
-      if (exito) {
-        console.log("Datos actualizados tras subir foto:", metadata);
-      }
-    } finally {
-      setSincronizando(false);
-    }
-  };
-
-  const handleOpenGaleriaModal = () => {
-    setOpenGaleriaModal(true);
-  };
-
-  const handleCloseGaleriaModal = () => setOpenGaleriaModal(false);
-
-  const handleFotosDeleted = (count) => {
-    if (count > 0) {
-      setSincronizando(true);
-      refreshPacienteData().finally(() => setSincronizando(false));
-    }
+  const alActualizar = (p) => {
+    setPaciente(p);
+    // si cambió el nombre o el DNI, refrescar el selector
+    const item = pacientes.find((x) => x.id === p.id);
+    const nombre = p.datosPersonales?.nombreCompleto;
+    if (item && (item.nombreVisible !== nombre || item.dni !== p.datosPersonales?.dni)) cargarLista();
   };
 
   return (
-    <Container maxWidth={false} sx={{ maxWidth: "100vw", padding: 0 }}>
-      <AppBar position="static" color="default" elevation={1}>
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Panel — Pacientes
-          </Typography>
-          <Box sx={{ display: "flex", alignItems: "center" }}>
-            <IconButton
-              size="large"
-              edge="end"
-              color="inherit"
-              onClick={handleUserMenuOpen}
-              aria-label="user menu"
-            >
-              <AccountCircleIcon />
-              <Typography ml={1}>{cliente?.nombre || "Usuario"}</Typography>
-              <ExpandMoreIcon />
-            </IconButton>
-            <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={handleUserMenuClose}
-            >
-              <MenuItem onClick={handleLogout}>Cerrar sesión</MenuItem>
-            </Menu>
-          </Box>
-        </Toolbar>
-      </AppBar>
+    <Container maxWidth={false} disableGutters>
+      <Barra />
 
-      <Box sx={{ padding: 3 }}>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 3,
-            flexWrap: "wrap",
-            gap: 2,
-          }}
-        >
+      <Box sx={{ p: 3 }}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3, flexWrap: "wrap", gap: 2 }}>
           <Autocomplete
-            disablePortal
-            options={pacientes.map((p) => ({
-              id: p.id,
-              nombreVisible: p.nombreVisible,
-            }))}
-            getOptionLabel={(option) => option?.nombreVisible || ""}
-            isOptionEqualToValue={(option, value) => option?.id === value?.id}
-            value={selectedPaciente}
-            onChange={(event, newValue) => {
-              console.log("Nuevo valor seleccionado:", newValue);
-
-              if (!newValue || !newValue.id) {
-                if (selectedPaciente) {
-                  setSelectedPaciente(null);
-                  setTabData({});
-                  lastFetchedPatientId.current = null;
-                }
-                return;
-              }
-              setSelectedPaciente((prev) => {
-                if (prev?.id === newValue.id) return prev;
-                return {
-                  id: newValue.id,
-                  nombreVisible: newValue.nombreVisible,
-                };
-              });
+            options={pacientes}
+            loading={cargandoLista}
+            value={seleccionado}
+            onChange={(_, nuevo) => setPacienteId(nuevo?.id || null)}
+            getOptionLabel={(o) => o?.nombreVisible || ""}
+            isOptionEqualToValue={(o, v) => o.id === v.id}
+            filterOptions={(opts, { inputValue }) => {
+              const q = inputValue.trim().toLowerCase();
+              return q ? opts.filter((o) => o.nombreVisible.toLowerCase().includes(q) || o.dni.includes(q)) : opts;
             }}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Seleccionar paciente"
-                variant="outlined"
-                InputProps={{
-                  ...params.InputProps,
-                  endAdornment: (
-                    <>
-                      {sincronizando && (
-                        <CircularProgress size={20} sx={{ mr: 1 }} />
-                      )}
-                      {params.InputProps.endAdornment}
-                    </>
-                  ),
-                }}
-              />
-            )}
-            sx={{ flex: 1, maxWidth: 400 }}
+            renderOption={(props, o) => {
+              const { key, ...rest } = props;
+              return (
+                <li key={o.id} {...rest}>
+                  <Box>
+                    <Typography variant="body2">{o.nombreVisible}</Typography>
+                    {o.dni && (
+                      <Typography variant="caption" color="text.secondary">
+                        DNI {o.dni}
+                      </Typography>
+                    )}
+                  </Box>
+                </li>
+              );
+            }}
+            renderInput={(params) => <TextField {...params} label="Buscar paciente por nombre o DNI" />}
+            sx={{ flex: 1, maxWidth: 440 }}
           />
           <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-            {selectedPaciente && (
-              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-                <Button
-                  variant="outlined"
-                  color="info"
-                  onClick={handleOpenGaleriaModal}
-                  startIcon={<PhotoLibraryIcon />}
-                >
-                  Ver Galería
+            {paciente && (
+              <>
+                <Button variant="outlined" color="info" startIcon={<PhotoLibraryIcon />} onClick={() => setModal("galeria")}>
+                  Ver galería
                 </Button>
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  onClick={handleOpenFotoModal}
-                  startIcon={<AddPhotoAlternateIcon />}
-                >
-                  Subir Foto
+                <Button variant="outlined" startIcon={<AddPhotoAlternateIcon />} onClick={() => setModal("foto")}>
+                  Subir foto
                 </Button>
-              </Box>
+              </>
             )}
-
-            <Button
-              variant="contained"
-              color="secondary"
-              onClick={handleOpenCrearModal}
-              sx={{ minWidth: 120 }}
-            >
-              Crear Paciente
+            <Button variant="contained" color="secondary" onClick={() => setModal("crear")}>
+              Crear paciente
             </Button>
           </Box>
         </Box>
@@ -418,85 +194,57 @@ function HomeContent() {
           </Alert>
         )}
 
-        {loading ? (
+        {!pacienteId && !error && <Alert severity="info">Seleccioná un paciente o creá uno nuevo.</Alert>}
+
+        {pacienteId && cargandoPaciente && !paciente && (
           <Box display="flex" justifyContent="center" my={4}>
             <CircularProgress />
           </Box>
-        ) : (
+        )}
+
+        {paciente && (
           <>
             <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}>
-              <Tabs
-                value={tabIndex}
-                onChange={handleTabChange}
-                variant="fullWidth"
-              >
-                <Tab label="Antecedentes" />
-                <Tab label="Clínico Psicosocial" />
-                <Tab label="Resumen HC" />
-                <Tab label="Información Familiar / Apoderado" />
-                <Tab label="Interconsulta" />
+              <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" allowScrollButtonsMobile>
+                {PESTANAS.map((p) => (
+                  <Tab key={p.id} label={p.titulo} />
+                ))}
               </Tabs>
             </Box>
-
-            {tabIndex === 0 && (
-              <HistoriaClinicaTab
-                paciente={{ ...selectedPaciente, ...tabData.general }}
-                datos={tabData.general || {}}
+            <Box sx={{ opacity: cargandoPaciente ? 0.5 : 1, transition: "opacity .2s" }}>
+              <PestanaPaciente
+                key={`${paciente.id}-${PESTANAS[tab].id}`}
+                pestana={PESTANAS[tab]}
+                paciente={paciente}
+                onActualizado={alActualizar}
+                conEncabezadoEditable={tab === 0}
               />
-            )}
-            {tabIndex === 1 && (
-              <ClinicoTab
-                paciente={{ ...selectedPaciente, ...tabData.general }}
-                datos={tabData.general || {}}
-              />
-            )}
-            {tabIndex === 2 && (
-              <ResumenHCTab
-                paciente={{ ...selectedPaciente, ...tabData.general }}
-                datos={tabData.general || {}}
-              />
-            )}
-            {tabIndex === 3 && (
-              <FliaYApodTab
-                paciente={{ ...selectedPaciente, ...tabData.general }}
-                datos={tabData.general || {}}
-              />
-            )}
-            {tabIndex === 4 && (
-              <InterconsultaTab
-                paciente={{ ...selectedPaciente, ...tabData.general }}
-                datos={tabData.general || {}}
-              />
-            )}
+            </Box>
           </>
         )}
       </Box>
 
-      {openCrearModal && (
-        <CrearPacienteModal
-          open={openCrearModal}
-          onClose={handleCloseCrearModal}
-          onCreateSuccess={handleCrearSuccess}
-        />
+      {modal === "crear" && (
+        <ModalCrearPaciente open onClose={() => setModal(null)} onCreateSuccess={alCrear} />
       )}
 
-      {openFotoModal && selectedPaciente && (
+      {modal === "foto" && paciente && (
         <ModalSubirFotoPaciente
-          open={openFotoModal}
-          onClose={handleCloseFotoModal}
-          pacienteId={selectedPaciente.id}
-          patientName={selectedPaciente.nombreVisible}
-          onUploadSuccess={handleFotoUploadSuccess}
+          open
+          onClose={() => setModal(null)}
+          pacienteId={paciente.id}
+          patientName={paciente.datosPersonales?.nombreCompleto}
+          onUploadSuccess={() => cargarPaciente(paciente.id)}
         />
       )}
 
-      {openGaleriaModal && selectedPaciente && (
+      {modal === "galeria" && paciente && (
         <ModalGaleriaFotosPaciente
-          open={openGaleriaModal}
-          onClose={handleCloseGaleriaModal}
-          pacienteId={selectedPaciente.id}
-          patientName={selectedPaciente.nombreVisible}
-          onDeleted={handleFotosDeleted}
+          open
+          onClose={() => setModal(null)}
+          pacienteId={paciente.id}
+          patientName={paciente.datosPersonales?.nombreCompleto}
+          onDeleted={(n) => n > 0 && cargarPaciente(paciente.id)}
         />
       )}
     </Container>
@@ -505,8 +253,8 @@ function HomeContent() {
 
 export default function Home() {
   return (
-    <Suspense fallback={<PageLoading />}>
-      <HomeContent />
+    <Suspense fallback={<Cargando />}>
+      <Inicio />
     </Suspense>
   );
 }

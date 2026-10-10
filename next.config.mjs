@@ -4,33 +4,14 @@ const nextConfig = {
 
   images: {
     remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "drive.google.com",
-      },
-      {
-        protocol: "https",
-        hostname: "lh3.googleusercontent.com",
-      },
+      { protocol: "https", hostname: "firebasestorage.googleapis.com" },
+      { protocol: "https", hostname: "lh3.googleusercontent.com" },
     ],
   },
 
-  // Configuración para evitar problemas con fontkit en PDFKit
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        'fontkit': false,
-      };
-    }
-    return config;
-  },
-
-  // Configuración de Turbopack (vacía para silenciar el error)
-  turbopack: {},
-
-  experimental: {
-    webpackBuildWorker: true,
+  // Las fuentes del PDF se leen con fs: hay que incluirlas en el bundle de Vercel
+  outputFileTracingIncludes: {
+    "/api/exportador/[tipo]": ["./src/utils/pdf/fonts/**"],
   },
 };
 

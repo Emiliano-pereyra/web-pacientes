@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# WebPacientes
 
-## Getting Started
+Historia clínica de pacientes (Next.js 16 + MUI + Firebase).
 
-First, run the development server:
+## Desarrollo
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Estructura
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+| Ruta | Qué hay |
+|---|---|
+| `src/lib/paciente/schema.js` | **Fuente de verdad del modelo**: secciones, campos, pestañas y MMSE. Formularios, validación, vistas y PDFs se arman desde acá. Para agregar un campo, se agrega solo en este archivo. |
+| `src/lib/paciente/logica.js` | Reglas clínicas compartidas: edad calculada, puntaje MMSE, validaciones, cálculo de cambios. |
+| `src/lib/paciente/migracion.js` | Traducción del modelo viejo (campos planos) al modelo unificado. |
+| `src/lib/server/pacientesService.js` | Acceso a Firestore: alta, edición por sección con historial, evoluciones. |
+| `src/lib/server/pdf/` | Generación de PDFs con pdf-lib (ajuste de línea, paginación, Roboto embebida). |
+| `src/app/components/paciente/` | Componentes genéricos: vista y edición de secciones, evoluciones, historial. |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Modelo de datos (schemaVersion 2)
 
-## Learn More
+Documento `pacientes/lista/nombresPacientes/{idAutogenerado}`:
 
-To learn more about Next.js, take a look at the following resources:
+```
+datosPersonales  { nombreCompleto, dni, genero, fechaNacimiento, obraSocial, afiliadoNumero, fechaIngreso }
+antecedentes     { cardiovascular: { ta, cardio, observaciones }, digestivo: {...}, ... }
+examenFisico     { mental: {...}, facial: {...}, ... }
+diagnostico      { enfermedadBase, fechaEnfermedadBase, enfermedadActual, antecedentesPatologicos }
+tratamiento      { tratamientoBase, fechaTratamientoBase, tratamientoActual }
+valoracionSocial / valoracionMental (MMSE: respuesta + puntaje por ítem) / valoracionFuncional
+familia          { apoderadoNombre, apoderadoDni, apoderadoParentesco, residenteNombre, consentimientoTexto }
+interconsulta    { fecha, especialidad, motivo, informe }
+urlFoto, galeriaFotos, ultimaModificacion, creadoEn, actualizadoEn, schemaVersion
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Subcolecciones (solo se agregan, nunca se editan ni borran):
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `evoluciones` → `{ texto, fecha, profesional, creadoEn }`
+- `historial` → `{ seccion, cambios: [{ campo, anterior, nuevo }], profesional, creadoEn }`
 
-## Deploy on Vercel
+La edad no se guarda: se calcula a partir de la fecha de nacimiento.
+Las fechas clínicas se guardan como `YYYY-MM-DD`; las de sistema en ISO completo.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Migración de datos existentes
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+La app lee pacientes del modelo viejo y los migra automáticamente la primera vez
+que se edita algo de ellos. Para migrar toda la base de una vez:
+
+```bash
+# simulación (no escribe nada)
+GOOGLE_APPLICATION_CREDENTIALS=./service-account.json npm run migrar
+# aplicar (guarda un respaldo completo en ./backups antes de escribir)
+GOOGLE_APPLICATION_CREDENTIALS=./service-account.json npm run migrar -- --aplicar
+```
+
+## API
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/api/pacientes` | Lista (id, nombre, DNI) |
+| POST | `/api/pacientes/crear` | Alta (multipart: `datos` JSON + `file` opcional) |
+| GET | `/api/pacientes/datos?id=` | Paciente completo + derivados (edad, MMSE) |
+| PUT | `/api/pacientes/{id}/secciones/{seccion}` | Edita una sección y registra historial |
+| GET/POST | `/api/pacientes/{id}/evoluciones` | Lista / agrega evolución |
+| GET | `/api/pacientes/{id}/historial?campo=` | Historial de cambios |
+| POST | `/api/exportador/{pestaña}` | PDF de la pestaña (`{ id }`) |
+
+> Pendiente (fase de seguridad): autenticación. Hasta entonces, el profesional
+> que figura en historial y evoluciones es el que se escribe en la barra superior.
