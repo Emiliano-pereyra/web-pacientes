@@ -12,13 +12,14 @@ import { useSesion } from "../auth/Sesion";
 /**
  * Evoluciones del paciente: se agregan, nunca se editan ni se borran.
  * Para corregir un error se agrega una nueva evolución aclarándolo.
- * `senalAbrir` abre el formulario cada vez que cambia (botón "Nueva evolución" del encabezado).
+ * `pedidoAbrir` (botón "Nueva evolución" del encabezado) abre el formulario; al atenderlo
+ * se llama a `onPedidoAtendido` para que el padre lo apague.
  */
-export default function Evoluciones({ pacienteId, onCambio, senalAbrir = 0 }) {
+export default function Evoluciones({ pacienteId, onCambio, pedidoAbrir = false, onPedidoAtendido }) {
   const { usuario } = useSesion() || {};
   const [lista, setLista] = useState(null);
   const [error, setError] = useState("");
-  const [abierto, setAbierto] = useState(false);
+  const [abierto, setAbierto] = useState(pedidoAbrir);
   const [form, setForm] = useState({ texto: "", fecha: hoyISO() });
   const [errores, setErrores] = useState({});
   const [guardando, setGuardando] = useState(false);
@@ -27,6 +28,7 @@ export default function Evoluciones({ pacienteId, onCambio, senalAbrir = 0 }) {
 
   const pedirCierre = useCambiosSinGuardar(abierto && form.texto.trim() !== "" && !guardando);
 
+  /** Recarga desde una acción del usuario (reintentar, después de guardar). */
   const cargar = useCallback(async () => {
     setError("");
     try {
@@ -36,32 +38,43 @@ export default function Evoluciones({ pacienteId, onCambio, senalAbrir = 0 }) {
     }
   }, [pacienteId]);
 
+  // Carga inicial: el componente se vuelve a montar al cambiar de paciente (key en la página)
   useEffect(() => {
-    setLista(null);
-    cargar();
-  }, [cargar]);
+    let vigente = true;
+    api
+      .listarEvoluciones(pacienteId)
+      .then((l) => vigente && setLista(l))
+      .catch((e) => vigente && setError(e.message));
+    return () => {
+      vigente = false;
+    };
+  }, [pacienteId]);
 
-  const abiertoRef = useRef(false);
-  useEffect(() => {
-    abiertoRef.current = abierto;
-  }, [abierto]);
-
-  const abrir = useCallback(() => {
-    // si ya estaba abierto, se conserva lo escrito
-    if (!abiertoRef.current) {
-      setForm({ texto: "", fecha: hoyISO() });
-      setErrores({});
-    }
-    setAbierto(true);
+  const enfocar = () =>
     requestAnimationFrame(() => {
       raiz.current?.scrollIntoView({ block: "start", behavior: "smooth" });
       texto.current?.focus({ preventScroll: true });
     });
-  }, []);
 
+  const abrir = () => {
+    setForm({ texto: "", fecha: hoyISO() });
+    setErrores({});
+    setAbierto(true);
+    enfocar();
+  };
+
+  // Pedido del botón "Nueva evolución" del encabezado: se abre el formulario
+  // durante el render (si ya estaba abierto se conserva lo escrito) y después se avisa que se atendió.
+  if (pedidoAbrir && !abierto) {
+    setForm({ texto: "", fecha: hoyISO() });
+    setErrores({});
+    setAbierto(true);
+  }
   useEffect(() => {
-    if (senalAbrir) abrir();
-  }, [senalAbrir, abrir]);
+    if (!pedidoAbrir) return;
+    enfocar();
+    onPedidoAtendido?.();
+  }, [pedidoAbrir, onPedidoAtendido]);
 
   const guardar = async () => {
     setGuardando(true);

@@ -49,23 +49,34 @@ export default function ModalGaleriaFotosPaciente({ open, onClose, pacienteId, p
   const [selectedIds, setSelectedIds] = useState([]);
   const [deleting, setDeleting] = useState(false);
 
+  const mensajeError = (err) => err?.message || "No se pudo cargar la galería";
+
+  /** Recarga desde una acción del usuario (reintentar, después de borrar). */
   const fetchFotos = useCallback(async () => {
-    if (!pacienteId) return;
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      setError(null);
-      const data = await api.listarFotos(pacienteId);
-      setFotos(data.fotos || []);
+      setFotos((await api.listarFotos(pacienteId)).fotos || []);
     } catch (err) {
-      setError(err.message || "No se pudo cargar la galería");
+      setError(mensajeError(err));
     } finally {
       setLoading(false);
     }
   }, [pacienteId]);
 
+  // Carga inicial (loading arranca en true)
   useEffect(() => {
-    if (open && pacienteId) fetchFotos();
-  }, [open, pacienteId, fetchFotos]);
+    if (!open || !pacienteId) return;
+    let vigente = true;
+    api
+      .listarFotos(pacienteId)
+      .then((data) => vigente && setFotos(data.fotos || []))
+      .catch((err) => vigente && setError(mensajeError(err)))
+      .finally(() => vigente && setLoading(false));
+    return () => {
+      vigente = false;
+    };
+  }, [open, pacienteId]);
 
   const toggle = (fotoId) =>
     setSelectedIds((prev) => (prev.includes(fotoId) ? prev.filter((id) => id !== fotoId) : [...prev, fotoId]));

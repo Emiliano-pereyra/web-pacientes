@@ -10,21 +10,28 @@ import ModalHistorialCampo from "./ModalHistorialCampo";
 /**
  * Pestaña genérica: muestra las secciones configuradas en PESTANAS (schema.js)
  * y permite editarlas. El encabezado y las acciones (imprimir, fotos) están en la página.
- * `senalNuevaEvolucion` cambia cada vez que se pide abrir el formulario de evolución.
+ * `pedidoNuevaEvolucion` abre el formulario de evolución; `onPedidoAtendido` lo apaga.
  */
 export default function PestanaPaciente({
   pestana,
   paciente,
   onActualizado,
   conEncabezadoEditable = false,
-  senalNuevaEvolucion = 0,
+  pedidoNuevaEvolucion = false,
+  onPedidoAtendido,
 }) {
   const [seccionEditando, setSeccionEditando] = useState(null);
   const [campoHistorial, setCampoHistorial] = useState(null);
 
   return (
     <Box>
-      {pestana.conEvoluciones && <Evoluciones pacienteId={paciente.id} senalAbrir={senalNuevaEvolucion} />}
+      {pestana.conEvoluciones && (
+        <Evoluciones
+          pacienteId={paciente.id}
+          pedidoAbrir={pedidoNuevaEvolucion}
+          onPedidoAtendido={onPedidoAtendido}
+        />
+      )}
 
       {conEncabezadoEditable && (
         <SeccionVista

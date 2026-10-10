@@ -100,16 +100,21 @@ function Inicio() {
   const [errorLista, setErrorLista] = useState("");
   const [pacienteId, setPacienteId] = useState(() => searchParams?.get("paciente") || null);
   const [paciente, setPaciente] = useState(null);
-  const [cargandoPaciente, setCargandoPaciente] = useState(false);
+  const [cargandoPaciente, setCargandoPaciente] = useState(() => Boolean(searchParams?.get("paciente")));
   const [error, setError] = useState(null);
   const [tab, setTab] = useState(() => {
     const i = PESTANAS.findIndex((p) => p.id === searchParams?.get("pestana"));
     return i >= 0 ? i : 0;
   });
   const [modal, setModal] = useState(null); // "crear" | "foto" | "galeria"
-  const [senalEvolucion, setSenalEvolucion] = useState(0);
+  const [pedidoEvolucion, setPedidoEvolucion] = useState(false);
   const pedidoActual = useRef(0);
 
+  const mensajeErrorLista = (e) => e?.message || "No se pudieron cargar los pacientes";
+  const errorPaciente = (e) =>
+    e?.status === 404 ? "El paciente no existe" : "No se pudieron cargar los datos del paciente";
+
+  /** Recarga la lista desde una acción del usuario (reintentar, después de crear o editar). */
   const cargarLista = useCallback(async () => {
     setCargandoLista(true);
     setErrorLista("");
@@ -118,20 +123,16 @@ function Inicio() {
       setPacientes(lista);
       return lista;
     } catch (e) {
-      setErrorLista(e.message || "No se pudieron cargar los pacientes");
+      setErrorLista(mensajeErrorLista(e));
       return [];
     } finally {
       setCargandoLista(false);
     }
   }, []);
 
-  /** Trae el paciente desde la base. Ignora respuestas viejas si el usuario cambió de paciente. */
+  /** Recarga el paciente abierto. Ignora respuestas viejas si el usuario cambió de paciente. */
   const cargarPaciente = useCallback(async (id) => {
     const nro = ++pedidoActual.current;
-    if (!id) {
-      setPaciente(null);
-      return;
-    }
     setCargandoPaciente(true);
     setError(null);
     try {
@@ -140,27 +141,54 @@ function Inicio() {
     } catch (e) {
       if (nro === pedidoActual.current) {
         setPaciente(null);
-        setError(e.status === 404 ? "El paciente no existe" : "No se pudieron cargar los datos del paciente");
+        setError(errorPaciente(e));
       }
     } finally {
       if (nro === pedidoActual.current) setCargandoPaciente(false);
     }
   }, []);
 
+  // Carga inicial de la lista (cargandoLista arranca en true)
   useEffect(() => {
-    cargarLista();
-  }, [cargarLista]);
+    let vigente = true;
+    api
+      .listarPacientes()
+      .then((lista) => vigente && setPacientes(lista))
+      .catch((e) => vigente && setErrorLista(mensajeErrorLista(e)))
+      .finally(() => vigente && setCargandoLista(false));
+    return () => {
+      vigente = false;
+    };
+  }, []);
 
+  // Carga del paciente elegido (elegir() ya marcó "cargando")
   useEffect(() => {
-    cargarPaciente(pacienteId);
-  }, [pacienteId, cargarPaciente]);
+    if (!pacienteId) return;
+    const nro = ++pedidoActual.current;
+    const vigente = () => nro === pedidoActual.current;
+    api
+      .obtenerPaciente(pacienteId)
+      .then((p) => vigente() && setPaciente(p))
+      .catch((e) => {
+        if (!vigente()) return;
+        setPaciente(null);
+        setError(errorPaciente(e));
+      })
+      .finally(() => vigente() && setCargandoPaciente(false));
+  }, [pacienteId]);
 
   useEffect(() => {
     actualizarUrl(pacienteId, PESTANAS[tab]?.id);
   }, [pacienteId, tab]);
 
   const elegir = (id) => {
-    setPacienteId(id);
+    if (id !== pacienteId) {
+      pedidoActual.current++; // descarta respuestas pendientes del paciente anterior
+      setPacienteId(id);
+      setPaciente(null);
+      setError(null);
+      setCargandoPaciente(Boolean(id));
+    }
     setTab(0);
     window.scrollTo({ top: 0 });
   };
@@ -186,8 +214,9 @@ function Inicio() {
 
   const nuevaEvolucion = () => {
     if (PESTANA_EVOLUCIONES >= 0) setTab(PESTANA_EVOLUCIONES);
-    setSenalEvolucion((n) => n + 1);
+    setPedidoEvolucion(true);
   };
+  const atenderPedidoEvolucion = useCallback(() => setPedidoEvolucion(false), []);
 
   const acciones = paciente && (
     <>
@@ -318,7 +347,8 @@ function Inicio() {
                 paciente={paciente}
                 onActualizado={alActualizar}
                 conEncabezadoEditable={tab === 0}
-                senalNuevaEvolucion={senalEvolucion}
+                pedidoNuevaEvolucion={pedidoEvolucion}
+                onPedidoAtendido={atenderPedidoEvolucion}
               />
             </Box>
           </>
