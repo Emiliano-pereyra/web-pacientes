@@ -31,5 +31,12 @@
     "eslint-config-next": "16.0.3",
     "firebase-admin": "^13.10.0",
     "tsx": "^4.23.15"
+  },
+  "allowScripts": {
+    "@firebase/util@1.13.0": true,
+    "esbuild@0.28.2": true,
+    "sharp@0.34.5": true,
+    "protobufjs@7.6.6": true,
+    "unrs-resolver@1.11.1": true
   }
 }
