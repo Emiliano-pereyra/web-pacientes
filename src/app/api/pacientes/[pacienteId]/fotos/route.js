@@ -1,5 +1,5 @@
 import { FieldValue } from 'firebase-admin/firestore';
-import { pacienteRef, respuestaError, ErrorNegocio } from '@/lib/server/pacientesService';
+import { asegurarActivo, pacienteRef, respuestaError, ErrorNegocio } from '@/lib/server/pacientesService';
 import { fotoParaCliente, subirArchivo } from '@/lib/server/archivos';
 import { usuarioDe } from '@/lib/server/http';
 import { registrar } from '@/lib/server/auditoria';
@@ -25,6 +25,7 @@ export async function POST(request, { params }) {
 
     const snap = await pacienteRef(pacienteId).get();
     if (!snap.exists) throw new ErrorNegocio('Paciente no encontrado', 404);
+    asegurarActivo(snap.data());
 
     const stamp = Date.now();
     const extension = (file.name.split('.').pop() || 'bin').toLowerCase().replace(/[^a-z0-9]/g, '');

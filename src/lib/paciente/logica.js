@@ -232,6 +232,121 @@ export function valoresDeSeccion(paciente, seccionKey) {
   return out;
 }
 
+// ---------------------------------------------------------------
+// Baja del paciente (lógica: la historia clínica se conserva)
+// ---------------------------------------------------------------
+export const MOTIVO_BAJA_MIN = 5;
+export const MOTIVO_BAJA_MAX = 1000;
+const TEXTO_CORTO_MAX = 200;
+
+/** Tipos de baja. En gerontología la mayoría son por fallecimiento (va primero). */
+export const TIPOS_BAJA = {
+  fallecimiento: "Fallecimiento",
+  alta: "Alta",
+  traslado: "Traslado o derivación",
+  decision: "Decisión del paciente o la familia",
+  otro: "Otro",
+};
+
+export const estaDeBaja = (paciente) => paciente?.estado === "baja";
+export const fallecio = (paciente) => estaDeBaja(paciente) && paciente?.baja?.tipo === "fallecimiento";
+
+/** "Fallecida" / "Fallecido" según el género cargado ("Fallecida/o" si no hay). */
+export function etiquetaFallecido(genero) {
+  if (genero === "Femenino") return "Fallecida";
+  if (genero === "Masculino") return "Fallecido";
+  return "Fallecida/o";
+}
+
+/** Valida un texto libre: recorta espacios y controla el largo. */
+function texto(v, { requerido = false, min = 1, max = MOTIVO_BAJA_MAX, mensaje } = {}) {
+  const t = String(v ?? "").trim();
+  if (!t) return { valor: "", error: requerido ? mensaje : null };
+  if (t.length < min) return { valor: t, error: mensaje };
+  if (t.length > max) return { valor: t, error: `No puede superar ${max} caracteres` };
+  return { valor: t, error: null };
+}
+
+/**
+ * Valida los datos de una baja.
+ *  - fallecimiento: fecha obligatoria (no futura, no anterior al nacimiento ni al ingreso);
+ *    hora, lugar, causa, notificación y observaciones opcionales (texto libre).
+ *  - los demás tipos: motivo obligatorio (texto libre); en traslado, institución opcional.
+ * @param entrada  { tipo, motivo, fecha, hora, lugar, causa, notificadoA, notificadoEn, institucion }
+ * @param paciente paciente canónico (para nacimiento, ingreso y edad)
+ * @returns { valores, errores } — valores = objeto `baja` listo para guardar (sin autoría)
+ */
+export function validarBaja(entrada = {}, paciente = {}, { hoy = hoyISO() } = {}) {
+  const errores = {};
+  const tipo = entrada.tipo;
+  if (!TIPOS_BAJA[tipo]) return { valores: null, errores: { tipo: "Elegí el tipo de baja" } };
+
+  const campo = (clave, opciones) => {
+    const r = texto(entrada[clave], opciones);
+    if (r.error) errores[clave] = r.error;
+    return r.valor;
+  };
+
+  const valores = { tipo };
+
+  if (tipo === "fallecimiento") {
+    const fecha = normalizarFecha(entrada.fecha);
+    const nacimiento = normalizarFecha(getPath(paciente, "datosPersonales.fechaNacimiento"));
+    const ingreso = normalizarFecha(getPath(paciente, "datosPersonales.fechaIngreso"));
+    if (!fecha) errores.fecha = "Indicá la fecha del fallecimiento";
+    else if (fecha > hoy) errores.fecha = "La fecha no puede ser futura";
+    else if (nacimiento && fecha < nacimiento) errores.fecha = "La fecha es anterior al nacimiento";
+    else if (ingreso && fecha < ingreso) errores.fecha = "La fecha es anterior al ingreso";
+
+    const hora = String(entrada.hora ?? "").trim();
+    if (hora && !/^([01]\d|2[0-3]):[0-5]\d$/.test(hora)) errores.hora = "Hora inválida";
+
+    const notificadoEn = normalizarFecha(entrada.notificadoEn);
+    if (entrada.notificadoEn && !notificadoEn) errores.notificadoEn = "Fecha inválida";
+    else if (notificadoEn && notificadoEn > hoy) errores.notificadoEn = "La fecha no puede ser futura";
+    else if (notificadoEn && fecha && notificadoEn < fecha) errores.notificadoEn = "Es anterior al fallecimiento";
+
+    const edad = fecha && nacimiento ? calcularEdad(nacimiento, new Date(`${fecha}T12:00:00`)) : null;
+
+    valores.fallecimiento = {
+      fecha: fecha || "",
+      hora: errores.hora ? "" : hora,
+      lugar: campo("lugar", { max: TEXTO_CORTO_MAX }),
+      causa: campo("causa"),
+      notificadoA: campo("notificadoA", { max: TEXTO_CORTO_MAX }),
+      notificadoEn: notificadoEn || "",
+      edad,
+    };
+    valores.motivo = campo("motivo"); // observaciones, opcional
+  } else {
+    valores.motivo = campo("motivo", {
+      requerido: true,
+      min: MOTIVO_BAJA_MIN,
+      mensaje: "Escribí el motivo de la baja",
+    });
+    if (tipo === "traslado") valores.institucion = campo("institucion", { max: TEXTO_CORTO_MAX });
+  }
+
+  return { valores, errores };
+}
+
+/** Resumen de una baja en una línea (historial, registro de accesos, avisos). */
+export function resumenBaja(baja, genero) {
+  if (!baja) return "";
+  if (baja.tipo === "fallecimiento") {
+    const f = baja.fallecimiento || {};
+    return [
+      `${etiquetaFallecido(genero)} el ${formatearFecha(f.fecha)}${f.hora ? ` a las ${f.hora}` : ""}`,
+      f.edad != null ? `a los ${f.edad} años` : "",
+      f.lugar ? `Lugar: ${f.lugar}` : "",
+    ]
+      .filter(Boolean)
+      .join(" · ");
+  }
+  const tipo = TIPOS_BAJA[baja.tipo] || "Baja";
+  return `${tipo}${baja.institucion ? ` a ${baja.institucion}` : ""}: ${baja.motivo || ""}`;
+}
+
 /** Documento vacío con todas las secciones (estructura canónica). */
 export function pacienteVacio() {
   const doc = { schemaVersion: SCHEMA_VERSION };
@@ -242,5 +357,8 @@ export function pacienteVacio() {
   doc.fotoPerfilPath = ""; // ruta en Storage; el enlace firmado lo arma la API
   doc.galeriaFotos = [];
   doc.ultimaModificacion = {};
+  doc.estado = "activo"; // "activo" | "baja"
+  // Mientras está de baja: { tipo, motivo, fecha, profesional, profesionalUid, fallecimiento?, institucion? }
+  doc.baja = null;
   return doc;
 }

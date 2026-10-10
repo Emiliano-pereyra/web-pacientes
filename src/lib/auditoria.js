@@ -14,6 +14,9 @@ export const ACCIONES = {
   agregar_evolucion: "Agregó una evolución",
   subir_archivo: "Subió un archivo",
   eliminar_archivo: "Eliminó archivos",
+  baja_paciente: "Dio de baja al paciente",
+  reactivar_paciente: "Reactivó al paciente",
+  anular_baja: "Anuló la baja por fallecimiento",
   crear_usuario: "Creó un usuario",
   editar_usuario: "Modificó un usuario",
 };

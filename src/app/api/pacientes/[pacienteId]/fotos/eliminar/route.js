@@ -1,5 +1,5 @@
 import { adminDb } from '@/lib/server/firebaseAdmin';
-import { pacienteRef, respuestaError, ErrorNegocio } from '@/lib/server/pacientesService';
+import { asegurarActivo, pacienteRef, respuestaError, ErrorNegocio } from '@/lib/server/pacientesService';
 import { eliminarArchivo } from '@/lib/server/archivos';
 import { pathDeUrlFirebase, rutaFotoPerfil } from '@/lib/paciente/fotos';
 import { usuarioDe } from '@/lib/server/http';
@@ -26,6 +26,7 @@ export async function DELETE(request, { params }) {
     const ref = pacienteRef(pacienteId);
     const snap = await ref.get();
     if (!snap.exists) throw new ErrorNegocio('Paciente no encontrado', 404);
+    asegurarActivo(snap.data());
 
     const galeria = snap.data().galeriaFotos || [];
     const aEliminar = galeria.filter((foto) => fotoIds.includes(foto.id));

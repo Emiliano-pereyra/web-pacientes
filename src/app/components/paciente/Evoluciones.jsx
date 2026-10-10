@@ -15,7 +15,7 @@ import { useSesion } from "../auth/Sesion";
  * `pedidoAbrir` (botón "Nueva evolución" del encabezado) abre el formulario; al atenderlo
  * se llama a `onPedidoAtendido` para que el padre lo apague.
  */
-export default function Evoluciones({ pacienteId, onCambio, pedidoAbrir = false, onPedidoAtendido }) {
+export default function Evoluciones({ pacienteId, onCambio, pedidoAbrir = false, onPedidoAtendido, soloLectura = false }) {
   const { usuario } = useSesion() || {};
   const [lista, setLista] = useState(null);
   const [error, setError] = useState("");
@@ -100,14 +100,14 @@ export default function Evoluciones({ pacienteId, onCambio, pedidoAbrir = false,
         <Typography variant="h6" component="h2">
           Evolución
         </Typography>
-        {!abierto && (
+        {!abierto && !soloLectura && (
           <Button size="small" variant="contained" startIcon={<AddIcon />} onClick={abrir}>
             Nueva evolución
           </Button>
         )}
       </Box>
 
-      {abierto && (
+      {abierto && !soloLectura && (
         <Box sx={{ mb: 3, p: 2, bgcolor: "background.default", border: 1, borderColor: "divider", borderRadius: 1 }}>
           <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start", flexWrap: "wrap", mb: 1 }}>
             <Box data-campo="fecha">

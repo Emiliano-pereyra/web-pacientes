@@ -139,14 +139,16 @@ export default function SeccionVista({ paciente, seccionKey, onEditar, onVerHist
         <Typography variant="h6" component="h2">
           {seccion.titulo}
         </Typography>
-        <Button
-          size="small"
-          startIcon={<EditIcon />}
-          onClick={() => onEditar(seccionKey)}
-          aria-label={`Editar ${seccion.titulo}`}
-        >
-          Editar
-        </Button>
+        {onEditar && (
+          <Button
+            size="small"
+            startIcon={<EditIcon />}
+            onClick={() => onEditar(seccionKey)}
+            aria-label={`Editar ${seccion.titulo}`}
+          >
+            Editar
+          </Button>
+        )}
       </Box>
 
       {seccion.esMMSE ? (

@@ -6,6 +6,7 @@ import {
   Avatar,
   Box,
   Button,
+  Chip,
   InputAdornment,
   List,
   ListItemButton,
@@ -19,6 +20,7 @@ import {
 import SearchIcon from "@mui/icons-material/Search";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import { plural } from "@/lib/cliente/formato";
+import { etiquetaFallecido } from "@/lib/paciente/logica";
 
 const normalizar = (s) =>
   String(s || "")
@@ -34,12 +36,16 @@ function iniciales(nombre) {
 /** Pantalla de inicio: todos los pacientes, con búsqueda por nombre o DNI. */
 export default function ListaPacientes({ pacientes, cargando, error, onReintentar, onElegir, onCrear }) {
   const [filtro, setFiltro] = useState("");
+  const [verBajas, setVerBajas] = useState(false);
+  const cantidadBajas = pacientes.filter((p) => p.deBaja).length;
 
+  // Los dados de baja se ocultan salvo que se pidan; al buscar se muestran todos
   const visibles = useMemo(() => {
     const q = normalizar(filtro.trim());
-    if (!q) return pacientes;
+    if (!q) return verBajas ? pacientes : pacientes.filter((p) => !p.deBaja);
     return pacientes.filter((p) => normalizar(p.nombreVisible).includes(q) || p.dni.includes(q));
-  }, [pacientes, filtro]);
+  }, [pacientes, filtro, verBajas]);
+  const activos = pacientes.length - cantidadBajas;
 
   return (
     <Paper variant="outlined" sx={{ overflow: "hidden" }}>
@@ -52,7 +58,7 @@ export default function ListaPacientes({ pacientes, cargando, error, onReintenta
             <Typography variant="body2" color="text.secondary">
               {filtro.trim()
                 ? `${plural(visibles.length, "resultado")} de ${pacientes.length}`
-                : plural(pacientes.length, "paciente")}
+                : `${plural(activos, "paciente")}${cantidadBajas ? ` · ${cantidadBajas} de baja` : ""}`}
             </Typography>
           )}
         </Box>
@@ -116,30 +122,60 @@ export default function ListaPacientes({ pacientes, cargando, error, onReintenta
 
       {!cargando && !error && pacientes.length > 0 && visibles.length === 0 && (
         <Typography color="text.secondary" sx={{ px: 2.5, pb: 3 }}>
-          Ningún paciente coincide con “{filtro.trim()}”.
+          {filtro.trim() ? `Ningún paciente coincide con “${filtro.trim()}”.` : "No hay pacientes activos."}
         </Typography>
       )}
 
       {!cargando && visibles.length > 0 && (
         <List disablePadding sx={{ borderTop: 1, borderColor: "divider" }}>
           {visibles.map((p) => (
-            <ListItemButton key={p.id} divider onClick={() => onElegir(p.id)} sx={{ px: { xs: 2, sm: 2.5 } }}>
+            <ListItemButton
+              key={p.id}
+              divider
+              onClick={() => onElegir(p.id)}
+              sx={{ px: { xs: 2, sm: 2.5 }, ...(p.deBaja && { color: "text.secondary" }) }}
+            >
               <ListItemAvatar>
-                <Avatar sx={{ bgcolor: "primary.light", color: "primary.dark", fontSize: 15, fontWeight: 600 }}>
+                <Avatar
+                  sx={{
+                    bgcolor: p.deBaja ? "action.hover" : "primary.light",
+                    color: p.deBaja ? "text.secondary" : "primary.dark",
+                    fontSize: 15,
+                    fontWeight: 600,
+                  }}
+                >
                   {iniciales(p.nombreVisible)}
                 </Avatar>
               </ListItemAvatar>
               <ListItemText
-                primary={p.nombreVisible || "Sin nombre"}
+                primary={
+                  <Box component="span" sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+                    <Box component="span" sx={{ fontWeight: 500, overflowWrap: "anywhere" }}>
+                      {p.nombreVisible || "Sin nombre"}
+                    </Box>
+                    {p.deBaja && (
+                      <Chip
+                        size="small"
+                        variant="outlined"
+                        label={p.tipoBaja === "fallecimiento" ? etiquetaFallecido(p.genero) : "De baja"}
+                      />
+                    )}
+                  </Box>
+                }
                 secondary={p.dni ? `DNI ${p.dni}` : "Sin DNI"}
-                slotProps={{
-                  primary: { sx: { fontWeight: 500, overflowWrap: "anywhere" } },
-                  secondary: { sx: { fontVariantNumeric: "tabular-nums" } },
-                }}
+                slotProps={{ secondary: { sx: { fontVariantNumeric: "tabular-nums" } } }}
               />
             </ListItemButton>
           ))}
         </List>
+      )}
+
+      {!cargando && !error && cantidadBajas > 0 && !filtro.trim() && (
+        <Box sx={{ px: { xs: 2, sm: 2.5 }, py: 1 }}>
+          <Button size="small" color="inherit" onClick={() => setVerBajas((v) => !v)} sx={{ color: "text.secondary" }}>
+            {verBajas ? "Ocultar dados de baja" : `Mostrar dados de baja (${cantidadBajas})`}
+          </Button>
+        </Box>
       )}
     </Paper>
   );

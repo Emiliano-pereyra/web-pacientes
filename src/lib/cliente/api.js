@@ -53,6 +53,8 @@ export const api = {
   listarEvoluciones: (id) => pedir(`${pac(id)}/evoluciones`),
   agregarEvolucion: (id, evolucion) => pedir(`${pac(id)}/evoluciones`, { method: "POST", json: evolucion }),
   historial: (id, campo) => pedir(`${pac(id)}/historial${campo ? `?campo=${encodeURIComponent(campo)}` : ""}`),
+  darDeBaja: (id, datos) => pedir(`${pac(id)}/baja`, { method: "POST", json: datos }),
+  reactivar: (id, motivo) => pedir(`${pac(id)}/baja`, { method: "DELETE", json: { motivo } }),
   listarFotos: (id) => pedir(`${pac(id)}/fotos/listar`),
   subirFoto: (id, formData) => pedir(`${pac(id)}/fotos`, { method: "POST", body: formData }),
   eliminarFotos: (id, fotoIds) => pedir(`${pac(id)}/fotos/eliminar`, { method: "DELETE", json: { fotoIds } }),

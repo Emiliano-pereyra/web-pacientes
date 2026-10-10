@@ -37,7 +37,7 @@ tratamiento      { tratamientoBase, fechaTratamientoBase, tratamientoActual }
 valoracionSocial / valoracionMental (MMSE: respuesta + puntaje por ítem) / valoracionFuncional
 familia          { apoderadoNombre, apoderadoDni, apoderadoParentesco, residenteNombre, consentimientoTexto }
 interconsulta    { fecha, especialidad, motivo, informe }
-fotoPerfilPath, galeriaFotos [{ id, path, tipo, ... }], ultimaModificacion, creadoEn, actualizadoEn, schemaVersion
+fotoPerfilPath, galeriaFotos [{ id, path, tipo, ... }], estado, baja, ultimaModificacion, creadoEn, actualizadoEn, schemaVersion
 ```
 
 ### Fotos y archivos
@@ -58,6 +58,22 @@ Subcolecciones (solo se agregan, nunca se editan ni borran):
 
 - `evoluciones` → `{ texto, fecha, profesional, creadoEn }`
 - `historial` → `{ seccion, cambios: [{ campo, anterior, nuevo }], profesional, creadoEn }`
+
+### Baja del paciente
+
+La baja es **lógica**: la historia clínica nunca se borra (Ley 26.529). Se guarda
+`estado: "baja"` y `baja: { tipo, motivo, fecha, profesional, profesionalUid, fallecimiento?, institucion? }`.
+
+| Tipo | Datos |
+|---|---|
+| Fallecimiento | Fecha (obligatoria); hora, lugar, causa, notificado a / cuándo y observaciones (opcionales, texto libre). Se guarda la edad al fallecer. |
+| Alta · Traslado o derivación · Decisión del paciente o la familia · Otro | Motivo (texto libre, obligatorio); en traslado, institución de destino. |
+
+- Un paciente de baja es de solo lectura (se ve e imprime; la API rechaza ediciones, evoluciones
+  y archivos), no aparece en la lista salvo que se pida, y su PDF lo indica.
+- Las bajas que no son por fallecimiento se pueden **reactivar** (reingreso). Un fallecimiento solo
+  lo puede **anular un admin**, como error de carga y con motivo obligatorio.
+- Todo queda en el historial del paciente y en el registro de accesos.
 
 La edad no se guarda: se calcula a partir de la fecha de nacimiento.
 Las fechas clínicas se guardan como `YYYY-MM-DD`; las de sistema en ISO completo.

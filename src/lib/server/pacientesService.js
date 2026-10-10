@@ -17,7 +17,11 @@ import {
   calcularCambios,
   edadDePaciente,
   esVacio,
+  estaDeBaja,
   hoyISO,
+  MOTIVO_BAJA_MIN,
+  resumenBaja,
+  validarBaja,
   normalizarFecha,
   resultadoMMSE,
   validarSeccion,
@@ -31,6 +35,13 @@ export { ErrorNegocio, respuestaError } from "@/lib/server/errores";
 export const pacientesRef = () => adminDb.collection("pacientes").doc("lista").collection("nombresPacientes");
 export const pacienteRef = (id) => pacientesRef().doc(id);
 const subRef = (id, sub) => pacienteRef(id).collection(sub);
+
+/** Un paciente dado de baja es de solo lectura: se puede ver e imprimir, no modificar. */
+export function asegurarActivo(raw) {
+  if (estaDeBaja(raw)) {
+    throw new ErrorNegocio("El paciente está dado de baja. Reactivalo para modificar su historia clínica.", 409);
+  }
+}
 
 /** Campos de autoría que se guardan en historial y evoluciones. */
 function autoria(usuario) {
@@ -63,7 +74,14 @@ export async function listarPacientes() {
         (esVacio(data.nombreCompleto) ? "" : data.nombreCompleto) ||
         d.id.replace(/_/g, " ");
       const dni = getPath(data, "datosPersonales.dni") || (esVacio(data.dni) ? "" : data.dni);
-      return { id: d.id, nombreVisible: String(nombre).trim(), dni: dni || "" };
+      return {
+        id: d.id,
+        nombreVisible: String(nombre).trim(),
+        dni: dni || "",
+        deBaja: estaDeBaja(data),
+        tipoBaja: estaDeBaja(data) ? data.baja?.tipo || "otro" : null,
+        genero: getPath(data, "datosPersonales.genero") || "",
+      };
     })
     .sort((a, b) => a.nombreVisible.localeCompare(b.nombreVisible, "es"));
 }
@@ -149,7 +167,7 @@ export async function crearPaciente(entrada, { usuario, subirFoto } = {}) {
 
   if (await existeDni(valores["datosPersonales.dni"])) {
     throw new ErrorNegocio("Ya existe un paciente con ese DNI", 409, {
-      "datosPersonales.dni": "Ya existe un paciente con ese DNI",
+      "datosPersonales.dni": "Ya existe un paciente con ese DNI (si está dado de baja, reactivalo desde su ficha)",
     });
   }
 
@@ -214,6 +232,7 @@ export async function actualizarSeccion(id, seccionKey, entrada, { usuario } = {
     if (!snap.exists) throw new ErrorNegocio("Paciente no encontrado", 404);
 
     const raw = snap.data();
+    asegurarActivo(raw);
     const legacy = esDocumentoLegacy(raw);
     const { doc: canonico, evoluciones, historial } = migrarDocumento(raw);
 
@@ -276,6 +295,7 @@ export async function agregarEvolucion(id, { texto, fecha }, { usuario } = {}) {
     const snap = await tx.get(ref);
     if (!snap.exists) throw new ErrorNegocio("Paciente no encontrado", 404);
     const raw = snap.data();
+    asegurarActivo(raw);
     pacienteNombre = getPath(raw, "datosPersonales.nombreCompleto") || raw.nombreCompleto || "";
     if (esDocumentoLegacy(raw)) {
       const { doc: canonico, evoluciones, historial } = migrarDocumento(raw);
@@ -291,4 +311,111 @@ export async function agregarEvolucion(id, { texto, fecha }, { usuario } = {}) {
   });
 
   return { id: evolRef.id, pacienteNombre };
+}
+
+// ---------------------------------------------------------------
+// Baja y reactivación (la historia clínica nunca se borra)
+// ---------------------------------------------------------------
+
+/** Lee el paciente dentro de la transacción; si es del modelo viejo lo deja migrado. */
+function prepararDocumento(tx, id, ref, raw, ahora) {
+  if (!esDocumentoLegacy(raw)) return;
+  const { doc: canonico, evoluciones, historial } = migrarDocumento(raw);
+  canonico.migradoEn = ahora;
+  tx.set(ref, canonico);
+  evoluciones.forEach((e) => tx.set(subRef(id, "evoluciones").doc(), { ...e, creadoEn: ahora }));
+  historial.forEach((h) => tx.set(subRef(id, "historial").doc(), { ...h, creadoEn: ahora }));
+}
+
+const nombreDe = (raw) => getPath(raw, "datosPersonales.nombreCompleto") || raw.nombreCompleto || "";
+
+/**
+ * Da de baja al paciente. Queda de solo lectura.
+ * @param entrada { tipo, motivo, fecha, hora, lugar, causa, notificadoA, notificadoEn, institucion }
+ *                (ver validarBaja en src/lib/paciente/logica.js)
+ */
+export async function darDeBaja(id, entrada, { usuario } = {}) {
+  const autor = autoria(usuario);
+  const ref = pacienteRef(id);
+  const ahora = new Date().toISOString();
+  let pacienteNombre = "";
+  let baja = null;
+  let genero = "";
+
+  await adminDb.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    if (!snap.exists) throw new ErrorNegocio("Paciente no encontrado", 404);
+    const raw = snap.data();
+    if (estaDeBaja(raw)) throw new ErrorNegocio("El paciente ya está dado de baja", 409);
+    pacienteNombre = nombreDe(raw);
+
+    // Se valida contra el paciente (nacimiento, ingreso) ya normalizado
+    const { doc: canonico } = migrarDocumento(raw);
+    genero = getPath(canonico, "datosPersonales.genero");
+    const { valores, errores } = validarBaja(entrada, canonico);
+    if (Object.keys(errores).length) throw new ErrorNegocio("Hay datos inválidos", 400, errores);
+    baja = { ...valores, fecha: ahora, ...autor };
+
+    prepararDocumento(tx, id, ref, raw, ahora);
+    tx.update(ref, { estado: "baja", baja, actualizadoEn: ahora });
+    tx.set(subRef(id, "historial").doc(), {
+      creadoEn: ahora,
+      ...autor,
+      seccion: "baja",
+      cambios: [],
+      descripcion: `Baja del paciente. ${resumenBaja(baja, genero)}`,
+      baja,
+    });
+  });
+
+  return { pacienteNombre, resumen: resumenBaja(baja, genero) };
+}
+
+/**
+ * Deshace una baja. La baja anterior queda en el historial.
+ *  - Alta, traslado, etc.: cualquier usuario puede reactivar (el paciente reingresa).
+ *  - Fallecimiento: no se "reactiva"; solo un admin puede anularlo como error de carga,
+ *    con motivo obligatorio.
+ */
+export async function reactivar(id, { motivo } = {}, { usuario } = {}) {
+  const autor = autoria(usuario);
+  const ref = pacienteRef(id);
+  const ahora = new Date().toISOString();
+  let pacienteNombre = "";
+  let eraFallecimiento = false;
+  let motivoAnulacion = "";
+
+  await adminDb.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    if (!snap.exists) throw new ErrorNegocio("Paciente no encontrado", 404);
+    const raw = snap.data();
+    if (!estaDeBaja(raw)) throw new ErrorNegocio("El paciente no está dado de baja", 409);
+    pacienteNombre = nombreDe(raw);
+    const bajaAnterior = raw.baja || {};
+    eraFallecimiento = bajaAnterior.tipo === "fallecimiento";
+
+    if (eraFallecimiento) {
+      if (usuario.rol !== "admin") {
+        throw new ErrorNegocio("Solo un administrador puede anular la baja por fallecimiento", 403);
+      }
+      motivoAnulacion = String(motivo ?? "").trim();
+      if (motivoAnulacion.length < MOTIVO_BAJA_MIN) {
+        throw new ErrorNegocio("Indicá por qué se anula la baja", 400, { motivo: "Indicá por qué se anula la baja" });
+      }
+    }
+
+    tx.update(ref, { estado: "activo", baja: null, actualizadoEn: ahora });
+    tx.set(subRef(id, "historial").doc(), {
+      creadoEn: ahora,
+      ...autor,
+      seccion: "baja",
+      cambios: [],
+      descripcion: eraFallecimiento
+        ? `Anulación de la baja por fallecimiento (error de carga). Motivo: ${motivoAnulacion}. Baja anulada: ${resumenBaja(bajaAnterior, getPath(raw, "datosPersonales.genero"))}`
+        : `Reactivación del paciente. Baja anterior: ${resumenBaja(bajaAnterior, getPath(raw, "datosPersonales.genero"))}`,
+      bajaAnterior,
+    });
+  });
+
+  return { pacienteNombre, eraFallecimiento, motivo: motivoAnulacion };
 }

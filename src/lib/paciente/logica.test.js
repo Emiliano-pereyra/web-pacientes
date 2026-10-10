@@ -4,11 +4,16 @@ import {
   calcularEdad,
   edadDePaciente,
   esVacio,
+  estaDeBaja,
   formatearFecha,
+  MOTIVO_BAJA_MAX,
   mostrar,
   normalizarFecha,
   pacienteVacio,
   resultadoMMSE,
+  etiquetaFallecido,
+  resumenBaja,
+  validarBaja,
   validarSeccion,
   valoresDeSeccion,
 } from "./logica";
@@ -308,6 +313,118 @@ describe("cambios para el historial", () => {
     expect(calcularCambios(p, { "diagnostico.enfermedadActual": "" })).toEqual([
       { campo: "diagnostico.enfermedadActual", anterior: "HTA", nuevo: null },
     ]);
+  });
+});
+
+// ---------------------------------------------------------------
+describe("baja del paciente", () => {
+  it("un paciente nuevo está activo y sin baja", () => {
+    const p = pacienteVacio();
+    expect(p.estado).toBe("activo");
+    expect(p.baja).toBeNull();
+    expect(estaDeBaja(p)).toBe(false);
+  });
+
+  it("detecta la baja", () => {
+    expect(estaDeBaja({ estado: "baja" })).toBe(true);
+    expect(estaDeBaja({})).toBe(false); // pacientes viejos sin estado = activos
+    expect(estaDeBaja(null)).toBe(false);
+  });
+
+  const HOY = "2026-10-10";
+  const paciente = (() => {
+    const p = pacienteVacio();
+    setPath(p, "datosPersonales.fechaNacimiento", "1938-05-20");
+    setPath(p, "datosPersonales.fechaIngreso", "2024-01-15");
+    return p;
+  })();
+  const baja = (entrada) => validarBaja(entrada, paciente, { hoy: HOY });
+
+  it("el tipo es obligatorio", () => {
+    expect(baja({}).errores).toEqual({ tipo: "Elegí el tipo de baja" });
+  });
+
+  describe("fallecimiento", () => {
+    it("solo la fecha es obligatoria; calcula la edad al fallecer", () => {
+      const { valores, errores } = baja({ tipo: "fallecimiento", fecha: "2026-09-12" });
+      expect(errores).toEqual({});
+      expect(valores.fallecimiento).toMatchObject({ fecha: "2026-09-12", edad: 88, lugar: "", causa: "" });
+    });
+
+    it("lugar y causa son texto libre", () => {
+      const { valores, errores } = baja({
+        tipo: "fallecimiento",
+        fecha: "2026-09-12",
+        hora: "03:40",
+        lugar: "  Hospital Fernández, guardia ",
+        causa: "Paro cardiorrespiratorio no traumático.\nInsuficiencia cardíaca.",
+        notificadoA: "Hija (apoderada)",
+        notificadoEn: "2026-09-12",
+      });
+      expect(errores).toEqual({});
+      expect(valores.fallecimiento).toMatchObject({
+        hora: "03:40",
+        lugar: "Hospital Fernández, guardia",
+        causa: "Paro cardiorrespiratorio no traumático.\nInsuficiencia cardíaca.",
+        notificadoA: "Hija (apoderada)",
+      });
+    });
+
+    it.each([
+      [{}, "Indicá la fecha del fallecimiento"],
+      [{ fecha: "2026-10-11" }, "La fecha no puede ser futura"],
+      [{ fecha: "1930-01-01" }, "La fecha es anterior al nacimiento"],
+      [{ fecha: "2023-12-31" }, "La fecha es anterior al ingreso"],
+    ])("fecha inválida %j", (extra, mensaje) => {
+      expect(baja({ tipo: "fallecimiento", ...extra }).errores.fecha).toBe(mensaje);
+    });
+
+    it("hora inválida y notificación anterior al fallecimiento", () => {
+      const { errores } = baja({ tipo: "fallecimiento", fecha: "2026-09-12", hora: "25:00", notificadoEn: "2026-09-11" });
+      expect(errores.hora).toBe("Hora inválida");
+      expect(errores.notificadoEn).toBe("Es anterior al fallecimiento");
+    });
+
+    it("las observaciones son opcionales", () => {
+      expect(baja({ tipo: "fallecimiento", fecha: "2026-09-12", motivo: "" }).errores).toEqual({});
+    });
+  });
+
+  describe("otros tipos", () => {
+    it("el motivo es obligatorio (texto libre) y se recortan los espacios", () => {
+      expect(baja({ tipo: "alta", motivo: "   " }).errores.motivo).toBe("Escribí el motivo de la baja");
+      expect(baja({ tipo: "alta", motivo: "abc" }).errores.motivo).toBe("Escribí el motivo de la baja");
+      expect(baja({ tipo: "alta", motivo: "  Alta médica  " }).valores).toEqual({ tipo: "alta", motivo: "Alta médica" });
+    });
+
+    it("traslado guarda la institución de destino", () => {
+      const { valores, errores } = baja({ tipo: "traslado", motivo: "Requiere tercer nivel", institucion: "Hospital Italiano" });
+      expect(errores).toEqual({});
+      expect(valores.institucion).toBe("Hospital Italiano");
+    });
+
+    it("el motivo tiene un largo máximo", () => {
+      expect(baja({ tipo: "otro", motivo: "x".repeat(MOTIVO_BAJA_MAX) }).errores).toEqual({});
+      expect(baja({ tipo: "otro", motivo: "x".repeat(MOTIVO_BAJA_MAX + 1) }).errores.motivo).toMatch(/No puede superar/);
+    });
+  });
+
+  describe("textos", () => {
+    it("fallecida/o según el género", () => {
+      expect(etiquetaFallecido("Femenino")).toBe("Fallecida");
+      expect(etiquetaFallecido("Masculino")).toBe("Fallecido");
+      expect(etiquetaFallecido("")).toBe("Fallecida/o");
+    });
+
+    it("resumen de un fallecimiento", () => {
+      const b = baja({ tipo: "fallecimiento", fecha: "2026-09-12", hora: "03:40", lugar: "En la residencia" }).valores;
+      expect(resumenBaja(b, "Femenino")).toBe("Fallecida el 12/09/2026 a las 03:40 · a los 88 años · Lugar: En la residencia");
+    });
+
+    it("resumen de un traslado", () => {
+      const b = baja({ tipo: "traslado", motivo: "Requiere tercer nivel", institucion: "Hospital Italiano" }).valores;
+      expect(resumenBaja(b)).toBe("Traslado o derivación a Hospital Italiano: Requiere tercer nivel");
+    });
   });
 });
 

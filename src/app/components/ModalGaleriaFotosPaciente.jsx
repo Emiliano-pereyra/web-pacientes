@@ -42,7 +42,16 @@ const TIPOS_LABELS = {
   otros: "Otros",
 };
 
-export default function ModalGaleriaFotosPaciente({ open, onClose, pacienteId, patientName, onDeleted, onSubir }) {
+/** `soloLectura` (paciente dado de baja): se ven y abren los archivos, pero no se suben ni borran. */
+export default function ModalGaleriaFotosPaciente({
+  open,
+  onClose,
+  pacienteId,
+  patientName,
+  onDeleted,
+  onSubir,
+  soloLectura = false,
+}) {
   const confirmar = useConfirmar();
   const [fotos, setFotos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -134,21 +143,23 @@ export default function ModalGaleriaFotosPaciente({ open, onClose, pacienteId, p
             "@media (hover: hover) and (pointer: fine)": { "&:hover": { boxShadow: 3 } },
           }}
         >
-          <Checkbox
-            checked={isSelected}
-            onChange={() => toggle(foto.id)}
-            size="small"
-            slotProps={{ input: { "aria-label": `Seleccionar ${nombre}` } }}
-            sx={{
-              position: "absolute",
-              top: 6,
-              left: 6,
-              zIndex: 2,
-              p: 0.5,
-              bgcolor: "rgba(255,255,255,0.92)",
-              "&:hover": { bgcolor: "#fff" },
-            }}
-          />
+          {!soloLectura && (
+            <Checkbox
+              checked={isSelected}
+              onChange={() => toggle(foto.id)}
+              size="small"
+              slotProps={{ input: { "aria-label": `Seleccionar ${nombre}` } }}
+              sx={{
+                position: "absolute",
+                top: 6,
+                left: 6,
+                zIndex: 2,
+                p: 0.5,
+                bgcolor: "rgba(255,255,255,0.92)",
+                "&:hover": { bgcolor: "#fff" },
+              }}
+            />
+          )}
 
           <CardActionArea
             component="a"
@@ -270,6 +281,7 @@ export default function ModalGaleriaFotosPaciente({ open, onClose, pacienteId, p
 
         {!loading && !error && fotos.length > 0 && (
           <>
+            {!soloLectura && (
             <Box
               sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2, flexWrap: "wrap", gap: 1 }}
             >
@@ -302,6 +314,7 @@ export default function ModalGaleriaFotosPaciente({ open, onClose, pacienteId, p
                 </Button>
               </Box>
             </Box>
+            )}
 
             <Grid container spacing={2}>
               {fotos.map(renderFotoCard)}

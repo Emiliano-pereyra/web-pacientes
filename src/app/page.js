@@ -19,6 +19,7 @@ import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import PrintIcon from "@mui/icons-material/Print";
 import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import PersonOffIcon from "@mui/icons-material/PersonOff";
 import { toast } from "sonner";
 import { useSearchParams } from "next/navigation";
 
@@ -30,10 +31,13 @@ import ModalCrearPaciente from "./components/ModalCrearPaciente";
 import ModalSubirFotoPaciente from "./components/modalSubirFotos";
 import ModalGaleriaFotosPaciente from "./components/ModalGaleriaFotosPaciente";
 import ModalAccesosPaciente from "./components/admin/ModalAccesosPaciente";
+import ModalBajaPaciente from "./components/paciente/ModalBajaPaciente";
+import AvisoBaja from "./components/paciente/AvisoBaja";
 import Barra from "./components/Barra";
 import Protegido, { Cargando } from "./components/Protegido";
 import { useSesion } from "./components/auth/Sesion";
 import { PESTANAS } from "@/lib/paciente/schema";
+import { estaDeBaja, etiquetaFallecido } from "@/lib/paciente/logica";
 import { api } from "@/lib/cliente/api";
 
 const PESTANA_EVOLUCIONES = PESTANAS.findIndex((p) => p.conEvoluciones);
@@ -194,10 +198,18 @@ function Inicio() {
   };
   const atenderPedidoEvolucion = useCallback(() => setPedidoEvolucion(false), []);
 
+  // Paciente dado de baja: solo lectura (se ve e imprime, no se modifica)
+  const deBaja = estaDeBaja(paciente);
+
+  const alCambiarEstado = async () => {
+    setModal(null);
+    await Promise.all([cargarPaciente(paciente.id), cargarLista()]);
+  };
+
   // En la pestaña de evoluciones el botón ya está en la propia sección
   const acciones = paciente && (
     <>
-      {PESTANA_EVOLUCIONES >= 0 && tab !== PESTANA_EVOLUCIONES && (
+      {!deBaja && PESTANA_EVOLUCIONES >= 0 && tab !== PESTANA_EVOLUCIONES && (
         <Button variant="contained" startIcon={<AddIcon />} onClick={nuevaEvolucion}>
           Nueva evolución
         </Button>
@@ -211,6 +223,11 @@ function Inicio() {
       {esAdmin && (
         <Button color="inherit" startIcon={<VisibilityIcon />} onClick={() => setModal("accesos")}>
           Accesos
+        </Button>
+      )}
+      {!deBaja && (
+        <Button color="error" startIcon={<PersonOffIcon />} onClick={() => setModal("baja")} sx={{ ml: { sm: "auto" } }}>
+          Dar de baja
         </Button>
       )}
     </>
@@ -250,7 +267,15 @@ function Inicio() {
                 return (
                   <li key={o.id} {...rest}>
                     <Box>
-                      <Typography variant="body2">{o.nombreVisible}</Typography>
+                      <Typography variant="body2">
+                        {o.nombreVisible}
+                        {o.deBaja && (
+                          <Box component="span" sx={{ color: "text.secondary" }}>
+                            {" "}
+                            ({o.tipoBaja === "fallecimiento" ? etiquetaFallecido(o.genero).toLowerCase() : "de baja"})
+                          </Box>
+                        )}
+                      </Typography>
                       {o.dni && (
                         <Typography variant="caption" color="text.secondary">
                           DNI {o.dni}
@@ -310,11 +335,13 @@ function Inicio() {
 
         {paciente && (
           <>
+            {deBaja && <AvisoBaja paciente={paciente} esAdmin={esAdmin} onCambio={alCambiarEstado} />}
+
             <EncabezadoPaciente
               paciente={paciente}
               acciones={acciones}
               onAbrirGaleria={() => setModal("galeria")}
-              onEditarDatos={() => setModal("datos")}
+              onEditarDatos={deBaja ? undefined : () => setModal("datos")}
             />
 
             <Box
@@ -343,6 +370,7 @@ function Inicio() {
                 onActualizado={alActualizar}
                 pedidoNuevaEvolucion={pedidoEvolucion}
                 onPedidoAtendido={atenderPedidoEvolucion}
+                soloLectura={deBaja}
               />
             </Box>
           </>
@@ -377,11 +405,16 @@ function Inicio() {
         <ModalGaleriaFotosPaciente
           open
           onClose={() => setModal(null)}
-          onSubir={() => setModal("subir")}
+          onSubir={deBaja ? undefined : () => setModal("subir")}
+          soloLectura={deBaja}
           pacienteId={paciente.id}
           patientName={paciente.datosPersonales?.nombreCompleto}
           onDeleted={(n) => n > 0 && cargarPaciente(paciente.id)}
         />
+      )}
+
+      {modal === "baja" && paciente && !deBaja && (
+        <ModalBajaPaciente paciente={paciente} onClose={() => setModal(null)} onHecho={alCambiarEstado} />
       )}
 
       {modal === "accesos" && paciente && esAdmin && (

@@ -12,7 +12,7 @@ import {
   claveModificacion,
   getPath,
 } from "@/lib/paciente/schema";
-import { formatearFecha, formatearFechaHora, mostrar } from "@/lib/paciente/logica";
+import { etiquetaFallecido, formatearFecha, formatearFechaHora, mostrar, resumenBaja } from "@/lib/paciente/logica";
 
 const VACIO = "—";
 
@@ -132,6 +132,17 @@ export async function generarPdf(tipo, paciente, evoluciones = [], { responsable
   const doc = await PdfDocumento.crear({ titulo: `${pestana.tituloPdf} - ${nombre}`, pieIzquierda: nombre });
 
   doc.titulo(pestana.tituloPdf);
+  if (paciente.estado === "baja" && paciente.baja) {
+    const b = paciente.baja;
+    const genero = paciente.datosPersonales?.genero;
+    const lineas = [resumenBaja(b, genero)];
+    if (b.tipo === "fallecimiento") {
+      if (b.fallecimiento?.causa) lineas.push(`Causa: ${b.fallecimiento.causa}`);
+      if (b.motivo) lineas.push(`Observaciones: ${b.motivo}`);
+    }
+    lineas.push(`Registrado el ${formatearFechaHora(b.fecha)}${b.profesional ? ` por ${b.profesional}` : ""}`);
+    doc.campo(b.tipo === "fallecimiento" ? etiquetaFallecido(genero).toUpperCase() : "PACIENTE DADO DE BAJA", lineas.join("\n"));
+  }
   encabezadoPaciente(doc, paciente, responsable);
 
   pestana.secciones.forEach((key) => renderSeccion(doc, paciente, key));
