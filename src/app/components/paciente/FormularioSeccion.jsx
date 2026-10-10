@@ -6,6 +6,8 @@ import { SECCIONES } from "@/lib/paciente/schema";
 export function CampoFormulario({ campo, valor, error, onChange, disabled }) {
   const comunes = {
     label: campo.label + (campo.requerido ? " *" : ""),
+    name: campo.path,
+    autoComplete: "off",
     value: valor ?? "",
     onChange: (e) => onChange(campo.path, e.target.value),
     error: Boolean(error),
@@ -81,7 +83,7 @@ export default function FormularioSeccion({ seccionKey, valores, errores = {}, o
               }}
             >
               {g.campos.map((c) => (
-                <Box key={c.path} sx={{ gridColumn: c.tipo === "textarea" ? "1 / -1" : "auto" }}>
+                <Box key={c.path} data-campo={c.path} sx={{ gridColumn: c.tipo === "textarea" ? "1 / -1" : "auto" }}>
                   <CampoFormulario
                     campo={c}
                     valor={valores[c.path]}

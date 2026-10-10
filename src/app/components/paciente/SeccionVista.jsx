@@ -1,6 +1,19 @@
 "use client";
 
-import { Box, Button, Chip, Paper, Table, TableBody, TableCell, TableHead, TableRow, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Chip,
+  IconButton,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Tooltip,
+  Typography,
+} from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import HistoryIcon from "@mui/icons-material/History";
 import { MMSE_ITEMS, SECCIONES, claveModificacion, getPath } from "@/lib/paciente/schema";
@@ -16,22 +29,26 @@ function valorVisible(paciente, c) {
 function Campo({ paciente, campo, onVerHistorial }) {
   const largo = campo.tipo === "textarea";
   const mod = campo.conHistorial ? paciente.ultimaModificacion?.[claveModificacion(campo.path)] : null;
+  const ayuda = mod ? `Ver historial · última modificación ${formatearFechaHora(mod)}` : "Ver historial";
   return (
     <Box sx={{ gridColumn: largo ? "1 / -1" : "auto", minWidth: 0 }}>
-      <Typography variant="caption" color="text.secondary" component="div">
-        {campo.label}
-        {mod && ` · últ. modificación ${formatearFechaHora(mod)}`}
+      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, minHeight: 28 }}>
+        <Typography variant="caption" color="text.secondary" component="div" sx={{ fontWeight: 500 }}>
+          {campo.label}
+        </Typography>
         {campo.conHistorial && (
-          <Button
-            size="small"
-            startIcon={<HistoryIcon fontSize="inherit" />}
-            onClick={() => onVerHistorial(campo.path)}
-            sx={{ ml: 1, py: 0, minWidth: 0, fontSize: 12 }}
-          >
-            historial
-          </Button>
+          <Tooltip title={ayuda}>
+            <IconButton
+              size="small"
+              aria-label={`${ayuda} de ${campo.label}`}
+              onClick={() => onVerHistorial(campo.path)}
+              sx={{ color: mod ? "primary.main" : "text.disabled" }}
+            >
+              <HistoryIcon sx={{ fontSize: 18 }} />
+            </IconButton>
+          </Tooltip>
         )}
-      </Typography>
+      </Box>
       <Typography variant="body2" sx={{ whiteSpace: largo ? "pre-wrap" : "normal", overflowWrap: "anywhere" }}>
         {valorVisible(paciente, campo)}
       </Typography>
@@ -97,10 +114,17 @@ export default function SeccionVista({ paciente, seccionKey, onEditar, onVerHist
   const variosGrupos = seccion.grupos.length > 1;
 
   return (
-    <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
-        <Typography variant="h6">{seccion.titulo}</Typography>
-        <Button size="small" variant="outlined" startIcon={<EditIcon />} onClick={() => onEditar(seccionKey)}>
+    <Paper variant="outlined" sx={{ p: { xs: 2, sm: 2.5 }, mb: 2 }}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5} gap={1}>
+        <Typography variant="h6" component="h2">
+          {seccion.titulo}
+        </Typography>
+        <Button
+          size="small"
+          startIcon={<EditIcon />}
+          onClick={() => onEditar(seccionKey)}
+          aria-label={`Editar ${seccion.titulo.toLowerCase()}`}
+        >
           Editar
         </Button>
       </Box>

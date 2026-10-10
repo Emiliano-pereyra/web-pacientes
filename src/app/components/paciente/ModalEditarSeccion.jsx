@@ -1,23 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Alert, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
-import Swal from "sweetalert2";
+import { toast } from "sonner";
 import FormularioSeccion from "./FormularioSeccion";
 import { SECCIONES } from "@/lib/paciente/schema";
 import { valoresDeSeccion } from "@/lib/paciente/logica";
 import { api } from "@/lib/cliente/api";
+import { enfocarPrimerError, useCambiosSinGuardar } from "@/lib/cliente/formularios";
 
 /**
  * Edita una sección del paciente. Se monta con los datos actuales del paciente
  * (el padre lo renderiza solo cuando está abierto, así siempre arranca precargado).
+ * Si hay cambios sin guardar, pregunta antes de cerrar.
  */
 export default function ModalEditarSeccion({ paciente, seccionKey, onClose, onSaved }) {
   const seccion = SECCIONES[seccionKey];
-  const [valores, setValores] = useState(() => valoresDeSeccion(paciente, seccionKey));
+  const iniciales = useMemo(() => valoresDeSeccion(paciente, seccionKey), [paciente, seccionKey]);
+  const [valores, setValores] = useState(iniciales);
   const [errores, setErrores] = useState({});
   const [error, setError] = useState("");
   const [guardando, setGuardando] = useState(false);
+
+  const hayCambios = Object.keys(valores).some((k) => (valores[k] ?? "") !== (iniciales[k] ?? ""));
+  const pedirCierre = useCambiosSinGuardar(hayCambios && !guardando);
 
   const onChange = (path, valor) => {
     setValores((prev) => ({ ...prev, [path]: valor }));
@@ -31,26 +37,25 @@ export default function ModalEditarSeccion({ paciente, seccionKey, onClose, onSa
       const { cambios, paciente: actualizado } = await api.actualizarSeccion(paciente.id, seccionKey, valores);
       onSaved?.(actualizado);
       onClose();
-      Swal.fire({
-        icon: "success",
-        title: cambios ? "Cambios guardados" : "Sin cambios",
-        timer: 1400,
-        showConfirmButton: false,
-      });
+      if (cambios) toast.success(`${seccion.titulo}: cambios guardados`);
+      else toast.info("No había cambios para guardar");
     } catch (e) {
-      setError(e.message);
-      if (e.detalles) setErrores(e.detalles);
+      setError(e.detalles ? "Revisá los campos marcados en rojo." : e.message);
+      if (e.detalles) {
+        setErrores(e.detalles);
+        enfocarPrimerError(e.detalles);
+      }
     } finally {
       setGuardando(false);
     }
   };
 
   return (
-    <Dialog open onClose={guardando ? undefined : onClose} maxWidth="md" fullWidth>
+    <Dialog open onClose={guardando ? undefined : () => pedirCierre(onClose)} maxWidth="md" fullWidth>
       <DialogTitle>Editar {seccion.titulo.toLowerCase()}</DialogTitle>
       <DialogContent dividers>
         {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
+          <Alert severity="error" sx={{ mb: 2 }} role="alert">
             {error}
           </Alert>
         )}
@@ -62,12 +67,17 @@ export default function ModalEditarSeccion({ paciente, seccionKey, onClose, onSa
           disabled={guardando}
         />
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} disabled={guardando}>
+      <DialogActions sx={{ px: 3, py: 1.5 }}>
+        <Button onClick={() => pedirCierre(onClose)} disabled={guardando}>
           Cancelar
         </Button>
-        <Button variant="contained" onClick={guardar} disabled={guardando}>
-          {guardando ? <CircularProgress size={22} /> : "Guardar"}
+        <Button
+          variant="contained"
+          onClick={guardar}
+          disabled={guardando}
+          startIcon={guardando ? <CircularProgress size={18} color="inherit" /> : null}
+        >
+          {guardando ? "Guardando…" : "Guardar cambios"}
         </Button>
       </DialogActions>
     </Dialog>

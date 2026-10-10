@@ -15,27 +15,38 @@ import {
   Toolbar,
   Typography,
 } from "@mui/material";
-import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
+import AddIcon from "@mui/icons-material/Add";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import PrintIcon from "@mui/icons-material/Print";
 import PhotoLibraryIcon from "@mui/icons-material/PhotoLibrary";
-import Swal from "sweetalert2";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
+import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
+import { toast } from "sonner";
 import { useSearchParams } from "next/navigation";
 
 import PestanaPaciente from "./components/paciente/PestanaPaciente";
+import EncabezadoPaciente from "./components/paciente/EncabezadoPaciente";
+import ListaPacientes from "./components/ListaPacientes";
 import ModalCrearPaciente from "./components/ModalCrearPaciente";
 import ModalSubirFotoPaciente from "./components/modalSubirFotos";
 import ModalGaleriaFotosPaciente from "./components/ModalGaleriaFotosPaciente";
 import ProfesionalActual from "./components/ProfesionalActual";
+import { ConfirmacionProvider } from "./components/ui/Confirmacion";
 import { SesionProvider, useSesion } from "./components/auth/Sesion";
 import { PantallaIngreso, PantallaSinAcceso } from "./components/auth/PantallaIngreso";
 import { PESTANAS } from "@/lib/paciente/schema";
 import { api } from "@/lib/cliente/api";
 
+const PESTANA_EVOLUCIONES = PESTANAS.findIndex((p) => p.conEvoluciones);
+
 function Barra() {
   return (
-    <AppBar position="static" color="default" elevation={1}>
-      <Toolbar sx={{ gap: 2 }}>
-        <Typography variant="h6" sx={{ flexGrow: 1 }}>
-          Panel — Pacientes
+    <AppBar position="sticky">
+      <Toolbar sx={{ gap: 2, minHeight: { xs: 56, sm: 60 } }}>
+        <LocalHospitalIcon color="primary" aria-hidden />
+        <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 700 }}>
+          Pacientes
         </Typography>
         <ProfesionalActual />
       </Toolbar>
@@ -45,43 +56,69 @@ function Barra() {
 
 function Cargando() {
   return (
-    <Container maxWidth={false} disableGutters>
+    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
       <Barra />
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
-        <CircularProgress />
+        <CircularProgress aria-label="Cargando" />
       </Box>
-    </Container>
+    </Box>
   );
 }
 
-function actualizarUrl(id) {
+/** Refleja en la URL el paciente y la pestaña abiertos (se pueden compartir y recargar). */
+function actualizarUrl(id, pestanaId) {
   const params = new URLSearchParams(window.location.search);
   if (id) params.set("paciente", id);
   else params.delete("paciente");
+  if (id && pestanaId) params.set("pestana", pestanaId);
+  else params.delete("pestana");
   const qs = params.toString();
   window.history.replaceState({}, "", `${window.location.pathname}${qs ? `?${qs}` : ""}`);
+}
+
+async function imprimir(pestana, paciente) {
+  // La ventana se abre antes del await para que el navegador no la bloquee
+  const ventana = window.open("", "_blank");
+  const aviso = toast.loading(`Generando PDF de ${pestana.titulo.toLowerCase()}…`);
+  try {
+    const blob = await api.descargarPdf(pestana.id, paciente.id);
+    const url = URL.createObjectURL(blob);
+    if (ventana) ventana.location.href = url;
+    else window.open(url, "_blank");
+    toast.success("PDF listo", { id: aviso });
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  } catch (e) {
+    ventana?.close();
+    toast.error("No se pudo generar el PDF", { id: aviso, description: e.message });
+  }
 }
 
 function Inicio() {
   const searchParams = useSearchParams();
   const [pacientes, setPacientes] = useState([]);
   const [cargandoLista, setCargandoLista] = useState(true);
+  const [errorLista, setErrorLista] = useState("");
   const [pacienteId, setPacienteId] = useState(() => searchParams?.get("paciente") || null);
   const [paciente, setPaciente] = useState(null);
   const [cargandoPaciente, setCargandoPaciente] = useState(false);
   const [error, setError] = useState(null);
-  const [tab, setTab] = useState(0);
+  const [tab, setTab] = useState(() => {
+    const i = PESTANAS.findIndex((p) => p.id === searchParams?.get("pestana"));
+    return i >= 0 ? i : 0;
+  });
   const [modal, setModal] = useState(null); // "crear" | "foto" | "galeria"
+  const [senalEvolucion, setSenalEvolucion] = useState(0);
   const pedidoActual = useRef(0);
 
   const cargarLista = useCallback(async () => {
     setCargandoLista(true);
+    setErrorLista("");
     try {
       const lista = await api.listarPacientes();
       setPacientes(lista);
       return lista;
-    } catch {
-      Swal.fire("Error", "No se pudieron cargar los pacientes", "error");
+    } catch (e) {
+      setErrorLista(e.message || "No se pudieron cargar los pacientes");
       return [];
     } finally {
       setCargandoLista(false);
@@ -115,19 +152,28 @@ function Inicio() {
   }, [cargarLista]);
 
   useEffect(() => {
-    actualizarUrl(pacienteId);
     cargarPaciente(pacienteId);
   }, [pacienteId, cargarPaciente]);
 
+  useEffect(() => {
+    actualizarUrl(pacienteId, PESTANAS[tab]?.id);
+  }, [pacienteId, tab]);
+
+  const elegir = (id) => {
+    setPacienteId(id);
+    setTab(0);
+    window.scrollTo({ top: 0 });
+  };
+
   const seleccionado = pacientes.find((p) => p.id === pacienteId) || null;
+  const pestana = PESTANAS[tab];
 
   const alCrear = async (nuevoId) => {
     setModal(null);
     await cargarLista();
-    setTab(0);
     if (nuevoId === pacienteId) cargarPaciente(nuevoId);
-    else setPacienteId(nuevoId); // queda seleccionado el paciente recién creado
-    Swal.fire({ icon: "success", title: "Paciente creado", timer: 1500, showConfirmButton: false });
+    else elegir(nuevoId); // queda seleccionado el paciente recién creado
+    toast.success("Paciente creado");
   };
 
   const alActualizar = (p) => {
@@ -138,93 +184,146 @@ function Inicio() {
     if (item && (item.nombreVisible !== nombre || item.dni !== p.datosPersonales?.dni)) cargarLista();
   };
 
+  const nuevaEvolucion = () => {
+    if (PESTANA_EVOLUCIONES >= 0) setTab(PESTANA_EVOLUCIONES);
+    setSenalEvolucion((n) => n + 1);
+  };
+
+  const acciones = paciente && (
+    <>
+      {PESTANA_EVOLUCIONES >= 0 && (
+        <Button variant="contained" startIcon={<AddIcon />} onClick={nuevaEvolucion}>
+          Nueva evolución
+        </Button>
+      )}
+      <Button variant="outlined" startIcon={<PrintIcon />} onClick={() => imprimir(pestana, paciente)}>
+        Imprimir {pestana.titulo.toLowerCase()}
+      </Button>
+      <Button variant="outlined" startIcon={<PhotoLibraryIcon />} onClick={() => setModal("galeria")}>
+        Fotos
+      </Button>
+      <Button variant="outlined" startIcon={<UploadFileIcon />} onClick={() => setModal("foto")}>
+        Subir archivo
+      </Button>
+    </>
+  );
+
   return (
-    <Container maxWidth={false} disableGutters>
+    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
       <Barra />
 
-      <Box sx={{ p: 3 }}>
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3, flexWrap: "wrap", gap: 2 }}>
-          <Autocomplete
-            options={pacientes}
-            loading={cargandoLista}
-            value={seleccionado}
-            onChange={(_, nuevo) => setPacienteId(nuevo?.id || null)}
-            getOptionLabel={(o) => o?.nombreVisible || ""}
-            isOptionEqualToValue={(o, v) => o.id === v.id}
-            filterOptions={(opts, { inputValue }) => {
-              const q = inputValue.trim().toLowerCase();
-              return q ? opts.filter((o) => o.nombreVisible.toLowerCase().includes(q) || o.dni.includes(q)) : opts;
-            }}
-            renderOption={(props, o) => {
-              const { key, ...rest } = props;
-              return (
-                <li key={o.id} {...rest}>
-                  <Box>
-                    <Typography variant="body2">{o.nombreVisible}</Typography>
-                    {o.dni && (
-                      <Typography variant="caption" color="text.secondary">
-                        DNI {o.dni}
-                      </Typography>
-                    )}
-                  </Box>
-                </li>
-              );
-            }}
-            renderInput={(params) => <TextField {...params} label="Buscar paciente por nombre o DNI" />}
-            sx={{ flex: 1, maxWidth: 440 }}
-          />
-          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-            {paciente && (
-              <>
-                <Button variant="outlined" color="info" startIcon={<PhotoLibraryIcon />} onClick={() => setModal("galeria")}>
-                  Ver galería
-                </Button>
-                <Button variant="outlined" startIcon={<AddPhotoAlternateIcon />} onClick={() => setModal("foto")}>
-                  Subir foto
-                </Button>
-              </>
-            )}
-            <Button variant="contained" color="secondary" onClick={() => setModal("crear")}>
-              Crear paciente
-            </Button>
-          </Box>
+      <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 3 } }}>
+        <Box sx={{ display: "flex", alignItems: "center", mb: 2, flexWrap: "wrap", gap: 1.5 }}>
+          {pacienteId && (
+            <>
+              <Button startIcon={<ArrowBackIcon />} onClick={() => elegir(null)}>
+                Todos los pacientes
+              </Button>
+              <Autocomplete
+                options={pacientes}
+                loading={cargandoLista}
+                value={seleccionado}
+                onChange={(_, nuevo) => nuevo && elegir(nuevo.id)}
+                getOptionLabel={(o) => o?.nombreVisible || ""}
+                isOptionEqualToValue={(o, v) => o.id === v.id}
+                filterOptions={(opts, { inputValue }) => {
+                  const q = inputValue.trim().toLowerCase();
+                  return q ? opts.filter((o) => o.nombreVisible.toLowerCase().includes(q) || o.dni.includes(q)) : opts;
+                }}
+                renderOption={(props, o) => {
+                  const { key, ...rest } = props;
+                  return (
+                    <li key={o.id} {...rest}>
+                      <Box>
+                        <Typography variant="body2">{o.nombreVisible}</Typography>
+                        {o.dni && (
+                          <Typography variant="caption" color="text.secondary">
+                            DNI {o.dni}
+                          </Typography>
+                        )}
+                      </Box>
+                    </li>
+                  );
+                }}
+                renderInput={(params) => (
+                  <TextField {...params} size="small" placeholder="Cambiar de paciente…" aria-label="Cambiar de paciente" />
+                )}
+                sx={{ flex: 1, minWidth: 220, maxWidth: 380 }}
+              />
+            </>
+          )}
+          <Box sx={{ flex: 1 }} />
+          <Button variant={pacienteId ? "outlined" : "contained"} startIcon={<PersonAddIcon />} onClick={() => setModal("crear")}>
+            Nuevo paciente
+          </Button>
         </Box>
 
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
+        {!pacienteId && (
+          <ListaPacientes
+            pacientes={pacientes}
+            cargando={cargandoLista}
+            error={errorLista}
+            onReintentar={cargarLista}
+            onElegir={elegir}
+            onCrear={() => setModal("crear")}
+          />
+        )}
+
+        {pacienteId && error && (
+          <Alert
+            severity="error"
+            sx={{ mb: 2 }}
+            action={
+              <Button color="inherit" size="small" onClick={() => cargarPaciente(pacienteId)}>
+                Reintentar
+              </Button>
+            }
+          >
             {error}
           </Alert>
         )}
 
-        {!pacienteId && !error && <Alert severity="info">Seleccioná un paciente o creá uno nuevo.</Alert>}
-
         {pacienteId && cargandoPaciente && !paciente && (
-          <Box display="flex" justifyContent="center" my={4}>
-            <CircularProgress />
+          <Box display="flex" justifyContent="center" my={6}>
+            <CircularProgress aria-label="Cargando paciente" />
           </Box>
         )}
 
         {paciente && (
           <>
-            <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}>
+            <EncabezadoPaciente paciente={paciente} acciones={acciones} onAbrirGaleria={() => setModal("galeria")} />
+
+            <Box
+              sx={{
+                position: "sticky",
+                top: { xs: 56, sm: 60 },
+                zIndex: 2,
+                bgcolor: "background.default",
+                borderBottom: 1,
+                borderColor: "divider",
+                mb: 2,
+              }}
+            >
               <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" allowScrollButtonsMobile>
                 {PESTANAS.map((p) => (
                   <Tab key={p.id} label={p.titulo} />
                 ))}
               </Tabs>
             </Box>
-            <Box sx={{ opacity: cargandoPaciente ? 0.5 : 1, transition: "opacity .2s" }}>
+
+            <Box sx={{ opacity: cargandoPaciente ? 0.6 : 1, transition: "opacity 150ms ease" }}>
               <PestanaPaciente
-                key={`${paciente.id}-${PESTANAS[tab].id}`}
-                pestana={PESTANAS[tab]}
+                key={`${paciente.id}-${pestana.id}`}
+                pestana={pestana}
                 paciente={paciente}
                 onActualizado={alActualizar}
                 conEncabezadoEditable={tab === 0}
+                senalNuevaEvolucion={senalEvolucion}
               />
             </Box>
           </>
         )}
-      </Box>
+      </Container>
 
       {modal === "crear" && (
         <ModalCrearPaciente open onClose={() => setModal(null)} onCreateSuccess={alCrear} />
@@ -249,7 +348,7 @@ function Inicio() {
           onDeleted={(n) => n > 0 && cargarPaciente(paciente.id)}
         />
       )}
-    </Container>
+    </Box>
   );
 }
 
@@ -269,7 +368,9 @@ function ConSesion() {
 export default function Home() {
   return (
     <SesionProvider>
-      <ConSesion />
+      <ConfirmacionProvider>
+        <ConSesion />
+      </ConfirmacionProvider>
     </SesionProvider>
   );
 }

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Alert, Box, Button, CircularProgress, Divider, Paper, TextField, Typography } from "@mui/material";
 import GoogleIcon from "@mui/icons-material/Google";
+import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
 import {
   GoogleAuthProvider,
   sendPasswordResetEmail,
@@ -26,10 +27,13 @@ const mensajeDe = (e) => (e?.code in MENSAJES ? MENSAJES[e.code] : "No se pudo i
 function Marco({ children }) {
   return (
     <Box sx={{ minHeight: "100vh", display: "grid", placeItems: "center", p: 2, bgcolor: "background.default" }}>
-      <Paper variant="outlined" sx={{ p: 4, width: "100%", maxWidth: 400 }}>
-        <Typography variant="h5" gutterBottom>
-          Panel — Pacientes
-        </Typography>
+      <Paper variant="outlined" sx={{ p: { xs: 3, sm: 4 }, width: "100%", maxWidth: 400 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
+          <LocalHospitalIcon color="primary" aria-hidden />
+          <Typography variant="h5" component="h1">
+            Pacientes
+          </Typography>
+        </Box>
         {children}
       </Paper>
     </Box>
@@ -103,7 +107,10 @@ export function PantallaIngreso() {
         <TextField
           label="Email"
           type="email"
+          name="email"
           autoComplete="email"
+          autoFocus
+          slotProps={{ htmlInput: { spellCheck: false, autoCapitalize: "none" } }}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -111,6 +118,7 @@ export function PantallaIngreso() {
         <TextField
           label="Contraseña"
           type="password"
+          name="password"
           autoComplete="current-password"
           value={clave}
           onChange={(e) => setClave(e.target.value)}

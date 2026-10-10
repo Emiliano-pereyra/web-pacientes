@@ -16,6 +16,8 @@ import {
   Typography,
 } from "@mui/material";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
+import { enfocarPrimerError, useCambiosSinGuardar } from "@/lib/cliente/formularios";
 import FormularioSeccion from "./paciente/FormularioSeccion";
 import { SECCIONES, SECCIONES_ALTA, camposDeSeccion } from "@/lib/paciente/schema";
 import { hoyISO } from "@/lib/paciente/logica";
@@ -50,11 +52,19 @@ export default function ModalCrearPaciente({ open, onClose, onCreateSuccess }) {
     setPreview(URL.createObjectURL(f));
   };
 
+  const mostrarErrores = (detalles) => {
+    setErrores(detalles);
+    // ir a la primera pestaña con errores y enfocar el campo
+    const idx = SECCIONES_ALTA.findIndex((key) => camposDeSeccion(key).some((c) => detalles[c.path]));
+    if (idx >= 0) setTab(idx);
+    enfocarPrimerError(detalles);
+  };
+
   const guardar = async () => {
     setError("");
     if (!valores["datosPersonales.nombreCompleto"]?.trim()) {
-      setTab(0);
-      setErrores({ "datosPersonales.nombreCompleto": "El nombre completo es obligatorio" });
+      setError("Revisá los campos marcados en rojo.");
+      mostrarErrores({ "datosPersonales.nombreCompleto": "El nombre completo es obligatorio" });
       return;
     }
     setGuardando(true);
@@ -65,39 +75,44 @@ export default function ModalCrearPaciente({ open, onClose, onCreateSuccess }) {
       const { id } = await api.crearPaciente(fd);
       await onCreateSuccess(id);
     } catch (e) {
-      setError(e.message);
-      if (e.detalles) {
-        setErrores(e.detalles);
-        // ir a la primera pestaña con errores
-        const idx = SECCIONES_ALTA.findIndex((key) => camposDeSeccion(key).some((c) => e.detalles[c.path]));
-        if (idx >= 0) setTab(idx);
-      }
+      setError(e.detalles ? "Revisá los campos marcados en rojo." : e.message);
+      if (e.detalles) mostrarErrores(e.detalles);
     } finally {
       setGuardando(false);
     }
   };
 
+  const hayCambios =
+    Boolean(foto) || Object.entries(valores).some(([k, v]) => k !== "datosPersonales.fechaIngreso" && (v ?? "") !== "");
+  const pedirCierre = useCambiosSinGuardar(hayCambios && !guardando);
+
   const seccionActual = SECCIONES_ALTA[tab];
   const conError = (key) => camposDeSeccion(key).some((c) => errores[c.path]);
 
   return (
-    <Dialog open={open} onClose={guardando ? undefined : onClose} maxWidth="md" fullWidth>
-      <DialogTitle>Crear paciente</DialogTitle>
+    <Dialog open={open} onClose={guardando ? undefined : () => pedirCierre(onClose)} maxWidth="md" fullWidth>
+      <DialogTitle>Nuevo paciente</DialogTitle>
       <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" sx={{ px: 2 }}>
         {SECCIONES_ALTA.map((key) => (
-          <Tab key={key} label={SECCIONES[key].titulo} sx={conError(key) ? { color: "error.main" } : undefined} />
+          <Tab
+            key={key}
+            label={SECCIONES[key].titulo}
+            icon={conError(key) ? <ErrorOutlineIcon fontSize="small" aria-label="Tiene errores" /> : undefined}
+            iconPosition="end"
+            sx={conError(key) ? { color: "error.main" } : undefined}
+          />
         ))}
       </Tabs>
       <DialogContent dividers sx={{ minHeight: 420 }}>
         {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
+          <Alert severity="error" sx={{ mb: 2 }} role="alert">
             {error}
           </Alert>
         )}
 
         {seccionActual === "datosPersonales" ? (
           <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
-            <Avatar src={preview || undefined} sx={{ width: 72, height: 72 }} />
+            <Avatar src={preview || undefined} alt="Foto del paciente" sx={{ width: 72, height: 72 }} />
             <Button component="label" variant="outlined" startIcon={<PhotoCameraIcon />} disabled={guardando}>
               {foto ? "Cambiar foto" : "Agregar foto"}
               <input hidden type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={elegirFoto} />
@@ -129,12 +144,17 @@ export default function ModalCrearPaciente({ open, onClose, onCreateSuccess }) {
           disabled={guardando}
         />
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} disabled={guardando}>
+      <DialogActions sx={{ px: 3, py: 1.5 }}>
+        <Button onClick={() => pedirCierre(onClose)} disabled={guardando}>
           Cancelar
         </Button>
-        <Button variant="contained" onClick={guardar} disabled={guardando}>
-          {guardando ? <CircularProgress size={22} /> : "Crear paciente"}
+        <Button
+          variant="contained"
+          onClick={guardar}
+          disabled={guardando}
+          startIcon={guardando ? <CircularProgress size={18} color="inherit" /> : null}
+        >
+          {guardando ? "Creando…" : "Crear paciente"}
         </Button>
       </DialogActions>
     </Dialog>

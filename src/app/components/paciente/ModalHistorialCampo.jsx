@@ -17,6 +17,32 @@ import { campoPorPath } from "@/lib/paciente/schema";
 import { formatearFechaHora } from "@/lib/paciente/logica";
 import { api } from "@/lib/cliente/api";
 
+function Valor({ titulo, valor, tono }) {
+  const vacio = valor === null || valor === undefined || valor === "";
+  return (
+    <Box
+      sx={{
+        p: 1.5,
+        borderRadius: 1,
+        border: 1,
+        borderColor: tono === "nuevo" ? "primary.main" : "divider",
+        bgcolor: tono === "nuevo" ? "primary.light" : "background.default",
+        minWidth: 0,
+      }}
+    >
+      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+        {titulo}
+      </Typography>
+      <Typography
+        variant="body2"
+        sx={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere", color: vacio ? "text.disabled" : "text.primary" }}
+      >
+        {vacio ? "(vacío)" : String(valor)}
+      </Typography>
+    </Box>
+  );
+}
+
 /** Muestra todas las versiones anteriores de un campo (historial de solo lectura). */
 export default function ModalHistorialCampo({ pacienteId, campo, onClose }) {
   const [items, setItems] = useState(null);
@@ -53,19 +79,12 @@ export default function ModalHistorialCampo({ pacienteId, campo, onClose }) {
               {h.fechaReferencia ? ` · fecha original: ${formatearFechaHora(h.fechaReferencia)}` : ""}
             </Typography>
             {h.cambios.map((c, j) => (
-              <Box key={j} sx={{ mt: 1 }}>
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  Valor anterior
-                </Typography>
-                <Typography variant="body2" sx={{ whiteSpace: "pre-wrap", color: "text.secondary" }}>
-                  {c.anterior ?? "(vacío)"}
-                </Typography>
-                <Typography variant="body2" sx={{ fontWeight: 600, mt: 1 }}>
-                  Valor nuevo
-                </Typography>
-                <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
-                  {c.nuevo ?? "(vacío)"}
-                </Typography>
+              <Box
+                key={j}
+                sx={{ mt: 1, display: "grid", gap: 1, gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" } }}
+              >
+                <Valor titulo="Antes" valor={c.anterior} tono="anterior" />
+                <Valor titulo="Después" valor={c.nuevo} tono="nuevo" />
               </Box>
             ))}
           </Box>
