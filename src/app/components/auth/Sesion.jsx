@@ -9,7 +9,7 @@ import { api } from "@/lib/cliente/api";
  * Sesión del usuario.
  * estado: "cargando" | "sinSesion" | "sinAcceso" | "lista"
  *  - sinAcceso: inició sesión en Firebase pero no está dado de alta (o está inactivo).
- * aviso: por qué se cerró la sesión (p. ej. inactividad), para mostrarlo en la pantalla de ingreso.
+ * aviso: por qué se cerró la sesión (p. ej. cierre al terminar el día), para mostrarlo en la pantalla de ingreso.
  */
 const SesionContext = createContext(null);
 
@@ -70,7 +70,7 @@ export function SesionProvider({ children }) {
     [],
   );
 
-  /** Cierra la sesión. `motivo` (p. ej. "Tu sesión se cerró por inactividad.") se muestra al volver a entrar. */
+  /** Cierra la sesión. `motivo` (p. ej. "Tu sesión se cerró al terminar el día.") se muestra al volver a entrar. */
   const salir = useCallback((motivo = "") => {
     guardarMotivoCierre(typeof motivo === "string" ? motivo : "");
     return signOut(auth);

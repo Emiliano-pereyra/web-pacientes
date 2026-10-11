@@ -1,16 +1,16 @@
 "use client";
 
 import { SesionProvider } from "./components/auth/Sesion";
-import ControlInactividad from "./components/auth/ControlInactividad";
+import ControlCierreDiario from "./components/auth/ControlCierreDiario";
 import { ConfirmacionProvider } from "./components/ui/Confirmacion";
 
-/** Estado compartido por todas las páginas: sesión, cierre por inactividad y diálogo de confirmación. */
+/** Estado compartido por todas las páginas: sesión, cierre diario y diálogo de confirmación. */
 export default function Providers({ children }) {
   return (
     <SesionProvider>
       <ConfirmacionProvider>
         {children}
-        <ControlInactividad />
+        <ControlCierreDiario />
       </ConfirmacionProvider>
     </SesionProvider>
   );
