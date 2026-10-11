@@ -13,6 +13,15 @@ npm test        # tests de la lógica clínica (Vitest)
 Los tests (`src/**/*.test.js`) cubren edad, MMSE, validaciones de DNI y fechas,
 cálculo de cambios para el historial y la migración del modelo viejo.
 
+## Manual de usuario
+
+[`docs/manual/Manual de usuario - Pacientes.pdf`](docs/manual/). Se arma desde `docs/manual/manual.html`
+(capturas en `img/`, con datos ficticios) y se regenera en Windows con Microsoft Edge:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File docs/manual/generar.ps1
+```
+
 ## Estructura
 
 | Ruta | Qué hay |
@@ -112,6 +121,8 @@ Todas las rutas exigen `Authorization: Bearer <token de Firebase Auth>` de un us
 - Solo entran los usuarios de la colección `usuarios/{uid}`
   (`email, nombre, matricula, rol, profesionalUid, activo`).
 - El servidor usa Firebase Admin; las reglas de Firestore y Storage niegan todo acceso directo.
+- Las sesiones se cierran a la medianoche (hora del dispositivo) del día en que se ingresó, con
+  aviso 10 minutos antes (`src/lib/cliente/cierreDiario.js`).
 
 | Rol | Matrícula | Permisos | En los PDF figura |
 |---|---|---|---|

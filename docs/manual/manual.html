@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Manual de usuario: Pacientes</title>
+<style>
+  @page { size: A4; margin: 18mm 18mm 20mm; }
+  :root { --primario: #0e6377; --texto: #1f2937; --suave: #5b6472; --borde: #dde3e8; --fondo: #f3f7f9; }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI", Inter, Arial, sans-serif; color: var(--texto); font-size: 10.5pt; line-height: 1.5; margin: 0; background: #fff; }
+  h1 { font-size: 26pt; margin: 0 0 6pt; color: var(--primario); letter-spacing: -0.5px; }
+  h2 + p, h2 + figure { break-before: avoid; }
+  h2 { font-size: 15pt; color: var(--primario); margin: 0 0 8pt; padding-bottom: 4pt; border-bottom: 2px solid var(--primario); break-after: avoid; }
+  section { margin-bottom: 16pt; }
+  .nueva { break-before: page; }
+  p { margin: 0 0 7pt; }
+  ol, ul { margin: 0 0 8pt; padding-left: 18pt; }
+  li { margin-bottom: 3pt; }
+  b { color: #111827; }
+  .nota { background: var(--fondo); border-left: 3px solid var(--primario); padding: 6pt 9pt; border-radius: 0 4pt 4pt 0; margin: 8pt 0; }
+  .alerta { border-left-color: #c62828; background: #fdf3f3; }
+  figure { margin: 10pt auto 12pt; text-align: center; break-inside: avoid; }
+  figure img { max-width: 100%; max-height: 105mm; border: 1px solid var(--borde); border-radius: 6pt; }
+  figure.chica img { max-height: 85mm; }
+  figcaption { font-size: 8.5pt; color: var(--suave); margin-top: 4pt; }
+  .dos { display: flex; gap: 10pt; justify-content: center; align-items: flex-start; }
+  .dos figure { margin: 8pt 0; flex: 1; }
+  .lado { display: flex; gap: 14pt; align-items: flex-start; }
+  .lado > div { flex: 1; }
+  .lado figure { margin: 0; width: 72mm; flex: none; }
+  .lado figure img { max-height: none; }
+  table { width: 100%; border-collapse: collapse; margin: 6pt 0 10pt; font-size: 9.5pt; break-inside: avoid; }
+  th, td { border: 1px solid var(--borde); padding: 5pt 7pt; text-align: left; vertical-align: top; }
+  th { background: var(--fondo); color: var(--primario); }
+  .portada { height: 245mm; display: flex; flex-direction: column; justify-content: center; }
+  .portada .marca { display: flex; align-items: center; gap: 10pt; margin-bottom: 14pt; }
+  .portada .cruz { width: 34pt; height: 34pt; background: var(--primario); border-radius: 6pt; position: relative; }
+  .portada .cruz::before, .portada .cruz::after { content: ""; position: absolute; background: #fff; border-radius: 1pt; }
+  .portada .cruz::before { left: 14pt; top: 7pt; width: 6pt; height: 20pt; }
+  .portada .cruz::after { left: 7pt; top: 14pt; width: 20pt; height: 6pt; }
+  .portada .bajada { font-size: 13pt; color: var(--suave); max-width: 120mm; }
+  .indice { margin-top: 26pt; columns: 2; font-size: 10.5pt; color: var(--texto); }
+  .indice div { margin-bottom: 3pt; }
+  .pie { margin-top: auto; font-size: 8.5pt; color: var(--suave); }
+</style>
+</head>
+<body>
+
+<div class="portada">
+  <div class="marca"><div class="cruz"></div><h1>Pacientes</h1></div>
+  <p style="font-size:18pt;margin-bottom:8pt">Manual de usuario</p>
+  <p class="bajada">Cómo usar el sistema de historias clínicas, paso a paso. Funciona en computadora, iPad y celular.</p>
+  <div class="indice">
+    <div>1. Ingresar</div><div>2. Buscar, abrir y crear pacientes</div><div>3. La ficha del paciente</div>
+    <div>4. Evoluciones</div><div>5. Fotos y archivos</div><div>6. Imprimir</div>
+    <div>7. Dar de baja a un paciente</div><div>8. Cierre de sesión al final del día</div>
+    <div>9. Para administradores</div><div>10. Preguntas frecuentes</div>
+  </div>
+  <p class="pie">Octubre 2026 · Las capturas usan datos ficticios.</p>
+</div>
+
+<section class="nueva">
+  <h2>1. Ingresar</h2>
+  <ol>
+    <li>Abrí la página del sistema.</li>
+    <li>Elegí una forma de entrar:
+      <ul>
+        <li><b>Entrar con Google</b>, si tu cuenta es de Gmail.</li>
+        <li><b>Email y contraseña</b>, para cualquier otro correo.</li>
+      </ul>
+    </li>
+    <li>La primera vez con email: escribí tu email y tocá <b>Crear o recuperar mi contraseña</b>. Te llega un correo para elegirla.</li>
+  </ol>
+  <figure class="chica"><img src="img/01-ingreso.png" alt="Pantalla de ingreso"><figcaption>Pantalla de ingreso</figcaption></figure>
+  <p>Si aparece "Tu cuenta no tiene acceso al sistema", pedile a un administrador que te dé de alta.</p>
+  <p>Para salir, tocá <b>Salir</b> arriba a la derecha.</p>
+</section>
+
+<section class="nueva">
+  <h2>2. Buscar, abrir y crear pacientes</h2>
+  <p><b>Abrir un paciente:</b> en la pantalla de inicio está la lista de pacientes. Escribí el nombre o el DNI en el buscador y tocá el paciente.</p>
+  <figure><img src="img/02-lista.png" alt="Lista de pacientes"><figcaption>Lista de pacientes con el buscador y el botón Nuevo paciente</figcaption></figure>
+  <p><b>Cambiar de paciente:</b> dentro de una ficha, usá el buscador de arriba o tocá <b>Todos los pacientes</b> para volver a la lista.</p>
+  <p><b>Crear un paciente:</b></p>
+  <ol>
+    <li>Tocá <b>Nuevo paciente</b>.</li>
+    <li>Completá al menos el <b>nombre completo</b>. El resto se puede cargar ahora o después.</li>
+    <li>Si querés, agregá una foto.</li>
+    <li>Tocá <b>Crear paciente</b>.</li>
+  </ol>
+  <div class="nota">No se pueden cargar dos pacientes con el mismo DNI.</div>
+</section>
+
+<section class="nueva">
+  <h2>3. La ficha del paciente</h2>
+  <p>Arriba están los datos personales y los botones principales. Debajo, la historia clínica dividida en pestañas: <b>Antecedentes</b>, <b>Clínico Psicosocial</b>, <b>Resumen HC</b>, <b>Información Familiar / Apoderado</b> e <b>Interconsulta</b>.</p>
+  <figure class="chica"><img src="img/03-ficha.jpg" alt="Ficha del paciente"><figcaption>Ficha: datos personales, botones principales y pestañas de la historia clínica</figcaption></figure>
+  <div class="lado">
+    <div>
+      <p><b>Editar datos:</b></p>
+      <ol>
+        <li>Tocá <b>Editar</b> en la sección que querés cambiar (o <b>Editar datos</b> arriba, para los datos personales).</li>
+        <li>Hacé los cambios.</li>
+        <li>Tocá <b>Guardar cambios</b>.</li>
+      </ol>
+      <p>Si cerrás sin guardar, el sistema te pregunta antes de descartar lo escrito.</p>
+    </div>
+    <figure><img src="img/04-editar.png" alt="Editar una sección"><figcaption>Edición de una sección</figcaption></figure>
+  </div>
+  <p><b>Campos vacíos:</b> cada sección muestra solo lo cargado. Para ver todos los campos, tocá <b>Mostrar campos vacíos</b>.</p>
+  <p><b>Historial de cambios:</b> el ícono del reloj junto a algunos campos (diagnóstico, tratamiento, interconsulta) muestra cada versión anterior: antes, después, fecha y quién lo cambió.</p>
+  <p><b>MMSE:</b> al editarlo, el total y su interpretación se ven abajo mientras cargás los puntajes. El máximo es 28.</p>
+</section>
+
+<section class="nueva">
+  <h2>4. Evoluciones</h2>
+  <ol>
+    <li>Tocá <b>Nueva evolución</b> (arriba en la ficha o en la pestaña Clínico Psicosocial).</li>
+    <li>Revisá la fecha y escribí la evolución.</li>
+    <li>Tocá <b>Guardar evolución</b>.</li>
+  </ol>
+  <figure><img src="img/05-evolucion.jpg" alt="Nueva evolución"><figcaption>Nueva evolución: queda registrada a nombre de quien la escribe</figcaption></figure>
+  <div class="nota alerta">La evolución queda registrada a tu nombre. <b>Una vez guardada no se puede modificar ni borrar</b>: si hay un error, agregá una nueva evolución aclarándolo.</div>
+</section>
+
+<section>
+  <h2>5. Fotos y archivos</h2>
+  <p>Tocá <b>Fotos y archivos</b> (o la foto del paciente) para abrir la galería.</p>
+  <ul>
+    <li><b>Subir:</b> tocá <b>Subir archivo</b>, elegí una foto, video o PDF (hasta 50 MB), el tipo y una descripción opcional. Si elegís <b>Foto de perfil</b>, reemplaza la foto del paciente.</li>
+    <li><b>Ver:</b> tocá cualquier archivo para abrirlo.</li>
+    <li><b>Eliminar:</b> marcá los archivos y tocá <b>Eliminar</b>. No se puede deshacer.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>6. Imprimir</h2>
+  <ol>
+    <li>Abrí la pestaña que querés imprimir.</li>
+    <li>Tocá <b>Imprimir</b> (el botón dice el nombre de la pestaña).</li>
+    <li>El PDF se abre en una pestaña nueva, listo para imprimir o guardar.</li>
+  </ol>
+  <p>El PDF sale con el nombre y la matrícula del profesional. Si imprime una <b>secretaria/o</b>, sale a nombre del profesional al que está asignada.</p>
+</section>
+
+<section class="nueva">
+  <h2>7. Dar de baja a un paciente</h2>
+  <p>La historia clínica <b>nunca se borra</b>. El paciente queda guardado y se puede ver e imprimir, pero ya no se puede modificar.</p>
+  <ol>
+    <li>En la ficha, tocá <b>Dar de baja</b> (abajo a la derecha, en rojo).</li>
+    <li>Elegí el tipo de baja y completá los datos.</li>
+    <li>Confirmá.</li>
+  </ol>
+  <figure><img src="img/07-baja.png" alt="Dar de baja por fallecimiento"><figcaption>Baja por fallecimiento: solo la fecha es obligatoria</figcaption></figure>
+  <table>
+    <tr><th style="width:42%">Tipo</th><th>Qué se completa</th></tr>
+    <tr><td>Fallecimiento</td><td><b>Fecha</b> (obligatoria). Opcionales: hora, lugar, causa, a quién se notificó y cuándo, observaciones.</td></tr>
+    <tr><td>Alta, traslado o derivación, decisión del paciente o la familia, otro</td><td><b>Motivo</b> (obligatorio). En traslado, la institución de destino.</td></tr>
+  </table>
+  <p>Los pacientes dados de baja no aparecen en la lista. Para verlos, tocá <b>Mostrar dados de baja</b> al pie de la lista.</p>
+  <p><b>Reactivar:</b> si un paciente con alta o traslado reingresa, abrí su ficha y tocá <b>Reactivar</b>. Un fallecimiento no se reactiva: si se cargó por error, solo un administrador puede anularlo.</p>
+</section>
+
+<section class="nueva">
+  <h2>8. Cierre de sesión al final del día</h2>
+  <p>Para proteger las historias clínicas, <b>todas las sesiones se cierran a la medianoche</b>. Al día siguiente hay que volver a ingresar.</p>
+  <p>10 minutos antes aparece un aviso. Tocá <b>Entendido</b> y guardá lo que estés haciendo: el cierre no se puede posponer.</p>
+  <figure class="chica"><img src="img/08-cierre-diario.png" alt="Aviso de cierre al final del día" style="max-width: 105mm"><figcaption>Aviso antes del cierre</figcaption></figure>
+  <p>Si el equipo quedó con la sesión abierta de un día para otro, se cierra apenas se vuelve a usar.</p>
+  <div class="nota alerta">Lo que no se haya guardado se pierde. En un equipo compartido, tocá <b>Salir</b> al terminar de usarlo.</div>
+</section>
+
+<section>
+  <h2>9. Para administradores</h2>
+  <p>Los administradores ven <b>Usuarios</b> en la barra superior.</p>
+  <figure class="chica"><img src="img/09-usuarios.png" alt="Gestión de usuarios"><figcaption>Usuarios: interruptor para activar o desactivar y lápiz para editar</figcaption></figure>
+  <ul>
+    <li><b>Nuevo usuario:</b> email, nombre, rol y, según el rol, matrícula o profesional asignado. La persona después ingresa con Google o eligiendo su contraseña.</li>
+    <li><b>Editar:</b> el lápiz al lado de cada usuario.</li>
+    <li><b>Desactivar:</b> el interruptor. No borra nada y se puede volver a activar.</li>
+  </ul>
+  <table>
+    <tr><th>Rol</th><th>Matrícula</th><th>Puede</th></tr>
+    <tr><td>Administrador</td><td>Opcional</td><td>Todo, incluida la gestión de usuarios</td></tr>
+    <tr><td>Profesional</td><td>Obligatoria</td><td>Ver y editar pacientes, evoluciones, archivos e imprimir</td></tr>
+    <tr><td>Secretaria/o</td><td>No lleva</td><td>Lo mismo que un profesional; imprime a nombre de su profesional</td></tr>
+  </table>
+  <p><b>Registro de accesos:</b> muestra quién abrió, imprimió o modificó cada historia clínica, y cuándo. Está en <b>Usuarios → Registro de accesos</b> (de todos) y en el botón <b>Accesos</b> de cada ficha (de ese paciente). Nadie puede borrarlo.</p>
+  <figure class="chica"><img src="img/09-accesos.jpg" alt="Registro de accesos"><figcaption>Registro de accesos</figcaption></figure>
+  <p><b>Anular un fallecimiento cargado por error:</b> en la ficha del paciente, tocá <b>Anular (error de carga)</b> y escribí el motivo.</p>
+</section>
+
+<section>
+  <h2>10. Preguntas frecuentes</h2>
+  <p><b>Me olvidé la contraseña.</b> En la pantalla de ingreso, escribí tu email y tocá <b>Crear o recuperar mi contraseña</b>.</p>
+  <p><b>No encuentro a un paciente.</b> Puede estar dado de baja: buscalo por nombre o DNI (aparece con la etiqueta "De baja" o "Fallecida/o"), o tocá <b>Mostrar dados de baja</b>.</p>
+  <p><b>Me equivoqué en una evolución.</b> No se puede editar. Agregá una nueva evolución con la corrección.</p>
+  <p><b>Quiero ver qué decía un campo antes.</b> Tocá el ícono del reloj junto al campo.</p>
+  <p><b>No puedo editar un paciente.</b> Está dado de baja. Si reingresó, tocá <b>Reactivar</b> en su ficha.</p>
+  <p><b>Me pide ingresar de nuevo.</b> Las sesiones se cierran todos los días a la medianoche. Volvé a ingresar.</p>
+  <p><b>Soy secretaria/o y no puedo entrar.</b> Tu usuario no tiene un profesional asignado activo. Pedile a un administrador que lo configure.</p>
+</section>
+
+</body>
+</html>
