@@ -31,6 +31,8 @@ export default function EncabezadoPaciente({ paciente, acciones, onAbrirGaleria,
     ["Obra social", mostrar(dp.obraSocial)],
     ["N.º de afiliado", mostrar(dp.afiliadoNumero)],
     ["Ingreso", mostrar(formatearFecha(dp.fechaIngreso))],
+    // Último: en 4 columnas queda debajo de Género. Siempre visible, aunque esté vacío.
+    ["Institución", mostrar(dp.institucion)],
   ];
 
   const avatar = (

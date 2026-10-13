@@ -82,6 +82,8 @@ export const SECCIONES = {
             opciones: ["Femenino", "Masculino", "Otro"],
           }),
           fecha("datosPersonales.fechaNacimiento", "Fecha de nacimiento", { noFutura: true }),
+          // En el formulario (2 columnas) queda justo debajo de Género
+          campo("datosPersonales.institucion", "Institución"),
           campo("datosPersonales.obraSocial", "Obra social"),
           campo("datosPersonales.afiliadoNumero", "N.º de afiliado"),
           fecha("datosPersonales.fechaIngreso", "Fecha de ingreso", { noFutura: true }),

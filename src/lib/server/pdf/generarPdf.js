@@ -25,6 +25,7 @@ function encabezadoPaciente(doc, p, responsable) {
     ["Fecha de nacimiento", mostrar(formatearFecha(dp.fechaNacimiento), VACIO)],
     ["Obra social", mostrar(dp.obraSocial, VACIO)],
     ["N.º de afiliado", mostrar(dp.afiliadoNumero, VACIO)],
+    ["Institución", mostrar(dp.institucion, VACIO)],
     ["Ingreso", mostrar(formatearFecha(dp.fechaIngreso), VACIO)],
   ]);
   if (responsable) {
