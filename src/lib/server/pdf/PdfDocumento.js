@@ -265,6 +265,32 @@ export class PdfDocumento {
     this.y -= 20 + maxLineas * 12;
   }
 
+  /**
+   * Bloque de firma en el margen inferior derecho de la última página: espacio para
+   * firmar, la línea y debajo `lineas` (nombre, matrícula) centradas. Si el contenido
+   * ya ocupa esa zona, va en una página nueva.
+   */
+  firmaAlPie({ etiqueta, lineas = [] }) {
+    const ANCHO_BLOQUE = 190;
+    const ESPACIO_FIRMA = 55;
+    const x = MARGEN + this.ancho - ANCHO_BLOQUE;
+    const textos = [
+      ...lineas.map((texto, i) => ({ texto, font: i === 0 ? this.bold : this.font, color: NEGRO })),
+      ...(etiqueta ? [{ texto: etiqueta, font: this.font, color: GRIS }] : []),
+    ];
+    const yLinea = MARGEN + PIE + textos.length * 12 + 4;
+    if (this.y < yLinea + ESPACIO_FIRMA) this.nuevaPagina();
+
+    this.page.drawLine({ start: { x, y: yLinea }, end: { x: x + ANCHO_BLOQUE, y: yLinea }, thickness: 0.8, color: NEGRO });
+    textos.forEach(({ texto, font, color }, i) => {
+      let size = 9; // un nombre o matrícula muy largos se achican para no salirse del bloque
+      while (size > 6 && font.widthOfTextAtSize(texto, size) > ANCHO_BLOQUE) size -= 0.5;
+      const ancho = font.widthOfTextAtSize(texto, size);
+      this.page.drawText(texto, { x: x + Math.max(0, (ANCHO_BLOQUE - ancho) / 2), y: yLinea - 12 - i * 12, size, font, color });
+    });
+    this.y = MARGEN + PIE;
+  }
+
   async terminar() {
     const paginas = this.pdf.getPages();
     const emitido = new Date().toLocaleString("es-AR", {

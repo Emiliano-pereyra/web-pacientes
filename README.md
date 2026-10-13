@@ -30,7 +30,7 @@ powershell -ExecutionPolicy Bypass -File docs/manual/generar.ps1
 | `src/lib/paciente/logica.js` | Reglas clínicas compartidas: edad calculada, puntaje MMSE, validaciones, cálculo de cambios. |
 | `src/lib/paciente/migracion.js` | Traducción del modelo viejo (campos planos) al modelo unificado. |
 | `src/lib/server/pacientesService.js` | Acceso a Firestore: alta, edición por sección con historial, evoluciones. |
-| `src/lib/server/pdf/` | Generación de PDFs con pdf-lib (ajuste de línea, paginación, Roboto embebida). |
+| `src/lib/server/pdf/` | Generación de PDFs con pdf-lib (ajuste de línea, paginación, Roboto embebida). Si quien imprime tiene matrícula (profesional, o secretaria/o de uno), todo PDF lleva al pie, a la derecha de la última página, el espacio para firmar con nombre y matrícula. |
 | `src/app/components/paciente/` | Componentes genéricos: vista y edición de secciones, evoluciones, historial. |
 
 ## Modelo de datos (schemaVersion 2)

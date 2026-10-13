@@ -36,10 +36,18 @@ function encabezadoPaciente(doc, p, responsable) {
   doc.linea();
 }
 
-/** Nombre y matrícula que van debajo de la línea de firma del profesional. */
-function lineasResponsable(responsable) {
-  if (!responsable) return [];
-  return [responsable.nombre, ...(responsable.matricula ? [`Mat. ${responsable.matricula}`] : [])].filter(Boolean);
+/**
+ * Firma del profesional al pie (margen inferior derecho de la última página).
+ * Si quien imprime es profesional (o secretaria/o de uno: el responsable tiene
+ * matrícula) va con su nombre y matrícula en cualquier PDF; si no, solo en las
+ * pestañas que llevan firma, sin nombre.
+ */
+export function firmaProfesional(responsable, conFirmas) {
+  const matricula = String(responsable?.matricula || "").trim();
+  if (matricula) {
+    return { etiqueta: "Firma y sello", lineas: [String(responsable.nombre || "").trim(), `Mat. ${matricula}`].filter(Boolean) };
+  }
+  return conFirmas ? { etiqueta: "Firma y sello del profesional", lineas: [] } : null;
 }
 
 function valorCampo(p, c) {
@@ -149,9 +157,8 @@ export async function generarPdf(tipo, paciente, evoluciones = [], { responsable
   if (pestana.conEvoluciones) renderEvoluciones(doc, evoluciones);
 
   if (pestana.id === "fliaYApod") doc.firmas(["Firma del apoderado", "Aclaración y DNI"]);
-  else if (pestana.conFirmas) {
-    doc.firmas([{ etiqueta: "Firma y sello del profesional", lineas: lineasResponsable(responsable) }]);
-  }
+  const firma = firmaProfesional(responsable, pestana.conFirmas);
+  if (firma) doc.firmaAlPie(firma);
 
   return doc.terminar();
 }
