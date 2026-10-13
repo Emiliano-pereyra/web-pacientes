@@ -22,6 +22,7 @@ import FormularioSeccion from "./paciente/FormularioSeccion";
 import { SECCIONES, SECCIONES_ALTA, camposDeSeccion } from "@/lib/paciente/schema";
 import { hoyISO } from "@/lib/paciente/logica";
 import { api } from "@/lib/cliente/api";
+import { optimizarImagen } from "@/lib/cliente/imagenes";
 
 const MAX_FOTO = 5 * 1024 * 1024;
 
@@ -41,11 +42,12 @@ export default function ModalCrearPaciente({ open, onClose, onCreateSuccess }) {
     if (errores[path]) setErrores((prev) => ({ ...prev, [path]: undefined }));
   };
 
-  const elegirFoto = (e) => {
-    const f = e.target.files?.[0];
+  const elegirFoto = async (e) => {
+    const elegida = e.target.files?.[0];
     e.target.value = "";
-    if (!f) return;
-    if (!f.type.startsWith("image/")) return setError("El archivo seleccionado no es una imagen.");
+    if (!elegida) return;
+    if (!elegida.type.startsWith("image/")) return setError("El archivo seleccionado no es una imagen.");
+    const { archivo: f } = await optimizarImagen(elegida); // una foto de celular baja de ~4 MB a ~400 KB
     if (f.size > MAX_FOTO) return setError("La imagen supera el límite de 5 MB.");
     setError("");
     setFoto(f);

@@ -4,7 +4,9 @@ import { useState } from "react";
 import {
   Box,
   Button,
+  ButtonBase,
   Chip,
+  Collapse,
   IconButton,
   Paper,
   Table,
@@ -16,6 +18,7 @@ import {
   Typography,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import HistoryIcon from "@mui/icons-material/History";
 import { MMSE_ITEMS, SECCIONES, claveModificacion, getPath } from "@/lib/paciente/schema";
 import { esVacio, formatearFecha, formatearFechaHora, mostrar } from "@/lib/paciente/logica";
@@ -117,14 +120,28 @@ function tieneContenido(paciente, c) {
   return Boolean(c.conHistorial && paciente.ultimaModificacion?.[claveModificacion(c.path)]);
 }
 
+/** Lo que se ve de una sección plegada: cuánto tiene cargado (o el resultado del MMSE). */
+function resumenSeccion(paciente, seccion, cargados, totalCampos) {
+  if (seccion.esMMSE) {
+    const r = paciente.derivados?.mmse;
+    if (!r || r.completados === 0) return "Sin puntajes cargados";
+    return r.completo ? `${r.total} / ${r.max} · ${r.interpretacion}` : `${r.total} / ${r.max} · incompleto`;
+  }
+  if (cargados === 0) return "Sin datos cargados";
+  return `${cargados} de ${totalCampos} campos con datos`;
+}
+
 /**
  * Una sección del paciente. Por defecto oculta los campos vacíos para que se vea
  * lo que está cargado; "Mostrar campos vacíos" los muestra todos.
+ * Con `plegable`, el título despliega o pliega el contenido (`abierta` / `onAlternar`)
+ * y plegada muestra un resumen.
  */
-export default function SeccionVista({ paciente, seccionKey, onEditar, onVerHistorial }) {
+export default function SeccionVista({ paciente, seccionKey, onEditar, onVerHistorial, plegable = false, abierta = true, onAlternar }) {
   const [verVacios, setVerVacios] = useState(false);
   const seccion = SECCIONES[seccionKey];
   const variosGrupos = seccion.grupos.length > 1;
+  const idContenido = `seccion-${seccionKey}`;
 
   const grupos = seccion.grupos
     .map((g) => ({ ...g, visibles: verVacios ? g.campos : g.campos.filter((c) => tieneContenido(paciente, c)) }))
@@ -132,13 +149,55 @@ export default function SeccionVista({ paciente, seccionKey, onEditar, onVerHist
   const totalCampos = seccion.grupos.reduce((n, g) => n + g.campos.length, 0);
   const cargados = seccion.grupos.reduce((n, g) => n + g.campos.filter((c) => tieneContenido(paciente, c)).length, 0);
   const hayVacios = cargados < totalCampos;
+  const visible = !plegable || abierta;
+
+  const titulo = (
+    <Typography variant="h6" component="h2">
+      {seccion.titulo}
+    </Typography>
+  );
 
   return (
     <Paper component="section" variant="outlined" sx={{ p: { xs: 2, sm: 2.5 }, mb: 2 }}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5} gap={1}>
-        <Typography variant="h6" component="h2">
-          {seccion.titulo}
-        </Typography>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={visible ? 1.5 : 0} gap={1}>
+        {plegable ? (
+          <ButtonBase
+            onClick={() => onAlternar(seccionKey)}
+            aria-expanded={abierta}
+            aria-controls={idContenido}
+            sx={{
+              flex: 1,
+              minWidth: 0,
+              justifyContent: "flex-start",
+              textAlign: "left",
+              gap: 1,
+              borderRadius: 1,
+              py: 0.5,
+              mr: 1,
+              "&:focus-visible": { outline: "2px solid", outlineColor: "primary.main", outlineOffset: 2 },
+            }}
+          >
+            <ExpandMoreIcon
+              aria-hidden
+              sx={{
+                color: "text.secondary",
+                transition: "transform 200ms cubic-bezier(0.23, 1, 0.32, 1)",
+                transform: abierta ? "rotate(0deg)" : "rotate(-90deg)",
+                "@media (prefers-reduced-motion: reduce)": { transition: "none" },
+              }}
+            />
+            <Box sx={{ minWidth: 0 }}>
+              {titulo}
+              {!abierta && (
+                <Typography variant="body2" color="text.secondary">
+                  {resumenSeccion(paciente, seccion, cargados, totalCampos)}
+                </Typography>
+              )}
+            </Box>
+          </ButtonBase>
+        ) : (
+          titulo
+        )}
         {onEditar && (
           <Button
             size="small"
@@ -151,6 +210,7 @@ export default function SeccionVista({ paciente, seccionKey, onEditar, onVerHist
         )}
       </Box>
 
+      <Collapse in={visible} timeout={200} id={idContenido}>
       {seccion.esMMSE ? (
         <VistaMMSE paciente={paciente} />
       ) : (
@@ -195,6 +255,7 @@ export default function SeccionVista({ paciente, seccionKey, onEditar, onVerHist
           )}
         </>
       )}
+      </Collapse>
     </Paper>
   );
 }

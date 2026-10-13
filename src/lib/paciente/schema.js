@@ -278,12 +278,14 @@ export const PESTANAS = [
     titulo: "Antecedentes",
     tituloPdf: "Historia clínica — Antecedentes y examen físico",
     secciones: ["antecedentes", "examenFisico", "tratamiento"],
+    seccionesPlegables: true, // muchos campos: cada sección se despliega por separado
   },
   {
     id: "clinico",
     titulo: "Clínico Psicosocial",
     tituloPdf: "Valoración geriátrica",
     secciones: ["valoracionSocial", "valoracionMental", "valoracionFuncional"],
+    seccionesPlegables: true,
     conEvoluciones: true,
   },
   {

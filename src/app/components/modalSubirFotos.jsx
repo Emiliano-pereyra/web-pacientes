@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { api } from "@/lib/cliente/api";
 import { formatearTamano } from "@/lib/cliente/formato";
 import { useCambiosSinGuardar } from "@/lib/cliente/formularios";
+import { optimizarImagen } from "@/lib/cliente/imagenes";
 
 const TIPOS_FOTO = [
   { value: "adicional", label: "Archivo adicional" },
@@ -34,27 +35,34 @@ export default function ModalSubirFotoPaciente({ open, onClose, pacienteId, pati
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState(null);
   const [error, setError] = useState("");
+  const [preparando, setPreparando] = useState(false); // optimizando la foto elegida
+  const [original, setOriginal] = useState(null); // { nombre, tamano } si se optimizó
   const fileInputRef = useRef(null);
 
   const pedirCierre = useCambiosSinGuardar(Boolean(file) && !loading);
 
   useEffect(() => () => preview && URL.revokeObjectURL(preview), [preview]);
 
-  const handleFileChange = (e) => {
-    const selected = e.target.files?.[0];
-    if (!selected) return;
+  const handleFileChange = async (e) => {
+    const elegido = e.target.files?.[0];
+    if (!elegido) return;
     setError("");
+    setPreparando(true);
+    const { archivo: selected, optimizada, tamanoOriginal } = await optimizarImagen(elegido);
+    setPreparando(false);
     if (selected.size > MAX_ARCHIVO) {
       setError(`El archivo pesa ${formatearTamano(selected.size)}; el máximo es 50 MB.`);
       return;
     }
     if (tipo === "perfil" && !selected.type.startsWith("image/")) setTipo("adicional");
     setFile(selected);
+    setOriginal(optimizada ? { nombre: elegido.name, tamano: tamanoOriginal } : null);
     setPreview(selected.type.startsWith("image/") ? URL.createObjectURL(selected) : null);
   };
 
   const cerrar = () => {
     setFile(null);
+    setOriginal(null);
     setTipo("adicional");
     setDescripcion("");
     setPreview(null);
@@ -101,10 +109,10 @@ export default function ModalSubirFotoPaciente({ open, onClose, pacienteId, pati
           component="label"
           fullWidth
           startIcon={<UploadFileIcon />}
-          disabled={loading}
+          disabled={loading || preparando}
           sx={{ py: 2.5, borderStyle: "dashed", mb: 0.5, overflowWrap: "anywhere" }}
         >
-          {file ? file.name : "Elegir foto, video o PDF"}
+          {preparando ? "Preparando la foto…" : file ? (original?.nombre ?? file.name) : "Elegir foto, video o PDF"}
           <input
             ref={fileInputRef}
             type="file"
@@ -114,7 +122,11 @@ export default function ModalSubirFotoPaciente({ open, onClose, pacienteId, pati
           />
         </Button>
         <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 2 }}>
-          {file ? `${formatearTamano(file.size)} · ${file.type || "tipo desconocido"}` : "JPG, PNG, WebP, MP4 o PDF · hasta 50 MB"}
+          {!file
+            ? "JPG, PNG, WebP, MP4 o PDF · hasta 50 MB"
+            : original
+              ? `Optimizada para subir: ${formatearTamano(original.tamano)} → ${formatearTamano(file.size)}`
+              : `${formatearTamano(file.size)} · ${file.type || "tipo desconocido"}`}
         </Typography>
 
         {preview && (
@@ -165,7 +177,7 @@ export default function ModalSubirFotoPaciente({ open, onClose, pacienteId, pati
         <Button
           variant="contained"
           onClick={handleSubmit}
-          disabled={!file || loading}
+          disabled={!file || loading || preparando}
           startIcon={loading ? <CircularProgress size={18} color="inherit" /> : null}
         >
           {loading ? "Subiendo…" : "Subir archivo"}
