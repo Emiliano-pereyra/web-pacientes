@@ -9,11 +9,6 @@ import {
   Collapse,
   IconButton,
   Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
   Tooltip,
   Typography,
 } from "@mui/material";
@@ -23,6 +18,16 @@ import HistoryIcon from "@mui/icons-material/History";
 import { MMSE_ITEMS, SECCIONES, claveModificacion, getPath } from "@/lib/paciente/schema";
 import { esVacio, formatearFecha, formatearFechaHora, mostrar } from "@/lib/paciente/logica";
 
+// Oculto a la vista pero leído por lectores de pantalla
+const visuallyHidden = {
+  position: "absolute",
+  width: "1px", // en sx, 1 sería 100%
+  height: "1px",
+  overflow: "hidden",
+  clip: "rect(0 0 0 0)",
+  whiteSpace: "nowrap",
+};
+
 function valorVisible(paciente, c) {
   const v = getPath(paciente, c.path);
   if (c.tipo === "date") return mostrar(formatearFecha(v));
@@ -30,85 +35,114 @@ function valorVisible(paciente, c) {
   return mostrar(v);
 }
 
-function Campo({ paciente, campo, onVerHistorial }) {
-  const largo = campo.tipo === "textarea";
-  const mod = campo.conHistorial ? paciente.ultimaModificacion?.[claveModificacion(campo.path)] : null;
-  const ayuda = mod ? `Ver historial · última modificación ${formatearFechaHora(mod)}` : "Ver historial";
+/** Fila de una sección de un solo grupo: el dato a la izquierda y el valor a la derecha. */
+function FilaCampo({ paciente, campo, onVerHistorial }) {
   return (
-    <Box sx={{ gridColumn: largo ? "1 / -1" : "auto", minWidth: 0 }}>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, minHeight: 28 }}>
-        <Typography variant="caption" color="text.secondary" component="div" sx={{ fontWeight: 500 }}>
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: { xs: "minmax(0, 1fr)", sm: "220px minmax(0, 1fr)" },
+        columnGap: 2,
+        rowGap: 0.25,
+        py: 1,
+        borderTop: 1,
+        borderColor: "divider",
+      }}
+    >
+      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+        <Typography variant="body2" color="text.secondary">
           {campo.label}
         </Typography>
-        {campo.conHistorial && (
-          <Tooltip title={ayuda}>
-            <IconButton
-              size="small"
-              aria-label={`${ayuda} de ${campo.label}`}
-              onClick={() => onVerHistorial(campo.path)}
-              sx={{ color: mod ? "primary.main" : "text.disabled" }}
-            >
-              <HistoryIcon sx={{ fontSize: 18 }} />
-            </IconButton>
-          </Tooltip>
-        )}
+        {campo.conHistorial && <BotonHistorial paciente={paciente} campo={campo} onVerHistorial={onVerHistorial} />}
       </Box>
-      <Typography variant="body2" sx={{ whiteSpace: largo ? "pre-wrap" : "normal", overflowWrap: "anywhere" }}>
+      <Typography
+        variant="body2"
+        sx={{ fontWeight: 500, whiteSpace: campo.tipo === "textarea" ? "pre-wrap" : "normal", overflowWrap: "anywhere" }}
+      >
         {valorVisible(paciente, campo)}
       </Typography>
     </Box>
   );
 }
 
+/** Nota destacada (observaciones): fondo suave y barra a la izquierda. */
+function Nota({ children, titulo = "Observaciones", sx }) {
+  return (
+    <Box sx={{ px: 1.5, py: 1, bgcolor: "action.hover", borderLeft: 3, borderColor: "grey.400", ...sx }}>
+      <Typography variant="caption" color="text.secondary" component="div">
+        {titulo}
+      </Typography>
+      <Typography variant="body2" sx={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>
+        {children}
+      </Typography>
+    </Box>
+  );
+}
+
+/** MMSE: el resultado arriba, bien visible, y debajo cada ítem con su respuesta y puntaje. */
 function VistaMMSE({ paciente }) {
   const r = paciente.derivados?.mmse;
+  const observaciones = getPath(paciente, "valoracionMental.observaciones");
   return (
     <>
-      <Box sx={{ overflowX: "auto" }}>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Ítem</TableCell>
-              <TableCell>Respuesta</TableCell>
-              <TableCell align="right">Puntaje</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {MMSE_ITEMS.map((item) => {
-              const p = getPath(paciente, `valoracionMental.${item.id}.puntaje`);
-              return (
-                <TableRow key={item.id}>
-                  <TableCell>{item.label}</TableCell>
-                  <TableCell>{mostrar(getPath(paciente, `valoracionMental.${item.id}.respuesta`))}</TableCell>
-                  <TableCell align="right">{typeof p === "number" ? `${p} / ${item.max}` : `— / ${item.max}`}</TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </Box>
-      {r && (
-        <Box sx={{ mt: 2, display: "flex", gap: 1, alignItems: "center", flexWrap: "wrap" }}>
-          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-            Puntaje total: {r.total} / {r.max}
+      {r && r.completados > 0 && (
+        <Box sx={{ display: "flex", gap: 1.5, alignItems: "center", flexWrap: "wrap", mb: 1.5 }}>
+          <Typography component="p" sx={{ fontSize: "1.5rem", fontWeight: 600, fontVariantNumeric: "tabular-nums", lineHeight: 1.2 }}>
+            {r.total}
+            <Typography component="span" color="text.secondary" sx={{ fontSize: "1rem", fontWeight: 400 }}>
+              {" "}
+              / {r.max}
+            </Typography>
           </Typography>
           {r.completo ? (
-            <Chip size="small" color="primary" label={r.interpretacion} />
+            <Chip color="primary" label={r.interpretacion} />
           ) : (
-            <Chip size="small" variant="outlined" label={`Incompleto: ${r.completados} de ${r.itemsTotales} ítems`} />
+            <Chip variant="outlined" label={`Incompleto: ${r.completados} de ${r.itemsTotales} ítems`} />
           )}
         </Box>
       )}
-      {getPath(paciente, "valoracionMental.observaciones") && (
-        <Box sx={{ mt: 2 }}>
-          <Typography variant="caption" color="text.secondary">
-            Observaciones
-          </Typography>
-          <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
-            {getPath(paciente, "valoracionMental.observaciones")}
-          </Typography>
-        </Box>
-      )}
+      <Box component="ol" sx={{ m: 0, p: 0, listStyle: "none" }}>
+        {MMSE_ITEMS.map((item) => {
+          const p = getPath(paciente, `valoracionMental.${item.id}.puntaje`);
+          const respuesta = getPath(paciente, `valoracionMental.${item.id}.respuesta`);
+          return (
+            <Box
+              component="li"
+              key={item.id}
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "minmax(0, 1fr) auto", sm: "minmax(0, 1.4fr) minmax(0, 1fr) auto" },
+                columnGap: 2,
+                py: 1,
+                borderTop: 1,
+                borderColor: "divider",
+                alignItems: "baseline",
+              }}
+            >
+              <Typography variant="body2" color="text.secondary">
+                {item.label}
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{ fontWeight: 500, overflowWrap: "anywhere", gridRow: { xs: 2, sm: "auto" }, gridColumn: { xs: "1 / -1", sm: "auto" } }}
+              >
+                {respuesta ? respuesta : ""}
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{ fontWeight: 600, fontVariantNumeric: "tabular-nums", textAlign: "right", color: typeof p === "number" ? "text.primary" : "text.disabled" }}
+              >
+                {typeof p === "number" ? p : "—"}
+                <Typography component="span" variant="body2" color="text.secondary" sx={{ fontWeight: 400 }}>
+                  {" "}
+                  / {item.max}
+                </Typography>
+              </Typography>
+            </Box>
+          );
+        })}
+      </Box>
+      {observaciones && <Nota sx={{ mt: 1.5 }}>{observaciones}</Nota>}
     </>
   );
 }
@@ -200,7 +234,13 @@ function FilaGrupo({ paciente, grupo, onVerHistorial }) {
           >
             {cortos.map((c) => (
               <Box key={c.path} sx={{ minWidth: 0, display: "flex", flexWrap: "wrap", columnGap: 0.75 }}>
-                <Typography component="dt" variant="body2" color="text.secondary">
+                {/* Un único dato que repite el nombre del grupo ("Ginecológicas") va sin etiqueta */}
+                <Typography
+                  component="dt"
+                  variant="body2"
+                  color="text.secondary"
+                  sx={grupo.campos.length === 1 && repiteGrupo(c, grupo) ? visuallyHidden : undefined}
+                >
                   {c.label}
                 </Typography>
                 <Typography component="dd" variant="body2" sx={{ m: 0, fontWeight: 500, overflowWrap: "anywhere" }}>
@@ -267,6 +307,7 @@ export default function SeccionVista({ paciente, seccionKey, onEditar, onVerHist
   const hayVacios = cargados < totalCampos;
   const visible = !plegable || abierta;
   const gruposVacios = seccion.grupos.filter((g) => !g.campos.some((c) => tieneContenido(paciente, c)));
+  const camposVacios = seccion.grupos.flatMap((g) => g.campos).filter((c) => !tieneContenido(paciente, c));
   const resumen = resumenSeccion(paciente, seccion, cargados, totalCampos, seccion.grupos.length - gruposVacios.length);
 
   const titulo = (
@@ -344,30 +385,22 @@ export default function SeccionVista({ paciente, seccionKey, onEditar, onVerHist
               ))}
               {!verVacios && cargados > 0 && gruposVacios.length > 0 && (
                 <Typography variant="body2" color="text.secondary" sx={{ pt: 1.25, borderTop: 1, borderColor: "divider" }}>
-                  Sin datos: {gruposVacios.map((g) => g.titulo.toLowerCase()).join(", ")}
+                  Sin datos: {gruposVacios.map((g) => g.titulo).join(", ")}
                 </Typography>
               )}
             </>
-          ) : grupos.map((g) => (
-            <Box key={g.id} sx={{ mb: variosGrupos ? 2 : 0, "&:last-of-type": { mb: 0 } }}>
-              {g.titulo && variosGrupos && g.campos.length > 1 && (
-                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                  {g.titulo}
+          ) : (
+            <>
+              {grupos.flatMap((g) => g.visibles).map((c) => (
+                <FilaCampo key={c.path} paciente={paciente} campo={c} onVerHistorial={onVerHistorial} />
+              ))}
+              {!verVacios && cargados > 0 && camposVacios.length > 0 && (
+                <Typography variant="body2" color="text.secondary" sx={{ pt: 1.25, borderTop: 1, borderColor: "divider" }}>
+                  Sin datos: {camposVacios.map((c) => c.label.replace(/^¿|\?$/g, "")).join(", ")}
                 </Typography>
               )}
-              <Box
-                sx={{
-                  display: "grid",
-                  gap: 1.5,
-                  gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", md: "repeat(4, 1fr)" },
-                }}
-              >
-                {g.visibles.map((c) => (
-                  <Campo key={c.path} paciente={paciente} campo={c} onVerHistorial={onVerHistorial} />
-                ))}
-              </Box>
-            </Box>
-          ))}
+            </>
+          )}
           {hayVacios && (
             <Button
               size="small"

@@ -164,7 +164,7 @@ export default function Evoluciones({ pacienteId, onCambio, pedidoAbrir = false,
   return (
     <Paper ref={raiz} variant="outlined" sx={{ p: { xs: 2, sm: 2.5 }, mb: 2, scrollMarginTop: 120 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5} gap={1}>
-        <Typography variant="h6" component="h2">
+        <Typography variant="h6" component="h2" sx={{ fontSize: "1.125rem", fontWeight: 600 }}>
           Evolución
         </Typography>
         {!abierto && !soloLectura && (
