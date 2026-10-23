@@ -120,15 +120,131 @@ function tieneContenido(paciente, c) {
   return Boolean(c.conHistorial && paciente.ultimaModificacion?.[claveModificacion(c.path)]);
 }
 
-/** Lo que se ve de una sección plegada: cuánto tiene cargado (o el resultado del MMSE). */
-function resumenSeccion(paciente, seccion, cargados, totalCampos) {
+/**
+ * Resumen bajo el título de una sección plegable: cuánto tiene cargado (o el resultado
+ * del MMSE). Las secciones con varios grupos cuentan grupos ("3 de 11 sistemas").
+ */
+function resumenSeccion(paciente, seccion, cargados, totalCampos, gruposConDatos) {
   if (seccion.esMMSE) {
     const r = paciente.derivados?.mmse;
     if (!r || r.completados === 0) return "Sin puntajes cargados";
     return r.completo ? `${r.total} / ${r.max} · ${r.interpretacion}` : `${r.total} / ${r.max} · incompleto`;
   }
   if (cargados === 0) return "Sin datos cargados";
+  if (seccion.grupos.length > 1) {
+    return `${gruposConDatos} de ${seccion.grupos.length} ${seccion.nombreGrupos || "apartados"} con datos`;
+  }
   return `${cargados} de ${totalCampos} campos con datos`;
+}
+
+const normalizarEtiqueta = (t) =>
+  String(t || "")
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/\s*\(.*\)\s*$/, "")
+    .trim();
+
+/** "Digestivos" dentro de "Digestivos": la etiqueta del campo repite el grupo y sobra. */
+function repiteGrupo(campo, grupo) {
+  const a = normalizarEtiqueta(campo.label);
+  const b = normalizarEtiqueta(grupo.titulo);
+  return a === b || a.slice(0, 6) === b.slice(0, 6); // "Ginecológicas" en "Ginecológicos"
+}
+
+function BotonHistorial({ paciente, campo, onVerHistorial, nombre }) {
+  const mod = paciente.ultimaModificacion?.[claveModificacion(campo.path)];
+  const ayuda = mod ? `Ver historial · última modificación ${formatearFechaHora(mod)}` : "Ver historial";
+  return (
+    <Tooltip title={ayuda}>
+      <IconButton
+        size="small"
+        aria-label={`${ayuda} de ${nombre || campo.label}`}
+        onClick={() => onVerHistorial(campo.path)}
+        sx={{ color: mod ? "primary.main" : "text.disabled", my: -0.5 }}
+      >
+        <HistoryIcon sx={{ fontSize: 18 }} />
+      </IconButton>
+    </Tooltip>
+  );
+}
+
+/**
+ * Un grupo (sistema) como fila: el nombre a la izquierda y sus datos a la derecha
+ * ("Atención · Conservada"). Los textos largos van debajo; las observaciones, en un
+ * recuadro aparte. En el celular el nombre queda arriba.
+ */
+function FilaGrupo({ paciente, grupo, onVerHistorial }) {
+  const cortos = grupo.visibles.filter((c) => c.tipo !== "textarea");
+  const largos = grupo.visibles.filter((c) => c.tipo === "textarea");
+  return (
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: { xs: "minmax(0, 1fr)", sm: "180px minmax(0, 1fr)" },
+        columnGap: 2,
+        rowGap: 0.5,
+        py: 1.5,
+        borderTop: 1,
+        borderColor: "divider",
+      }}
+    >
+      <Typography component="h3" variant="subtitle2" color="primary" sx={{ fontWeight: 600, lineHeight: 1.5 }}>
+        {grupo.titulo}
+      </Typography>
+      <Box sx={{ minWidth: 0 }}>
+        {cortos.length > 0 && (
+          <Box
+            component="dl"
+            sx={{ m: 0, display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(190px, 1fr))", columnGap: 2, rowGap: 0.5 }}
+          >
+            {cortos.map((c) => (
+              <Box key={c.path} sx={{ minWidth: 0, display: "flex", flexWrap: "wrap", columnGap: 0.75 }}>
+                <Typography component="dt" variant="body2" color="text.secondary">
+                  {c.label}
+                </Typography>
+                <Typography component="dd" variant="body2" sx={{ m: 0, fontWeight: 500, overflowWrap: "anywhere" }}>
+                  {valorVisible(paciente, c)}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        )}
+        {largos.map((c, i) => {
+          const esNota = c.path.endsWith(".observaciones");
+          const sinEtiqueta = esNota || repiteGrupo(c, grupo);
+          return (
+            <Box
+              key={c.path}
+              sx={{
+                mt: i > 0 || cortos.length > 0 ? 1 : 0,
+                ...(esNota && { px: 1.5, py: 1, bgcolor: "action.hover", borderLeft: 3, borderColor: "grey.400" }),
+              }}
+            >
+              {(!sinEtiqueta || c.conHistorial) && (
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                  {!sinEtiqueta && (
+                    <Typography variant="body2" color="text.secondary">
+                      {c.label}
+                    </Typography>
+                  )}
+                  {c.conHistorial && <BotonHistorial paciente={paciente} campo={c} onVerHistorial={onVerHistorial} />}
+                </Box>
+              )}
+              {esNota && (
+                <Typography variant="caption" color="text.secondary" component="div">
+                  Observaciones
+                </Typography>
+              )}
+              <Typography variant="body2" sx={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>
+                {valorVisible(paciente, c)}
+              </Typography>
+            </Box>
+          );
+        })}
+      </Box>
+    </Box>
+  );
 }
 
 /**
@@ -150,9 +266,11 @@ export default function SeccionVista({ paciente, seccionKey, onEditar, onVerHist
   const cargados = seccion.grupos.reduce((n, g) => n + g.campos.filter((c) => tieneContenido(paciente, c)).length, 0);
   const hayVacios = cargados < totalCampos;
   const visible = !plegable || abierta;
+  const gruposVacios = seccion.grupos.filter((g) => !g.campos.some((c) => tieneContenido(paciente, c)));
+  const resumen = resumenSeccion(paciente, seccion, cargados, totalCampos, seccion.grupos.length - gruposVacios.length);
 
   const titulo = (
-    <Typography variant="h6" component="h2">
+    <Typography variant="h6" component="h2" sx={{ fontSize: "1.125rem", fontWeight: 600 }}>
       {seccion.titulo}
     </Typography>
   );
@@ -188,11 +306,10 @@ export default function SeccionVista({ paciente, seccionKey, onEditar, onVerHist
             />
             <Box sx={{ minWidth: 0 }}>
               {titulo}
-              {!abierta && (
-                <Typography variant="body2" color="text.secondary">
-                  {resumenSeccion(paciente, seccion, cargados, totalCampos)}
-                </Typography>
-              )}
+              {/* El resumen se ve siempre: abierta también ubica cuánto falta cargar */}
+              <Typography variant="body2" color="text.secondary">
+                {resumen}
+              </Typography>
             </Box>
           </ButtonBase>
         ) : (
@@ -220,7 +337,18 @@ export default function SeccionVista({ paciente, seccionKey, onEditar, onVerHist
               Sin datos cargados.
             </Typography>
           )}
-          {grupos.map((g) => (
+          {variosGrupos ? (
+            <>
+              {grupos.map((g) => (
+                <FilaGrupo key={g.id} paciente={paciente} grupo={g} onVerHistorial={onVerHistorial} />
+              ))}
+              {!verVacios && cargados > 0 && gruposVacios.length > 0 && (
+                <Typography variant="body2" color="text.secondary" sx={{ pt: 1.25, borderTop: 1, borderColor: "divider" }}>
+                  Sin datos: {gruposVacios.map((g) => g.titulo.toLowerCase()).join(", ")}
+                </Typography>
+              )}
+            </>
+          ) : grupos.map((g) => (
             <Box key={g.id} sx={{ mb: variosGrupos ? 2 : 0, "&:last-of-type": { mb: 0 } }}>
               {g.titulo && variosGrupos && g.campos.length > 1 && (
                 <Typography variant="subtitle2" sx={{ mb: 0.5 }}>

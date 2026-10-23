@@ -94,8 +94,9 @@ export const SECCIONES = {
 
   antecedentes: {
     titulo: "Antecedentes",
+    nombreGrupos: "sistemas", // "3 de 11 sistemas con datos"
     grupos: [
-      grupo("antecedentes", "cardiovascular", "Cardiovasculares", [["ta", "TA"], ["cardio", "Cardio"]], true),
+      grupo("antecedentes", "cardiovascular", "Cardiovasculares", [["ta", "Tensión arterial (TA)"], ["cardio", "Cardio"]], true),
       grupo("antecedentes", "digestivo", "Digestivos", [["digestivos", "Digestivos"], ["constipacion", "Constipación"]], true),
       grupo("antecedentes", "metabolico", "Metabólicos / DBT", [["metabolicas", "Metabólicas"], ["tiroides", "Tiroides"]], true),
       grupo("antecedentes", "sensorial", "Sensoriales", [["auditivas", "Auditivas"], ["olfativas", "Olfativas"], ["visuales", "Visuales"], ["gustativas", "Gustativas"]]),
@@ -111,12 +112,13 @@ export const SECCIONES = {
 
   examenFisico: {
     titulo: "Examen físico",
+    nombreGrupos: "sistemas",
     grupos: [
       grupo("examenFisico", "mental", "Trastornos mentales", [["atencion", "Atención"], ["orientacion", "Orientación"], ["memoria", "Memoria"], ["signosDepresivos", "Signos depresivos"], ["sueno", "Trastornos del sueño"]], true),
       grupo("examenFisico", "facial", "Faciales", [["ojos", "Ojos"], ["boca", "Boca"], ["denticion", "Dentición"]]),
       grupo("examenFisico", "cuello", "Cuello", [["adenopatias", "Adenopatías"], ["bocio", "Bocio"]]),
-      grupo("examenFisico", "cardiovascular", "Ap. cardiovascular", [["r1r2", "R1 y R2"]], true),
-      grupo("examenFisico", "fallaCardiaca", "Signos de falla cardíaca", [["ta", "TA"], ["edemas", "Edemas"]]),
+      grupo("examenFisico", "cardiovascular", "Ap. cardiovascular", [["r1r2", "Ruidos cardíacos (R1 y R2)"]], true),
+      grupo("examenFisico", "fallaCardiaca", "Signos de falla cardíaca", [["ta", "Tensión arterial (TA)"], ["edemas", "Edemas"]]),
       grupo("examenFisico", "piel", "Dermatológicos", [["tejCp", "TEJ CP"], ["peso", "Peso"]]),
       grupo("examenFisico", "respiratorio", "Ap. respiratorio", [["percusion", "Percusión"], ["auscultacion", "Auscultación"]], true),
       grupo("examenFisico", "digestivo", "Ap. digestivo", [["abdomen", "Abdomen"], ["palpacion", "A la palpación"], ["catarsis", "Catarsis"], ["controlEsfinter", "Control de esfínter"]], true),
